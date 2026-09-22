@@ -4,6 +4,7 @@
 
 import type { HSL } from "@/engine/color";
 import type { Medicion, MedidaTexto, Rect } from "@/engine/checklist";
+import type { TipoDeco } from "@/engine/biblioteca";
 import type { PlantillaVariante } from "@/engine/pieza";
 
 const q = (root: HTMLElement, slot: string) => root.querySelector<HTMLElement>(`[data-slot="${slot}"]`);
@@ -20,10 +21,11 @@ export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, al
   if (!zona || !contenido || !h1) return false;
   const body = q(root, "body");
   const px = (v: number) => Math.round(v * escala);
-  // Las cajas reales de las letras (ascendentes y descendentes) pueden sobresalir del interlineado: también tienen
-  // que quedar dentro de la zona del mensaje, si no pisan el margen seguro.
+  // Las cajas reales de las letras (ascendentes y descendentes) pueden sobresalir del interlineado: tienen que quedar
+  // dentro de la columna de contenido (la zona segura), si no pisan el margen.
+  const columna = zona.closest<HTMLElement>("[data-columna]") ?? zona;
   const letrasDentro = () => {
-    const z = zona.getBoundingClientRect();
+    const z = columna.getBoundingClientRect();
     return [h1, body].every((el) => {
       if (!el) return true;
       const range = document.createRange();
@@ -127,6 +129,33 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
           opacidad: parseFloat(getComputedStyle(forma).opacity),
         }
       : null,
+    deco: medirDeco(root),
+    iconos: root.querySelectorAll("[data-icono]").length,
+    contacto: [...root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]')].map((fila) => ({
+      icono: relativo(root, q(fila, "contacto-icono")!.getBoundingClientRect()),
+      texto: medirTexto(root, q(fila, "contacto-texto")!),
+    })),
+    items: [...root.querySelectorAll<HTMLElement>('[data-slot="item"]')].map((it) => {
+      const visual = q(it, "item-visual")!;
+      return {
+        visual: relativo(root, visual.getBoundingClientRect()),
+        tieneVisual: visual.querySelector("[data-icono], [data-foto]") != null,
+        texto: medirTexto(root, q(it, "item-texto")!),
+      };
+    }),
+    fotosSinForma: [...root.querySelectorAll("image")].filter((img) => !img.closest("g[clip-path]")).length,
     desborde,
+  };
+}
+
+function medirDeco(root: HTMLElement): Medicion["deco"] {
+  const el = q(root, "deco");
+  if (!el) return null;
+  return {
+    tipo: el.dataset.decoTipo as TipoDeco,
+    caja: relativo(root, el.getBoundingClientRect()),
+    opacidad: parseFloat(el.dataset.opacidad ?? "1"),
+    overlay: el.dataset.overlay ? parseFloat(el.dataset.overlay) : null,
+    color: JSON.parse(el.dataset.color!) as HSL,
   };
 }

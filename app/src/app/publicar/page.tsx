@@ -20,6 +20,7 @@ import {
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
 import { useMarcas } from "@/lib/marcas";
+import { EditorCatalogo, EditorContacto, EditorDeco } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
 const VISTA_MAX = { ancho: 460, alto: 640 };
@@ -203,20 +204,21 @@ export default function PublicarPage() {
 
         <div className="flex flex-col gap-2">
           <span className="font-medium">Variante</span>
-          {VARIANTES_HABILITADAS.map((v: Variante) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : "izquierda" })}
-              className={`rounded-lg border p-3 text-left ${actual.variante === v ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
-            >
-              <div className="font-medium">
-                {PLANTILLAS[v]!.nombre}
-                {varianteSugerida(marca.rubro) === v && <span className="ml-2 text-xs font-normal opacity-70">sugerida</span>}
-              </div>
-              <div className="mt-0.5 text-xs opacity-70">{PLANTILLAS[v]!.descripcion}</div>
-            </button>
-          ))}
+          <div className="grid grid-cols-2 gap-2">
+            {VARIANTES_HABILITADAS.map((v: Variante) => (
+              <button
+                key={v}
+                type="button"
+                title={PLANTILLAS[v]!.descripcion}
+                onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : "izquierda" })}
+                className={`rounded-lg border px-3 py-2 text-left text-xs ${actual.variante === v ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
+              >
+                <span className="font-medium">{PLANTILLAS[v]!.nombre}</span>
+                {varianteSugerida(marca.rubro) === v && <span className="ml-1 opacity-70">· sugerida</span>}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-neutral-500">{plantilla.descripcion}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -269,6 +271,9 @@ export default function PublicarPage() {
             <input value={actual.contenido.cta ?? ""} onChange={(e) => setContenido({ cta: e.target.value || null })} className="rounded-md border border-neutral-300 px-3 py-2" />
           </label>
         )}
+        {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
+        {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
+        {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>
 
       {/* Vista previa */}

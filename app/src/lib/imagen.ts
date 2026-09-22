@@ -53,3 +53,23 @@ export async function recortarTransparencia(dataUrl: string): Promise<ImagenReco
   out.getContext("2d")!.drawImage(canvas, x0, y0, cw, ch, 0, 0, cw, ch);
   return { dataUrl: out.toDataURL("image/png"), ladoMayorOriginal };
 }
+
+/**
+ * Reduce una foto a `max` px de lado mayor y la pasa a JPEG. Las fotos de celular pesan varios MB y viajan dentro de
+ * la pieza hasta el render; con 1600 px alcanza para cualquier formato de la matriz.
+ */
+export async function reducirFoto(file: File, max = 1600): Promise<string> {
+  const original = await new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const img = await cargar(original);
+  const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.naturalWidth * k);
+  canvas.height = Math.round(img.naturalHeight * k);
+  canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}

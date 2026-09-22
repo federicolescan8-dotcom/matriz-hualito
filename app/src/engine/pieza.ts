@@ -1,5 +1,15 @@
 // Objeto de pieza (manual cap. 9) y plantillas de slots de las variantes (cap. 6).
 
+import {
+  BIBLIOTECA_RUBRO,
+  decosDisponibles,
+  FORMAS,
+  formasDelRubro,
+  ICONOS,
+  type EstiloIconos,
+  type TipoContacto,
+  type TipoDeco,
+} from "./biblioteca";
 import type { Marca } from "./diagnostico";
 import { CANALES, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
@@ -19,6 +29,31 @@ export interface Pieza {
   };
   /** Itálica en el body: solo si la marca la tiene habilitada (cap. 4 paso 3). */
   body_italica: boolean;
+  /** Capa decorativa de las variantes 2B (una sola por pieza). null = la sugerida del rubro. */
+  deco?: Deco | null;
+  /** Variante 3: hasta 4 datos de contacto. */
+  contacto?: DatoContacto[];
+  /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
+  items?: ItemCatalogo[];
+}
+
+export interface Deco {
+  tipo: TipoDeco;
+  /** id de forma, id de patrón o nombre de ícono; en foto, la forma de contención. */
+  id: string;
+  /** Foto como data URL (solo tipo foto). */
+  foto?: string | null;
+}
+
+export interface DatoContacto {
+  tipo: TipoContacto;
+  valor: string;
+}
+
+export interface ItemCatalogo {
+  texto: string;
+  icono: string | null;
+  foto: string | null;
 }
 
 export interface PlantillaVariante {
@@ -36,6 +71,10 @@ export interface PlantillaVariante {
   cta: number;
   /** Alto del slot de logo en px (escala feed). */
   logoPx: number;
+  /** Variantes 2B: dónde va la capa decorativa. */
+  deco?: "lateral" | "inferior";
+  /** Variantes con bloque informativo. */
+  bloque?: "contacto" | "catalogo";
 }
 
 type AjusteVariante = Partial<Omit<PlantillaVariante, "h1" | "body">> & {
@@ -65,6 +104,50 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     cta: 34,
     logoPx: 100,
   },
+  "2B-L": {
+    nombre: "2B-L · Deco lateral",
+    descripcion: "Mensaje a la izquierda y una capa decorativa a la derecha. Impacto con refuerzo visual.",
+    orden: ["H1", "body", "cta", "logo"],
+    tieneCta: true,
+    h1: { min: 56, max: 104, altoMax: 0.42 },
+    body: { min: 26, max: 32 },
+    cta: 32,
+    logoPx: 90,
+    deco: "lateral",
+  },
+  "2B-S": {
+    nombre: "2B-S · Deco inferior",
+    descripcion: "Mensaje arriba y una capa decorativa debajo. Impacto con refuerzo visual.",
+    orden: ["H1", "body", "cta", "logo"],
+    tieneCta: true,
+    h1: { min: 56, max: 116, altoMax: 0.34 },
+    body: { min: 26, max: 32 },
+    cta: 32,
+    logoPx: 90,
+    deco: "inferior",
+  },
+  "3": {
+    nombre: "3 · Contacto",
+    descripcion: "Ficha institucional: mensaje y hasta 4 datos de contacto con ícono. Sin llamado a la acción.",
+    orden: ["H1", "body", "logo"],
+    tieneCta: false,
+    h1: { min: 56, max: 104, altoMax: 0.34 },
+    body: { min: 26, max: 32 },
+    cta: 32,
+    logoPx: 100,
+    bloque: "contacto",
+  },
+  "4": {
+    nombre: "4 · Catálogo",
+    descripcion: "Logo y mensaje, de 2 a 4 productos o servicios con foto o ícono, y llamado a la acción.",
+    orden: ["logo", "H1", "cta"],
+    tieneCta: true,
+    h1: { min: 48, max: 92, altoMax: 0.24 },
+    body: { min: 24, max: 30 },
+    cta: 32,
+    logoPx: 80,
+    bloque: "catalogo",
+  },
 };
 
 /**
@@ -75,14 +158,25 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
   "1:1": {
     "1": { h1: { max: 104, altoMax: 0.42, maxLineas: 2 }, body: { max: 32 }, logoPx: 96 },
     "2": { h1: { max: 140, altoMax: 0.6, maxLineas: 2 }, body: { max: 32 }, logoPx: 88 },
+    "2B-L": { h1: { max: 88, altoMax: 0.4, maxLineas: 2 }, logoPx: 76 },
+    "2B-S": { h1: { max: 96, altoMax: 0.3, maxLineas: 2 }, logoPx: 76 },
+    "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
+    "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
     "2": { h1: { max: 150, altoMax: 0.55 } },
+    "2B-S": { h1: { altoMax: 0.3 } },
+    "3": { h1: { altoMax: 0.3 } },
+    "4": { h1: { altoMax: 0.2 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
     "2": { h1: { min: 56, max: 104, altoMax: 0.66 }, body: { min: 24, max: 28 }, logoPx: 54 },
+    "2B-L": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "2B-S": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
+    "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
   },
 };
 
@@ -113,6 +207,45 @@ export function varianteSugerida(rubro: Rubro): Variante {
   return PRESETS[rubro].prioritarias.find((v) => PLANTILLAS[v]) ?? "1";
 }
 
+/** Máximo de ítems de catálogo por formato (cap. 6: hasta 3-4; 1:1 hasta 3). */
+export function maxItems(formato: Formato): number {
+  return formato === "1:1" || formato === "1200x630" ? 3 : 4;
+}
+export const MAX_CONTACTO = 4;
+
+/** Máximo de íconos por pieza según la variante (cap. 6 / A.6). */
+export function maxIconos(variante: Variante, items: number): number {
+  if (variante === "3") return MAX_CONTACTO;
+  if (variante === "4") return items;
+  return 2;
+}
+
+export function estiloIconos(marca: Marca): EstiloIconos {
+  return marca.graficos?.estilo_iconos ?? BIBLIOTECA_RUBRO[marca.rubro].estiloIconos;
+}
+
+/** Valor por defecto de cada tipo de capa decorativa para un rubro. */
+export function decoPorDefecto(rubro: Rubro, tipo: TipoDeco): Deco {
+  const lib = BIBLIOTECA_RUBRO[rubro];
+  if (tipo === "icono") return { tipo, id: ICONOS[lib.iconosSugeridos[0]][0] };
+  if (tipo === "patron") return { tipo, id: lib.patrones[0] };
+  if (tipo === "foto") return { tipo, id: lib.contenedores[0], foto: null };
+  const forma = formasDelRubro(rubro).find((f) => !f.trazo) ?? FORMAS[0];
+  return { tipo, id: forma.id };
+}
+
+/**
+ * Capa decorativa efectiva: la elegida si está habilitada; si es foto y no hay foto cargada, se usa la siguiente
+ * opción del rubro (la pieza tiene que funcionar completa sin foto, cap. 5).
+ */
+export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
+  const disponibles = decosDisponibles(marca.rubro, marca.fotos_habilitadas);
+  const elegida = pieza.deco;
+  if (elegida && disponibles.includes(elegida.tipo) && (elegida.tipo !== "foto" || elegida.foto)) return elegida;
+  const tipo = disponibles.find((t) => t !== "foto") ?? "forma";
+  return decoPorDefecto(marca.rubro, tipo);
+}
+
 export function piezaNueva(marca: Marca): Pieza {
   const variante = varianteSugerida(marca.rubro);
   return {
@@ -125,6 +258,17 @@ export function piezaNueva(marca: Marca): Pieza {
     alineacion: "izquierda",
     contenido: { h1: "", body: null, cta: null },
     body_italica: false,
+    deco: null,
+    contacto: [
+      { tipo: "whatsapp", valor: "11 5555-5555" },
+      { tipo: "instagram", valor: "@" + marca.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "") },
+      { tipo: "direccion", valor: "Av. Siempre Viva 742" },
+    ],
+    items: [
+      { texto: "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
+      { texto: "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
+      { texto: "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
+    ],
   };
 }
 

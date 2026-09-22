@@ -50,7 +50,8 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 14. **CTA en Modo B con contorno o invertido**: si el acento no alcanza 3:1 contra el color de marca (p. ej. rojo y verde de luminosidad parecida), el CTA de Modo B se separa con fondo neutro en vez de rechazar la paleta. *(Cap. 3, Cap. 8, A.3)*
 15. **CTA en Modo A con contorno**: un acento claro sobre el fondo neutro claro lleva un contorno fino en el color de marca. *(Cap. 3, Cap. 8)*
 16. **Proporciones por formato**: tamaños de H1, body, CTA y logo definidos por formato y variante; el ajuste de texto usa las cajas reales de las letras para no pisar el margen. *(Cap. 6, A.6)*
-17. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
+17. **Biblioteca gráfica implementada**: 17 formas, 6 patrones y 60 íconos, con criterios de color, forma de fondo y espacio negativo para las variantes 2B, 3 y 4. *(Cap. 5, Cap. 6)*
+18. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
 
 ---
 
@@ -434,6 +435,36 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 - Fallback: toda pieza se genera completa sin foto. La foto es siempre una capa opcional.
 
 ---
+
+### Implementación de la biblioteca *(v1.1)*
+
+**Formas (17).** Geométricas: círculo, cuadrado redondeado, arco, triángulo, anillo. Orgánicas: 4 blobs. Lineales: subrayado ondulado, flecha, separador, trazo curvo. Contenedores: sello, banda, chip, etiqueta. Las que sirven para recortar fotos son el círculo, el cuadrado, el arco, los blobs y el sello.
+
+**Patrones (6).** Puntos, líneas diagonales, ondas, grilla, ruido sutil y cruces, generados por código.
+
+**Íconos (60).** Phosphor, en seis grupos: contacto, comercio, gastronomía, belleza, servicios y tech. Estilo por marca: lineal (peso regular) o sólido (peso fill). El valor por defecto sale del rubro (sólido en gastronomía, lineal en el resto) y se cambia en la ficha de marca.
+
+**Qué habilita cada rubro:**
+
+| Rubro | Formas | Patrones | Capa decorativa 2B | Contenedores de foto e ítems |
+|---|---|---|---|---|
+| Servicios | geométricas, lineales | grilla, diagonales | ícono, forma, foto | cuadrado, círculo |
+| Gastronomía | contenedores, geométricas | puntos | foto, forma | círculo, arco, sello |
+| Belleza | orgánicas, lineales | ondas, ruido | forma, foto | blob, arco |
+| Tech | geométricas, contenedores | grilla | forma, patrón, foto | cuadrado, círculo |
+
+La foto solo se ofrece si la marca tiene fotos propias. Si se elige foto y no se carga ninguna, la pieza usa la opción siguiente del rubro.
+
+**Color de cada elemento:**
+- Ícono decorativo: tono de apoyo (Modo A) o fondo neutro (Modo B), al 20%.
+- Forma decorativa: tono de apoyo.
+- Patrón: color de marca (Modo A) o tono de apoyo (Modo B), al 16%.
+- Foto decorativa: overlay de color de marca al 65%.
+- Íconos informativos (contacto y catálogo): en Modo A, color de marca. En Modo B el fondo es la marca, así que van en acento si contrasta 3:1 con ella; si no, en fondo neutro.
+
+**Forma de fondo.** El círculo de fondo (función estructural) no se usa cuando la pieza tiene capa decorativa (2B) ni en el catálogo (4), donde los ítems ya tienen su forma: así nunca hay dos formas protagonistas.
+
+**Espacio negativo.** Cuentan el texto, el CTA, el logo, el contacto y los ítems. La capa decorativa no cuenta, porque no informa y la pieza tiene que funcionar sin ella.
 
 ## Capítulo 6 — Grillas de layout por plataforma
 

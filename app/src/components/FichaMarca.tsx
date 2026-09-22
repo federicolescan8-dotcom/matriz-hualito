@@ -22,6 +22,9 @@ import { escala, pesoH1, PESOS } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
 import { PiezaMuestra, TEXTOS_EJEMPLO, type TextosPieza } from "./PiezaMuestra";
 import { CampoHex } from "./CampoHex";
+import { FormaSvg, Icono, PatronSvg } from "./Graficos";
+import { BIBLIOTECA_RUBRO, formasDelRubro, ICONOS, OPACIDAD_PATRON, PATRONES } from "@/engine/biblioteca";
+import { estiloIconos } from "@/engine/pieza";
 
 function Ratio({ valor, minimo }: { valor: number; minimo: number }) {
   const ok = valor >= minimo;
@@ -249,7 +252,82 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
           </ul>
         )}
       </section>
+
+      <BibliotecaMarca marca={marca} onChange={onChange} />
     </div>
+  );
+}
+
+/** Biblioteca gráfica de la marca (cap. 5): lo que habilita el rubro, en los colores de la marca. */
+function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Marca) => void }) {
+  const p = marca.paleta;
+  const lib = BIBLIOTECA_RUBRO[marca.rubro];
+  const estilo = estiloIconos(marca);
+  return (
+    <section className="flex flex-col gap-5">
+      <h2 className="text-lg font-semibold">Biblioteca gráfica</h2>
+      <div className="flex flex-wrap items-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Íconos</span>
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {(["lineal", "solido"] as const).map((e) => (
+              <button
+                key={e}
+                type="button"
+                disabled={!onChange}
+                onClick={() => onChange?.({ ...marca, graficos: { ...marca.graficos, estilo_iconos: e } })}
+                className={`px-3 py-1.5 text-xs ${estilo === e ? "bg-neutral-900 text-white" : "bg-white"}`}
+              >
+                {e === "lineal" ? "Lineal" : "Sólido"}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-neutral-500">un solo estilo por marca</span>
+        </div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={marca.fotos_habilitadas}
+            disabled={!onChange}
+            onChange={(e) => onChange?.({ ...marca, fotos_habilitadas: e.target.checked })}
+          />
+          Tiene fotos propias (habilita la foto como capa decorativa y en el catálogo)
+        </label>
+      </div>
+      <div>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Formas del rubro</h3>
+        <div className="flex flex-wrap gap-3">
+          {formasDelRubro(marca.rubro).map((f) => (
+            <div key={f.id} title={f.nombre} className="flex h-16 w-16 items-center justify-center rounded-md p-2" style={{ background: hslCss(p.fondo_neutro) }}>
+              <FormaSvg id={f.id} color={f.trazo ? p.color_marca : p.tono_apoyo} grosor={8} style={{ width: "100%", height: "100%" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Patrones del rubro (10-20% de opacidad)</h3>
+        <div className="flex flex-wrap gap-3">
+          {PATRONES.filter((pt) => lib.patrones.includes(pt.id)).map((pt) => (
+            <div key={pt.id} className="flex flex-col gap-1 text-xs text-neutral-600">
+              <div className="relative h-20 w-32 overflow-hidden rounded-md" style={{ background: hslCss(p.fondo_neutro) }}>
+                <PatronSvg id={pt.id} color={p.color_marca} opacidad={OPACIDAD_PATRON.uso} celda={20} />
+              </div>
+              {pt.nombre}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Íconos sugeridos</h3>
+        <div className="flex flex-wrap gap-2">
+          {lib.iconosSugeridos.flatMap((cat) => ICONOS[cat]).map((n) => (
+            <div key={n} title={n} className="flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 bg-white">
+              <Icono nombre={n} estilo={estilo} color={p.color_marca} tamano={24} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

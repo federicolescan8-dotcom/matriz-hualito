@@ -4,6 +4,7 @@ import { hexToHsl, normalizarH, type HSL } from "./color";
 import { ajustarRol, derivarPaleta, type CtaModoB, enBandaProhibida, type Paleta, type ResultadoPaleta, type RolPaleta } from "./palette";
 import { PRESETS, type Rubro, type Tono, type ValorMarca } from "./presets";
 import { resolverTipografia, type Tipografia } from "./typography";
+import { BIBLIOTECA_RUBRO, type EstiloIconos } from "./biblioteca";
 
 export interface Diagnostico {
   nombre: string;
@@ -55,6 +56,8 @@ export interface Marca {
   ajustes_manuales?: RolPaleta[];
   logo: Diagnostico["logo"];
   tipografia: Tipografia;
+  /** Biblioteca gráfica: un solo estilo de íconos por marca (cap. 5). Si falta, el del rubro. */
+  graficos?: { estilo_iconos: EstiloIconos };
   fotos_habilitadas: boolean;
   version_manual: "1.1";
   creada: string;
@@ -139,6 +142,7 @@ export function construirMarca(d: Diagnostico, chip: Chip, organizacion_id = "hu
     paleta,
     logo: d.logo,
     tipografia: resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa),
+    graficos: { estilo_iconos: BIBLIOTECA_RUBRO[d.rubro].estiloIconos },
     fotos_habilitadas: d.tiene_fotos_propias,
     version_manual: "1.1",
     creada: new Date().toISOString(),

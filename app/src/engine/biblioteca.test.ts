@@ -1,0 +1,102 @@
+import { describe, expect, it } from "vitest";
+import { BIBLIOTECA_RUBRO, decosDisponibles, FORMAS, formasDelRubro, TODOS_LOS_ICONOS } from "./biblioteca";
+import { evaluarPieza, type Medicion } from "./checklist";
+import { construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
+import { decoEfectiva, maxIconos, maxItems, piezaNueva, type Pieza } from "./pieza";
+import { RUBROS } from "./presets";
+import { pesoH1 } from "./typography";
+
+const d = { ...diagnosticoVacio(), rubro: "gastronomia" as const, nombre: "Test", personalidad: { tono: "cercana" as const, valor: "energia" as const } };
+const marca = construirMarca(d, generarChips(d)[0]);
+
+describe("biblioteca", () => {
+  it("es un set cerrado y chico: 15-20 formas, 40-60 íconos", () => {
+    expect(FORMAS.length).toBeGreaterThanOrEqual(15);
+    expect(FORMAS.length).toBeLessThanOrEqual(20);
+    expect(TODOS_LOS_ICONOS.length).toBeGreaterThanOrEqual(40);
+    expect(TODOS_LOS_ICONOS.length).toBeLessThanOrEqual(60);
+    expect(new Set(TODOS_LOS_ICONOS).size).toBe(TODOS_LOS_ICONOS.length);
+  });
+
+  it("cada rubro habilita formas y contenedores que existen", () => {
+    for (const r of RUBROS) {
+      expect(formasDelRubro(r).length).toBeGreaterThan(0);
+      for (const id of BIBLIOTECA_RUBRO[r].contenedores) expect(FORMAS.find((f) => f.id === id)?.contiene).toBe(true);
+    }
+  });
+
+  it("la foto solo se ofrece si la marca tiene fotos propias", () => {
+    expect(decosDisponibles("gastronomia", false)).not.toContain("foto");
+    expect(decosDisponibles("gastronomia", true)).toContain("foto");
+  });
+});
+
+describe("capa decorativa efectiva", () => {
+  it("sin fotos, gastronomía usa su forma sugerida (sello)", () => {
+    expect(decoEfectiva(marca, { ...piezaNueva(marca), variante: "2B-L" })).toMatchObject({ tipo: "forma", id: "sello" });
+  });
+
+  it("foto pedida sin foto cargada: la pieza funciona con la capa siguiente del rubro", () => {
+    const conFotos = { ...marca, fotos_habilitadas: true };
+    const p = { ...piezaNueva(conFotos), variante: "2B-L" as const, deco: { tipo: "foto" as const, id: "circulo", foto: null } };
+    expect(decoEfectiva(conFotos, p).tipo).toBe("forma");
+    const conFoto = { ...p, deco: { ...p.deco, foto: "data:image/png;base64,AAAA" } };
+    expect(decoEfectiva(conFotos, conFoto).tipo).toBe("foto");
+  });
+
+  it("límites de íconos e ítems por variante y formato", () => {
+    expect(maxIconos("2B-L", 0)).toBe(2);
+    expect(maxIconos("3", 0)).toBe(4);
+    expect(maxIconos("4", 3)).toBe(3);
+    expect(maxItems("1:1")).toBe(3);
+    expect(maxItems("4:5")).toBe(4);
+  });
+});
+
+describe("checklist de elementos gráficos", () => {
+  const h1 = "Llegó el menú de otoño";
+  const base = (p: Partial<Pieza>): Pieza => ({ ...piezaNueva(marca), modo: "A", contenido: { h1, body: "Apoyo.", cta: "Reservá" }, ...p });
+  const med = (m: Partial<Medicion>): Medicion => ({
+    h1: { lineas: [{ x: 119, y: 400, w: 400, h: 100 }], px: 100, peso: pesoH1(h1, marca.tipografia.familia_variable), italica: false },
+    body: { lineas: [{ x: 119, y: 520, w: 300, h: 40 }], px: 30, peso: 400, italica: false },
+    cta: { lineas: [], caja: { x: 119, y: 1000, w: 300, h: 80 }, px: 32, peso: 600, italica: false },
+    logo: { x: 119, y: 1100, w: 250, h: 90 },
+    forma: null,
+    desborde: false,
+    iconos: 0,
+    ...m,
+  });
+  const falla = (r: ReturnType<typeof evaluarPieza>, control: string) => r.controles.find((c) => c.control.startsWith(control))?.ok === false;
+
+  it("2B: la capa decorativa no puede tapar el texto", () => {
+    const deco = { tipo: "forma" as const, caja: { x: 300, y: 380, w: 400, h: 400 }, opacidad: 1, overlay: null, color: marca.paleta.tono_apoyo };
+    expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco })), "Capa decorativa sin tapar")).toBe(true);
+    const aparte = { ...deco, caja: { x: 600, y: 380, w: 340, h: 340 } };
+    expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco: aparte })), "Capa decorativa sin tapar")).toBe(false);
+  });
+
+  it("2B: el ícono decorativo va al 15-25% y nunca en color de marca", () => {
+    const deco = { tipo: "icono" as const, caja: { x: 600, y: 380, w: 340, h: 340 }, opacidad: 0.6, overlay: null, color: marca.paleta.color_marca };
+    const r = evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco, iconos: 1 }));
+    expect(falla(r, "Ícono decorativo al 15-25%")).toBe(true);
+    expect(falla(r, "Ícono decorativo en tono de apoyo")).toBe(true);
+  });
+
+  it("3: el ícono de contacto va a la izquierda del dato", () => {
+    const texto = { lineas: [{ x: 119, y: 700, w: 300, h: 40 }], px: 30, peso: 400, italica: false };
+    const bien = [{ icono: { x: 119 - 60, y: 700, w: 44, h: 44 }, texto }];
+    const mal = [{ icono: { x: 450, y: 700, w: 44, h: 44 }, texto }];
+    const p = base({ variante: "3", contenido: { h1, body: "Apoyo.", cta: null } });
+    expect(falla(evaluarPieza(marca, p, med({ contacto: bien, cta: null, iconos: 1 })), "Ícono a la izquierda")).toBe(false);
+    expect(falla(evaluarPieza(marca, p, med({ contacto: mal, cta: null, iconos: 1 })), "Ícono a la izquierda")).toBe(true);
+  });
+
+  it("4: exige al menos 2 ítems y como máximo 1 ícono por ítem", () => {
+    const item = { visual: { x: 119, y: 700, w: 200, h: 200 }, tieneVisual: true, texto: { lineas: [{ x: 130, y: 920, w: 180, h: 36 }], px: 28, peso: 400, italica: false } };
+    const p = base({ variante: "4" });
+    const r = evaluarPieza(marca, p, med({ items: [item], iconos: 1 }));
+    expect(falla(r, "Ítems de catálogo")).toBe(true);
+    const r2 = evaluarPieza(marca, p, med({ items: [item, { ...item, visual: { ...item.visual, x: 360 } }], iconos: 3 }));
+    expect(falla(r2, "Íconos por pieza")).toBe(true);
+  });
+});
