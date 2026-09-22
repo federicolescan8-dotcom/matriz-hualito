@@ -1,0 +1,16 @@
+import type { Metadata } from "next";
+import { variablesFuentes } from "@/lib/fuentes";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Matriz Hualito",
+  description: "Sistema de diseño gráfico automatizado para marcas",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="es" className={`${variablesFuentes} h-full antialiased`}>
+      <body className="min-h-full bg-neutral-50 text-neutral-900">{children}</body>
+    </html>
+  );
+}
