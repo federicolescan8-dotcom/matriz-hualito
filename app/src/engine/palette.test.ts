@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contraste, hexToHsl } from "./color";
-import { colorTexto, colorTextoAcento, derivarPaleta, enBandaProhibida, MIN_GRAFICO, MIN_TEXTO } from "./palette";
+import { colorTexto, colorTextoAcento, coloresModo, derivarPaleta, enBandaProhibida, MIN_GRAFICO, MIN_TEXTO } from "./palette";
 import { L_tabla, PRESETS, RUBROS } from "./presets";
 import type { ValorMarca } from "./presets";
 
@@ -25,8 +25,40 @@ describe("modo heredado — ejemplo del manual (amarillo H45 S90 L60)", () => {
     const p = r.paleta!;
     expect(p.color_marca).toEqual({ H: 45, S: 90, L: 60 });
     expect(contraste(p.color_marca, p.fondo_neutro)).toBeLessThan(2);
-    expect(p.version_funcional).toMatchObject({ H: 45, S: 90, L: 25 });
+    expect(p.version_funcional).toMatchObject({ H: 45, S: 90 });
+    expect(p.version_funcional!.L).toBeLessThanOrEqual(25);
     expect(contraste(p.version_funcional!, p.fondo_neutro)).toBeGreaterThanOrEqual(MIN_TEXTO);
+    // La funcional también se lee sobre el amarillo original (texto en Modo B).
+    expect(contraste(p.version_funcional!, p.color_marca)).toBeGreaterThanOrEqual(MIN_TEXTO);
+  });
+});
+
+describe("modo heredado — resolución automática sin revisión manual", () => {
+  it("el turquesa #0B9EBF (tono medio) se resuelve profundizando la versión funcional", () => {
+    const r = derivarPaleta({ rubro: "servicios", modo: "heredado", heredado: hexToHsl("#0B9EBF")! });
+    expect(r.estado).toBe("ok");
+    const p = r.paleta!;
+    expect(contraste(p.color_marca, p.fondo_neutro)).toBeLessThan(MIN_GRAFICO);
+    expect(contraste(p.version_funcional!, p.color_marca)).toBeGreaterThanOrEqual(MIN_GRAFICO);
+  });
+
+  it("toda la grilla de colores (H, S, L) resuelve y cumple los mínimos", () => {
+    for (let H = 0; H < 360; H += 10) {
+      for (let S = 0; S <= 100; S += 20) {
+        for (let L = 5; L <= 95; L += 5) {
+          for (const rubro of RUBROS) {
+            const r = derivarPaleta({ rubro, modo: "heredado", heredado: { H, S, L } });
+            expect(r.estado, `H${H} S${S} L${L} ${rubro}: ${r.motivos.join("; ")}`).toBe("ok");
+            const p = r.paleta!;
+            expect(contraste(colorTexto(p), p.fondo_neutro)).toBeGreaterThanOrEqual(MIN_TEXTO);
+            const textoB = coloresModo(p, "B").texto;
+            expect(contraste(p.color_marca, textoB)).toBeGreaterThanOrEqual(MIN_GRAFICO);
+            expect(contraste(p.acento, colorTextoAcento(p))).toBeGreaterThanOrEqual(MIN_TEXTO);
+            expect(contraste(p.acento, p.color_marca)).toBeGreaterThanOrEqual(MIN_GRAFICO);
+          }
+        }
+      }
+    }
   });
 });
 
@@ -86,5 +118,34 @@ describe("modo heredado sobre colores reales", () => {
   it("un color claro (L > 70) invierte el modo predominante", () => {
     const r = derivarPaleta({ rubro: "belleza", modo: "heredado", heredado: { H: 330, S: 60, L: 80 } });
     expect(r.paleta?.invertir_modo).toBe(true);
+  });
+});
+
+describe("conversión HEX exacta", () => {
+  it("un HEX ingresado a mano vuelve idéntico", async () => {
+    const { hexToHsl, hslToHex } = await import("./color");
+    for (const hex of ["#136c3a", "#22ec13", "#0b9ebf", "#e4f1ea", "#5dd08f", "#123456", "#fedcba"]) {
+      expect(hslToHex(hexToHsl(hex, true)!)).toBe(hex);
+    }
+  });
+});
+
+describe("CTA en Modo B", () => {
+  it("la paleta de Hualito (acento rojo sobre verde) se resuelve con contorno", async () => {
+    const { ctaModoB, controlesCtaModoB, cumple } = await import("./palette");
+    const base = derivarPaleta({ rubro: "tech", modo: "optimizado", H: 146 }).paleta!;
+    const p = { ...base, acento: { ...hexToHsl("#bf391b", true)!, texto: "blanco" as const } };
+    expect(contraste(p.acento, p.color_marca)).toBeLessThan(MIN_GRAFICO);
+    expect(ctaModoB(p)).toBe("contorno");
+    expect(cumple(controlesCtaModoB(p, "contorno"))).toBe(true);
+    expect(cumple(controlesCtaModoB(p, "invertido"))).toBe(true);
+    expect(cumple(controlesCtaModoB(p, "directo"))).toBe(false);
+  });
+
+  it("una paleta calculada por la fórmula usa CTA directo", async () => {
+    const { ctaModoB } = await import("./palette");
+    for (let H = 0; H < 360; H += 15) {
+      expect(ctaModoB(derivarPaleta({ rubro: "servicios", modo: "optimizado", H }).paleta!)).toBe("directo");
+    }
   });
 });

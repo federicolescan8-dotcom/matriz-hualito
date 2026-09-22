@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { hexToHsl, hslCss } from "@/engine/color";
+import { hexToHsl } from "@/engine/color";
 import {
   construirMarca,
   diagnosticoVacio,
   generarChips,
+  pendientesMarca,
   type Chip,
   type Diagnostico,
   type Marca,
@@ -16,7 +17,9 @@ import { PRESETS, RUBROS, type Tono, type ValorMarca } from "@/engine/presets";
 import { FAMILIAS, resolverTipografia } from "@/engine/typography";
 import { PiezaMuestra } from "@/components/PiezaMuestra";
 import { FichaMarca } from "@/components/FichaMarca";
+import { CampoHex } from "@/components/CampoHex";
 import { descargarJson, guardarMarca } from "@/lib/marcas";
+import { recortarTransparencia } from "@/lib/imagen";
 
 const PASOS = ["Rubro", "Personalidad", "Color", "Insumos", "Resultado"] as const;
 
@@ -47,6 +50,7 @@ export function DiagnosticoWizard() {
   const [chipId, setChipId] = useState<string | null>(null);
   const [marca, setMarca] = useState<Marca | null>(null);
   const [guardada, setGuardada] = useState<boolean | null>(null);
+  const [excluidoHex, setExcluidoHex] = useState<string | null>(null);
 
   const chips = useMemo(() => generarChips(d), [d]);
   const chip: Chip | undefined = chips.find((c) => c.id === chipId);
@@ -72,18 +76,26 @@ export function DiagnosticoWizard() {
   async function cargarLogo(k: "color" | "mono_claro" | "mono_oscuro", file: File | undefined) {
     if (!file) return;
     const esSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
-    const url = esSvg
-      ? svgADataUrl(await file.text())
-      : await new Promise<string>((res) => {
-          const r = new FileReader();
-          r.onload = () => res(String(r.result));
-          r.readAsDataURL(file);
-        });
+    let url: string;
+    let ladoMayor: number | null = null;
+    if (esSvg) {
+      url = svgADataUrl(await file.text());
+    } else {
+      const original = await new Promise<string>((res) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.readAsDataURL(file);
+      });
+      const recortada = await recortarTransparencia(original);
+      url = recortada.dataUrl;
+      ladoMayor = recortada.ladoMayorOriginal;
+    }
     setD((x) => {
       const logo = { ...x.logo, [k]: url };
       if (k === "color") {
-        logo.formato = esSvg ? "svg" : file.type === "application/pdf" ? "pdf" : "png";
+        logo.formato = esSvg ? "svg" : "png";
         logo.deuda_vectorizar = !esSvg;
+        logo.png_lado_mayor = ladoMayor;
       }
       return { ...x, logo };
     });
@@ -188,9 +200,13 @@ export function DiagnosticoWizard() {
               />
               <ColorOpcional
                 etiqueta="Color que no quiere (banda ±25°)"
-                valor={d.excluido_H != null ? hslCss({ H: d.excluido_H, S: 80, L: 50 }) : null}
+                valor={excluidoHex}
                 hexInicial="#e30613"
-                onChange={(hex) => { set({ excluido_H: hex ? hexToHsl(hex)!.H : null }); setChipId(null); }}
+                onChange={(hex) => {
+                  setExcluidoHex(hex);
+                  set({ excluido_H: hex ? hexToHsl(hex)!.H : null });
+                  setChipId(null);
+                }}
               />
             </div>
           </div>
@@ -216,7 +232,7 @@ export function DiagnosticoWizard() {
               >
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{c.etiqueta}</span>
-                  <span className="font-mono text-xs text-neutral-500">H{c.H} · {c.modo}</span>
+                  <span className="font-mono text-xs text-neutral-500">H{Math.round(c.H)} · {c.modo}</span>
                 </div>
                 {c.resultado.paleta ? (
                   <div className="grid grid-cols-2 gap-2">
@@ -267,6 +283,11 @@ export function DiagnosticoWizard() {
                 </label>
               ))}
             </div>
+            {pendientesMarca(d.logo).length > 0 && d.logo.color && (
+              <ul className="mt-3 list-disc pl-5 text-sm text-amber-800">
+                {pendientesMarca(d.logo).map((x) => <li key={x}>{x}</li>)}
+              </ul>
+            )}
             {d.logo.formato === "svg" && (!d.logo.mono_claro || !d.logo.mono_oscuro) && (
               <button type="button" onClick={generarMonocromos} className="mt-3 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
                 Generar monocromos a partir del SVG color
@@ -306,7 +327,7 @@ export function DiagnosticoWizard() {
           </div>
           {guardada === true && <p className="text-sm text-emerald-700">Marca guardada. <Link href="/marcas" className="underline">Ver marcas</Link></p>}
           {guardada === false && <p className="text-sm text-red-700">No se pudo guardar en este navegador. Exportá el JSON.</p>}
-          <FichaMarca marca={marca} />
+          <FichaMarca marca={marca} onChange={(m) => { setMarca(m); setGuardada(null); }} />
         </section>
       )}
 
@@ -340,25 +361,13 @@ function ColorOpcional({
   hexInicial?: string;
   onChange: (hex: string | null) => void;
 }) {
-  const activo = valor != null;
   return (
     <div className="flex flex-col gap-2 text-sm">
       <label className="flex items-center gap-2">
-        <input type="checkbox" checked={activo} onChange={(e) => onChange(e.target.checked ? hexInicial : null)} />
+        <input type="checkbox" checked={valor != null} onChange={(e) => onChange(e.target.checked ? hexInicial : null)} />
         {etiqueta}
       </label>
-      {activo && (
-        <div className="flex items-center gap-2">
-          <input type="color" defaultValue={valor?.startsWith("#") ? valor : hexInicial} onChange={(e) => onChange(e.target.value)} className="h-10 w-14" />
-          {valor?.startsWith("#") && (
-            <input
-              defaultValue={valor}
-              onBlur={(e) => hexToHsl(e.target.value) && onChange(e.target.value)}
-              className="w-28 rounded-md border border-neutral-300 px-2 py-1 font-mono"
-            />
-          )}
-        </div>
-      )}
+      {valor != null && <CampoHex valor={valor} onChange={onChange} />}
     </div>
   );
 }

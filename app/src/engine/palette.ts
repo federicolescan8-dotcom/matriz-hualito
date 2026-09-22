@@ -51,6 +51,8 @@ export interface Paleta {
   banda_prohibida: [number, number] | null;
   /** Modo heredado con L > 70: el Modo B pasa a ser el predominante. */
   invertir_modo: boolean;
+  /** Tratamiento del CTA en Modo B elegido a mano; si falta, se resuelve solo (ver ctaModoB). */
+  cta_modo_b?: CtaModoB;
 }
 
 export interface ResultadoPaleta {
@@ -104,16 +106,18 @@ export function acentoEsClaro(h: number): boolean {
  * Paso 4b (v1.1): ajusta L del acento conservando el matiz. Debe cumplir:
  *   - texto sobre el acento (blanco o color de marca) >= 4,5:1
  *   - acento sobre el color de marca (Modo B) >= 3:1
- * Primero recorre el camino preferido según el matiz y después el alternativo, siempre dentro de L 35-65.
+ * Primero recorre el camino preferido según el matiz y después el alternativo, dentro de L 35-65.
+ * Con `ampliado` el rango pasa a L 15-85: solo se usa cuando la cascada normal no encontró acento (colores de tono
+ * medio, donde el acento tiene que ser muy claro o muy oscuro para separarse de la marca).
  */
-function ajustarAcento(h: number, marcaTexto: HSL, marcaFondo: HSL, log: string[]): Acento | null {
+function ajustarAcento(h: number, marcaTexto: HSL, marcaFondo: HSL, log: string[], ampliado = false): Acento | null {
   const S = 85;
-  const subir = rango(50, 65, 2);
+  const subir = rango(50, ampliado ? 85 : 65, 2);
   const oscuros = [
     { texto: "color_marca" as const, Ls: subir },
     { texto: "tinta_marca" as const, Ls: subir },
   ];
-  const blanco = { texto: "blanco" as const, Ls: rango(50, 35, -2) };
+  const blanco = { texto: "blanco" as const, Ls: rango(50, ampliado ? 15 : 35, -2) };
   const caminos = acentoEsClaro(h) ? [...oscuros, blanco] : [blanco, ...oscuros];
   for (const camino of caminos) {
     const colorTexto =
@@ -144,17 +148,26 @@ function resolverAcento(
   marcaFondo: HSL,
   log: string[],
 ): Acento | null {
-  for (const h of candidatosAcento(H, tipo)) {
-    if (enBandaProhibida(h, excluido)) {
-      log.push(`Acento H${h} cae en la banda prohibida, se prueba el siguiente de la cascada.`);
-      continue;
-    }
+  const candidatos = candidatosAcento(H, tipo).filter((h) => {
+    const fuera = !enBandaProhibida(h, excluido);
+    if (!fuera) log.push(`Acento H${h} cae en la banda prohibida, se prueba el siguiente de la cascada.`);
+    return fuera;
+  });
+  for (const h of candidatos) {
     const a = ajustarAcento(h, marcaTexto, marcaFondo, log);
     if (a) return a;
     log.push(`Acento H${h}: ninguna L entre 35 y 65 cumple 4,5:1 con su texto y 3:1 sobre la marca.`);
   }
+  // Segunda pasada con L 15-85, en el mismo orden de matices.
+  for (const h of candidatos) {
+    const a = ajustarAcento(h, marcaTexto, marcaFondo, log, true);
+    if (a) {
+      log.push(`Acento resuelto con rango de luminosidad ampliado (H${h} L${a.L}).`);
+      return a;
+    }
+  }
   // Último paso de la cascada: mismo matiz que la marca, diferenciado por S y L.
-  for (const L of rango(60, 80, 2)) {
+  for (const L of [...rango(60, 90, 2), ...rango(20, 8, -2)]) {
     const a = { H, S: 90, L };
     for (const texto of ["color_marca", "tinta_marca", "blanco"] as const) {
       const t = texto === "blanco" ? BLANCO : texto === "tinta_marca" ? tintaMarca(marcaTexto) : marcaTexto;
@@ -234,13 +247,26 @@ export function derivarPaleta(e: EntradaPaleta): ResultadoPaleta {
     }
     log.push(`Versión funcional generada: H${H} S${orig.S} L${funcional.L} (texto e íconos).`);
   }
+
+  // Cascada 2b (v1.1): si el original tampoco sirve como fondo con texto encima (Modo B), se profundiza la versión
+  // funcional hasta que funcione sobre él. Así un color de tono medio (ni claro ni oscuro) no requiere revisión:
+  // el original queda para masas y fondos, y la funcional hace de texto sobre el neutro y sobre el original.
+  if (funcional && Math.max(contraste(orig, fondo), contraste(orig, funcional)) < MIN_TEXTO) {
+    const candidatos = rango(funcional.L, 6, -2).map((L) => ({ ...funcional!, L }));
+    const profunda =
+      candidatos.find((f) => contraste(orig, f) >= MIN_TEXTO) ??
+      candidatos.find((f) => contraste(orig, f) >= MIN_GRAFICO);
+    if (profunda && profunda.L !== funcional.L) {
+      log.push(`Versión funcional profundizada a L${profunda.L} para que también funcione como texto sobre el color original.`);
+      funcional = profunda;
+    }
+  }
   const texto = funcional ?? orig;
 
-  // El original como fondo/masa (mínimo 3:1): contra el fondo neutro, o contra la versión funcional encima.
+  // Guarda: el original tiene que servir como texto (sin funcional) o como fondo (3:1 con algún texto encima).
   const sirveComoFondo =
     contraste(orig, fondo) >= MIN_GRAFICO || (funcional != null && contraste(orig, funcional) >= MIN_GRAFICO);
-  const sirveComoTexto = funcional == null;
-  if (!sirveComoFondo && !sirveComoTexto) {
+  if (funcional && !sirveComoFondo) {
     return {
       paleta: null,
       estado: "revision_manual",
@@ -292,9 +318,92 @@ export function coloresModo(p: Paleta, modo: "A" | "B"): ColoresModo {
   if (modo === "A") {
     return { fondo: p.fondo_neutro, texto: colorTexto(p), apoyo: p.tono_apoyo, logo: "color" };
   }
-  // Modo B: la marca es el fondo; el texto va en fondo neutro salvo que no contraste (color heredado claro).
-  const neutroSirve = contraste(p.color_marca, p.fondo_neutro) >= MIN_TEXTO;
-  const texto = neutroSirve ? p.fondo_neutro : colorTexto(p);
+  // Modo B: la marca es el fondo; el texto va en fondo neutro, o en la versión funcional si contrasta más
+  // (color heredado claro o de tono medio).
+  const texto =
+    contraste(p.color_marca, p.fondo_neutro) >= contraste(p.color_marca, colorTexto(p)) ? p.fondo_neutro : colorTexto(p);
   const oscuro = contraste(p.color_marca, BLANCO) >= MIN_GRAFICO;
   return { fondo: p.color_marca, texto, apoyo: p.tono_apoyo, logo: oscuro ? "mono_claro" : "mono_oscuro" };
+}
+
+export type RolPaleta = "color_marca" | "version_funcional" | "tono_apoyo" | "fondo_neutro" | "acento";
+
+/**
+ * Texto sobre el acento para un acento dado: el primero que alcance 4,5:1 en el orden preferido según el matiz
+ * (paso 4b); si ninguno llega, el de mayor contraste.
+ */
+export function elegirTextoAcento(p: Paleta): TextoAcento {
+  const orden: TextoAcento[] = acentoEsClaro(p.acento.H)
+    ? ["color_marca", "tinta_marca", "blanco"]
+    : ["blanco", "color_marca", "tinta_marca"];
+  const ratio = (t: TextoAcento) => contraste(p.acento, colorTextoAcento({ ...p, acento: { ...p.acento, texto: t } }));
+  return orden.find((t) => ratio(t) >= MIN_TEXTO) ?? orden.reduce((a, b) => (ratio(b) > ratio(a) ? b : a));
+}
+
+/** Ajuste manual de un rol desde la ficha de marca. El texto sobre el acento se vuelve a elegir siempre. */
+export function ajustarRol(p: Paleta, rol: RolPaleta, color: HSL): Paleta {
+  const nueva: Paleta =
+    rol === "acento" ? { ...p, acento: { ...color, texto: p.acento.texto } } : { ...p, [rol]: color };
+  return { ...nueva, acento: { ...nueva.acento, texto: elegirTextoAcento(nueva) } };
+}
+
+/** Relación real entre el acento y la marca (puede diferir de la pedida si la cascada cambió el matiz). */
+export function relacionAcento(p: Paleta): string {
+  const d = distanciaH(p.acento.H, p.color_marca.H);
+  if (d <= 5) return "mismo matiz";
+  if (Math.abs(d - 30) <= 5) return "análogo";
+  if (Math.abs(d - 150) <= 5) return "split-complementario";
+  if (d >= 175) return "complementario";
+  return `a ${Math.round(d)}° de la marca`;
+}
+
+/**
+ * Cómo va el CTA en Modo B, donde el fondo es el color de marca (v1.1):
+ *   - directo:    botón en acento sobre la marca. Requiere acento vs. marca >= 3:1.
+ *   - contorno:   botón en acento con un anillo de fondo neutro que lo separa de la marca.
+ *   - invertido:  botón en fondo neutro con el texto en acento.
+ * Contorno e invertido permiten usar un acento de luminosidad parecida a la marca (p. ej. rojo sobre verde), que
+ * se distingue solo por matiz y se pierde para quien no ve bien esa diferencia de color.
+ */
+export type CtaModoB = "directo" | "contorno" | "invertido";
+
+export interface ControlContraste {
+  control: string;
+  valor: number;
+  minimo: number;
+}
+
+export function controlesCtaModoB(p: Paleta, modo: CtaModoB): ControlContraste[] {
+  const texto = colorTextoAcento(p);
+  if (modo === "directo") {
+    return [
+      { control: "texto sobre el acento", valor: contraste(p.acento, texto), minimo: MIN_TEXTO },
+      { control: "acento sobre la marca", valor: contraste(p.acento, p.color_marca), minimo: MIN_GRAFICO },
+    ];
+  }
+  if (modo === "contorno") {
+    return [
+      { control: "texto sobre el acento", valor: contraste(p.acento, texto), minimo: MIN_TEXTO },
+      { control: "acento sobre el contorno", valor: contraste(p.acento, p.fondo_neutro), minimo: MIN_GRAFICO },
+      { control: "contorno sobre la marca", valor: contraste(p.fondo_neutro, p.color_marca), minimo: MIN_GRAFICO },
+    ];
+  }
+  return [
+    { control: "acento como texto sobre el botón", valor: contraste(p.acento, p.fondo_neutro), minimo: MIN_TEXTO },
+    { control: "botón sobre la marca", valor: contraste(p.fondo_neutro, p.color_marca), minimo: MIN_GRAFICO },
+  ];
+}
+
+export function cumple(controles: ControlContraste[]): boolean {
+  return controles.every((c) => c.valor >= c.minimo);
+}
+
+/** Resolución automática: directo si alcanza; si no, contorno; si no, invertido; si nada cumple, contorno. */
+export function ctaModoBAuto(p: Paleta): CtaModoB {
+  const orden: CtaModoB[] = ["directo", "contorno", "invertido"];
+  return orden.find((m) => cumple(controlesCtaModoB(p, m))) ?? "contorno";
+}
+
+export function ctaModoB(p: Paleta): CtaModoB {
+  return p.cta_modo_b ?? ctaModoBAuto(p);
 }

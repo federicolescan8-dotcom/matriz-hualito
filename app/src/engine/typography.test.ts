@@ -10,6 +10,13 @@ describe("peso del H1 por cantidad de caracteres", () => {
     expect(pesoH1("x".repeat(90))).toBe(700);
     for (let n = 0; n < 100; n++) expect(pesoH1("x".repeat(n)) % 50).toBe(0);
   });
+
+  it("respeta el peso máximo real de la familia", () => {
+    expect(pesoH1("Promo 2x1", "Manrope")).toBe(800);
+    expect(pesoH1("Promo 2x1", "Space Grotesk")).toBe(700);
+    expect(pesoH1("Promo 2x1", "Inter")).toBe(900);
+    expect(pesoH1("x".repeat(30), "Manrope")).toBe(800);
+  });
 });
 
 describe("familia e itálica", () => {

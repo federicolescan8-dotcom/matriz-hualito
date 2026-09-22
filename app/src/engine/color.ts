@@ -32,7 +32,8 @@ export function hslToRgb({ H, S, L }: HSL): RGB {
   return [r1, g1, b1].map((v) => Math.round((v + m) * 255)) as RGB;
 }
 
-export function rgbToHsl([r, g, b]: RGB): HSL {
+/** `exacto` conserva decimales: sirve para que un HEX ingresado a mano vuelva idéntico al convertirlo de nuevo. */
+export function rgbToHsl([r, g, b]: RGB, exacto = false): HSL {
   const rn = r / 255, gn = g / 255, bn = b / 255;
   const max = Math.max(rn, gn, bn);
   const min = Math.min(rn, gn, bn);
@@ -46,11 +47,8 @@ export function rgbToHsl([r, g, b]: RGB): HSL {
     else if (max === gn) H = 60 * ((bn - rn) / d + 2);
     else H = 60 * ((rn - gn) / d + 4);
   }
-  return {
-    H: Math.round(normalizarH(H)),
-    S: Math.round(S * 100),
-    L: Math.round(L * 100),
-  };
+  const r2 = (v: number) => (exacto ? Math.round(v * 100) / 100 : Math.round(v));
+  return { H: r2(normalizarH(H)), S: r2(S * 100), L: r2(L * 100) };
 }
 
 export function hexToRgb(hex: string): RGB | null {
@@ -60,9 +58,9 @@ export function hexToRgb(hex: string): RGB | null {
   return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16)) as RGB;
 }
 
-export function hexToHsl(hex: string): HSL | null {
+export function hexToHsl(hex: string, exacto = false): HSL | null {
   const rgb = hexToRgb(hex);
-  return rgb ? rgbToHsl(rgb) : null;
+  return rgb ? rgbToHsl(rgb, exacto) : null;
 }
 
 export function hslToHex(c: HSL): string {
@@ -94,4 +92,10 @@ export function contraste(a: HSL, b: HSL): number {
 export function distanciaH(a: number, b: number): number {
   const d = Math.abs(normalizarH(a) - normalizarH(b));
   return Math.min(d, 360 - d);
+}
+
+/** Normaliza "#abc", "abc" o "#AABBCC" a "#aabbcc"; null si no es un HEX válido. */
+export function normalizarHex(v: string): string | null {
+  const rgb = hexToRgb(v);
+  return rgb ? "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("") : null;
 }

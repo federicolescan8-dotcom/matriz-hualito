@@ -1,0 +1,55 @@
+// Utilidades de imagen del lado del navegador.
+
+export interface ImagenRecortada {
+  dataUrl: string;
+  /** Lado mayor de la imagen original, antes de recortar. */
+  ladoMayorOriginal: number;
+}
+
+function cargar(src: string): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
+
+/**
+ * Recorta los márgenes transparentes de un PNG. Muchos logos vienen con aire alrededor y en la pieza se ven chicos;
+ * así el tamaño del logo lo decide el slot y no el archivo.
+ */
+export async function recortarTransparencia(dataUrl: string): Promise<ImagenRecortada> {
+  const img = await cargar(dataUrl);
+  const { naturalWidth: w, naturalHeight: h } = img;
+  const ladoMayorOriginal = Math.max(w, h);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx || !w || !h) return { dataUrl, ladoMayorOriginal };
+  ctx.drawImage(img, 0, 0);
+  const { data } = ctx.getImageData(0, 0, w, h);
+
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (data[(y * w + x) * 4 + 3] > 8) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+    }
+  }
+  // Sin transparencia o sin nada visible: se deja como está.
+  if (x1 < 0 || (x0 === 0 && y0 === 0 && x1 === w - 1 && y1 === h - 1)) return { dataUrl, ladoMayorOriginal };
+
+  const cw = x1 - x0 + 1;
+  const ch = y1 - y0 + 1;
+  const out = document.createElement("canvas");
+  out.width = cw;
+  out.height = ch;
+  out.getContext("2d")!.drawImage(canvas, x0, y0, cw, ch, 0, 0, cw, ch);
+  return { dataUrl: out.toDataURL("image/png"), ladoMayorOriginal };
+}

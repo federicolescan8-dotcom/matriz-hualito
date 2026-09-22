@@ -4,14 +4,14 @@ import { PRESETS, type Rubro, type Tono } from "./presets";
 
 export type Nivel = "H1" | "H2" | "body" | "caption";
 
-/** Familias variables del sistema y si tienen itálica real. */
-export const FAMILIAS: Record<string, { italica: boolean }> = {
-  Inter: { italica: true },
-  Manrope: { italica: false },
-  Fraunces: { italica: true },
-  Sora: { italica: false },
-  Newsreader: { italica: true },
-  "Space Grotesk": { italica: false },
+/** Familias variables del sistema: si tienen itálica real y el peso máximo de su eje wght. */
+export const FAMILIAS: Record<string, { italica: boolean; pesoMax: number }> = {
+  Inter: { italica: true, pesoMax: 900 },
+  Manrope: { italica: false, pesoMax: 800 },
+  Fraunces: { italica: true, pesoMax: 900 },
+  Sora: { italica: false, pesoMax: 800 },
+  Newsreader: { italica: true, pesoMax: 800 },
+  "Space Grotesk": { italica: false, pesoMax: 700 },
 };
 
 export interface Tipografia {
@@ -34,12 +34,17 @@ export function resolverTipografia(rubro: Rubro, tono: Tono | null, previa?: str
   };
 }
 
-/** Paso 2 (v1.1): peso del H1 según cantidad de caracteres, 900 hasta 15 y 700 desde 45, múltiplos de 50. */
-export function pesoH1(texto: string): number {
+/**
+ * Paso 2 (v1.1): peso del H1 según cantidad de caracteres, 900 hasta 15 y 700 desde 45, múltiplos de 50.
+ * Si se indica la familia, se limita a su peso máximo real (p. ej. Manrope llega a 800, Space Grotesk a 700).
+ */
+export function pesoH1(texto: string, familia?: string): number {
   const n = texto.trim().length;
   const bruto = 900 - (200 * (n - 15)) / 30;
   const acotado = Math.min(900, Math.max(700, bruto));
-  return Math.round(acotado / 50) * 50;
+  const peso = Math.round(acotado / 50) * 50;
+  const max = familia ? FAMILIAS[familia]?.pesoMax : undefined;
+  return max ? Math.min(peso, max) : peso;
 }
 
 export const PESOS: Record<Exclude<Nivel, "H1">, number> = { H2: 600, body: 400, caption: 400 };

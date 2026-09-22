@@ -5,13 +5,18 @@ import Link from "next/link";
 import { PRESETS } from "@/engine/presets";
 import { hslCss } from "@/engine/color";
 import { FichaMarca } from "@/components/FichaMarca";
-import { borrarMarca, descargarJson, useMarcas } from "@/lib/marcas";
+import type { Marca } from "@/engine/diagnostico";
+import { borrarMarca, descargarJson, guardarMarca, useMarcas } from "@/lib/marcas";
 
 export default function MarcasPage() {
   const marcas = useMarcas();
   const [abierta, setAbierta] = useState<string | null>(null);
+  // Cambios sin guardar de la marca abierta (ajustes de paleta).
+  const [borrador, setBorrador] = useState<Marca | null>(null);
 
-  const actual = marcas.find((m) => m.id === abierta);
+  const guardada = marcas.find((m) => m.id === abierta);
+  const actual = borrador && borrador.id === abierta ? borrador : guardada;
+  const sinGuardar = actual != null && actual !== guardada;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
@@ -45,6 +50,21 @@ export default function MarcasPage() {
         <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{actual.nombre}</h2>
+            {sinGuardar && (
+              <>
+                <span className="text-sm text-amber-800">Cambios sin guardar</span>
+                <button type="button" onClick={() => setBorrador(null)} className="text-sm underline">Descartar</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (guardarMarca(actual)) setBorrador(null);
+                  }}
+                  className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+                >
+                  Guardar cambios
+                </button>
+              </>
+            )}
             <button type="button" onClick={() => descargarJson(actual)} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">Exportar JSON</button>
             <button
               type="button"
@@ -58,7 +78,7 @@ export default function MarcasPage() {
               Borrar
             </button>
           </div>
-          <FichaMarca marca={actual} />
+          <FichaMarca key={actual.id} marca={actual} onChange={setBorrador} />
         </section>
       )}
     </div>

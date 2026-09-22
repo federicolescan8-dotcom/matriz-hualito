@@ -44,7 +44,11 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 8. **Posición del logo**: coherente por variante, no por marca completa. *(Cap. 8)*
 9. **Diagnóstico visual**: los chips de color se muestran aplicados sobre una pieza de ejemplo, no como muestras sueltas. *(Cap. 2, Cap. 3)*
 10. **Alcance**: se aclara que el sistema genera piezas pero no las publica. *(Cap. 1)*
-11. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
+11. **Modo heredado sin revisión manual**: versión funcional profundizada (paso 8, 2b) y acento con rango de L ampliado (paso 8, 4). *(Cap. 3)*
+12. **Peso del H1 limitado al máximo real de cada familia** (Manrope, Sora y Newsreader 800; Space Grotesk 700). *(Cap. 4)*
+13. **Ajuste manual de la paleta en la ficha de marca**: cualquier rol se puede corregir por HEX si el resultado no convence. La paleta calculada se conserva para volver atrás; el texto sobre el acento se vuelve a elegir solo, y los contrastes que no cumplen quedan marcados y bloquean la publicación hasta corregirlos. *(Cap. 3, A.3)*
+14. **CTA en Modo B con contorno o invertido**: si el acento no alcanza 3:1 contra el color de marca (p. ej. rojo y verde de luminosidad parecida), el CTA de Modo B se separa con fondo neutro en vez de rechazar la paleta. *(Cap. 3, Cap. 8, A.3)*
+15. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
 
 ---
 
@@ -265,8 +269,10 @@ La secuencia de uso de cada modo la define el capítulo 7, con conteo independie
 
 1. Ajustar la luminosidad del fondo neutro dentro del rango 85-100%. Resuelve los casos límite, entre 3,5:1 y 4,5:1.
 2. Generar una versión funcional del color de marca: mismo matiz y saturación, con la luminosidad de la tabla del paso 3. Se usa en texto, íconos y elementos finos. El color original se reserva para logo, masas grandes, badges y fondo de Modo B, donde el mínimo exigido es 3:1.
+2b. **Profundizar la versión funcional** *(v1.1)*. Si ni el fondo neutro ni la versión funcional alcanzan 4,5:1 como texto sobre el color original (Modo B), se baja la L de la versión funcional de a 2 puntos, hasta L6 como mínimo. Se elige la primera L que dé 4,5:1 contra el original; si ninguna llega, la primera que dé 3:1. Resuelve sin intervención los colores de tono medio (ej. turquesa #0B9EBF), que antes no servían ni como texto ni como fondo: el original queda para masas y fondos, y la versión funcional hace de texto sobre el neutro y sobre el original. En Modo B el texto usa el que más contraste dé entre el fondo neutro y la versión funcional.
 3. Si la luminosidad del color heredado supera el 70%, invertir el modo predominante de esa marca: el Modo B pasa a ser el principal y la secuencia del capítulo 7 se invierte, porque un color claro rinde mejor como fondo que como texto.
-4. Elevar a revisión manual si el color no funciona ni como texto ni como fondo.
+4. **Acento con rango ampliado** *(v1.1)*. Si la cascada del acento (pasos 4b y 5) no encuentra un acento dentro de L 35-65, se repite con L 15-85 en el mismo orden de matices, antes de probar el mismo matiz de la marca. Los colores de tono medio lo necesitan: para separarse de ellos, el acento tiene que ser muy claro o muy oscuro.
+5. Revisión manual: queda solo como resguardo. Con los pasos 2b y 4, toda la grilla de colores heredados probada (H cada 10°, S cada 20%, L cada 5%, en los cuatro rubros) se resuelve de forma automática.
 
 Ejemplo con amarillo corporativo H45, S90%, L60%:
 
@@ -278,6 +284,28 @@ Ejemplo con amarillo corporativo H45, S90%, L60%:
 | Acento | H225 S85 L(paso 4b) — complementario corregido a H+180 *(v1.1)* | — |
 
 La marca se sigue leyendo como amarilla porque el amarillo ocupa superficie, no porque esté en los titulares.
+
+### Paso 8b — CTA en Modo B *(v1.1)*
+
+El mínimo de 3:1 del acento sobre el color de marca existe para que el CTA se vea cuando el fondo es la marca (Modo B). Lo que exige la norma de accesibilidad (WCAG 1.4.11) es que el botón se separe de lo que tiene **inmediatamente alrededor**, no necesariamente del fondo de la pieza. Por eso, cuando el acento no llega a 3:1 contra la marca, el CTA de Modo B se resuelve con uno de estos tratamientos, en este orden:
+
+| Tratamiento | Cómo se ve | Controles |
+|---|---|---|
+| Directo | botón en acento sobre la marca | texto sobre acento ≥ 4,5:1; acento vs. marca ≥ 3:1 |
+| Con contorno | botón en acento con un anillo de fondo neutro (8 px en lienzo de 1080) | texto sobre acento ≥ 4,5:1; acento vs. neutro ≥ 3:1; neutro vs. marca ≥ 3:1 |
+| Invertido | botón en fondo neutro con el texto en acento | acento vs. neutro ≥ 4,5:1; neutro vs. marca ≥ 3:1 |
+
+Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la ficha de marca (`cta_modo_b`). El Modo A no cambia: el CTA siempre va en acento sobre el fondo neutro.
+
+Caso típico: un acento complementario con la misma luminosidad que la marca, como un rojo sobre un verde. Se distinguen solo por matiz, y esa diferencia se pierde para quien tiene daltonismo rojo-verde. El contorno o la inversión agregan diferencia de luminosidad sin cambiar los colores de la marca.
+
+### Paso 9 — Ajuste manual *(v1.1)*
+
+Si en la reunión algún color del resultado no convence, se puede corregir cualquiera de los roles (color de marca, versión funcional, tono de apoyo, fondo neutro, acento) escribiendo su HEX. Reglas:
+
+- La paleta calculada por la fórmula se guarda aparte, junto con la lista de roles ajustados a mano (`paleta_calculada`, `ajustes_manuales`). Cada rol se puede volver al valor calculado, o toda la paleta de una vez.
+- El texto sobre el acento se vuelve a elegir con el criterio del paso 4b cada vez que cambia el acento o la marca.
+- Los colores ajustados no pasan por la fórmula: los contrastes se muestran en vivo y los que no alcanzan el mínimo quedan marcados. Una marca con contrastes en falta no puede publicar hasta corregirlos (capítulo 8).
 
 ---
 
@@ -320,6 +348,8 @@ peso_H1 = clamp(900 − 200 · (n − 15) / 30, 700, 900)
 ```
 
 redondeado al múltiplo de 50 más cercano. Un H1 de hasta 15 caracteres da 900 (Black); uno de 45 caracteres o más da 700 (Bold); entre esos dos puntos el peso baja de forma lineal. El máximo sigue siendo 900, nunca se excede.
+
+**Tope por familia *(v1.1)*.** El peso calculado se limita al máximo real del eje de peso de la familia: Inter y Fraunces llegan a 900; Manrope, Sora y Newsreader a 800; Space Grotesk a 700. En Space Grotesk el H1 queda siempre en 700 y el largo del texto se compensa solo con el tamaño.
 
 **Regla dura.** Dentro de una misma pieza no se combinan dos pesos en el mismo nivel jerárquico, ni se resalta una palabra suelta con un peso mayor al asignado a ese nivel. Si hace falta destacar un dato, el destaque se resuelve con el color acento o con un tamaño mayor dentro del mismo nivel, nunca con un salto de peso. Esto se mantiene sin cambios: el H1 calculado sigue siendo un único peso para toda la pieza. *(v1.1)*
 
