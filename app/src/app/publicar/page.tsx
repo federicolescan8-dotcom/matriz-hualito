@@ -6,9 +6,10 @@ import { Pieza } from "@/components/Pieza";
 import { TEXTOS_EJEMPLO } from "@/components/PiezaMuestra";
 import type { Bloque, ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
-import { CANALES, FORMATOS, type Canal } from "@/engine/formatos";
+import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
   alineacionesPermitidas,
+  formatoDeCanal,
   piezaNueva,
   PLANTILLAS,
   secuenciaModo,
@@ -19,8 +20,46 @@ import {
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
 import { useMarcas } from "@/lib/marcas";
+import { zipSync } from "fflate";
 
-const ANCHO_VISTA = 440;
+const VISTA_MAX = { ancho: 460, alto: 640 };
+
+/** Un formato por canal para la exportación en lote: 9:16 sirve para stories y estados. */
+const TODOS: { formato: Formato; canal: Canal }[] = [
+  { formato: "4:5", canal: "feed_ig" },
+  { formato: "1:1", canal: "feed_ig" },
+  { formato: "9:16", canal: "stories_ig" },
+  { formato: "1200x630", canal: "feed_fb" },
+];
+
+type Render = { png: Blob } | { resultado: ResultadoChecklist } | { error: string };
+
+async function renderizar(marca: Marca, pieza: TPieza): Promise<Render> {
+  const res = await fetch("/api/render", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ marca, pieza }),
+  });
+  if (res.status === 422) return { resultado: ((await res.json()) as { resultado: ResultadoChecklist }).resultado };
+  if (!res.ok) return { error: ((await res.json()) as { error: string }).error };
+  return { png: await res.blob() };
+}
+
+function slug(texto: string): string {
+  return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
+}
+
+function nombreArchivo(marca: Marca, p: TPieza): string {
+  return `${slug(marca.nombre)}-${p.canal}-${p.formato.replace(":", "x")}-v${p.variante}-${p.modo}.png`;
+}
+
+function descargar(blob: Blob, nombre: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 function piezaInicial(marca: Marca): TPieza {
   const t = TEXTOS_EJEMPLO[marca.rubro];
@@ -56,37 +95,47 @@ export default function PublicarPage() {
   };
   const setContenido = (c: Partial<TPieza["contenido"]>) => set({ contenido: { ...actual.contenido, ...c } });
   const plantilla = PLANTILLAS[actual.variante]!;
+  const piezaEn = (formato: Formato, canal: Canal): TPieza => ({ ...actual, formato, canal });
   const f = FORMATOS[actual.formato];
   const permitidas = alineacionesPermitidas(marca.rubro, actual.variante);
   const secuencia = secuenciaModo(marca);
-  const escala = ANCHO_VISTA / f.ancho;
+  const escala = Math.min(VISTA_MAX.ancho / f.ancho, VISTA_MAX.alto / f.alto);
 
   async function exportar() {
     setExportando(true);
     setErrorExport(null);
     try {
-      const res = await fetch("/api/render", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ marca, pieza: actual }),
-      });
-      if (res.status === 422) {
-        const { resultado } = (await res.json()) as { resultado: ResultadoChecklist };
-        setResultado(resultado);
+      const r = await renderizar(marca!, actual!);
+      if ("png" in r) descargar(r.png, nombreArchivo(marca!, actual!));
+      else if ("resultado" in r) {
+        setResultado(r.resultado);
         setErrorExport("El render final no pasó el control de calidad. Revisá los controles marcados.");
-        return;
+      } else setErrorExport(r.error);
+    } catch (e) {
+      setErrorExport(`No se pudo exportar: ${(e as Error).message}`);
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  /** Genera la misma pieza en los cuatro formatos y los descarga en un ZIP. Los que no aprueban quedan afuera. */
+  async function exportarTodos() {
+    setExportando(true);
+    setErrorExport(null);
+    try {
+      const archivos: Record<string, Uint8Array> = {};
+      const omitidos: string[] = [];
+      for (const { formato, canal } of TODOS) {
+        const p = piezaEn(formato, canal);
+        const r = await renderizar(marca!, p);
+        if ("png" in r) archivos[nombreArchivo(marca!, p)] = new Uint8Array(await r.png.arrayBuffer());
+        else omitidos.push(`${formato} (${"resultado" in r ? "no aprobó el control" : r.error})`);
       }
-      if (!res.ok) {
-        setErrorExport(((await res.json()) as { error: string }).error);
-        return;
+      if (Object.keys(archivos).length) {
+        const zip = zipSync(archivos, { level: 0 });
+        descargar(new Blob([zip as BlobPart], { type: "application/zip" }), `${slug(marca!.nombre)}-todos-los-formatos.zip`);
       }
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      const nombre = marca!.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      a.download = `${nombre}-${actual!.canal}-${actual!.formato.replace(":", "x")}-v${actual!.variante}-${actual!.modo}.png`;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      if (omitidos.length) setErrorExport(`Quedaron afuera: ${omitidos.join(", ")}.`);
     } catch (e) {
       setErrorExport(`No se pudo exportar: ${(e as Error).message}`);
     } finally {
@@ -115,7 +164,14 @@ export default function PublicarPage() {
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
             <span className="font-medium">Canal</span>
-            <select value={actual.canal} onChange={(e) => set({ canal: e.target.value as Canal })} className="rounded-md border border-neutral-300 px-3 py-2">
+            <select
+              value={actual.canal}
+              onChange={(e) => {
+                const canal = e.target.value as Canal;
+                set({ canal, formato: formatoDeCanal(canal, actual.formato) });
+              }}
+              className="rounded-md border border-neutral-300 px-3 py-2"
+            >
               {(Object.keys(CANALES) as Canal[]).map((k) => {
                 const disponible = CANALES[k].formatos.some((fm) => FORMATOS[fm].habilitado);
                 return (
@@ -143,7 +199,7 @@ export default function PublicarPage() {
             </select>
           </label>
         </div>
-        <p className="-mt-3 text-xs text-neutral-500">Por ahora solo Instagram feed 4:5. Las opciones marcadas &quot;fase 3&quot; (1:1, stories, estados de WhatsApp y Facebook) se habilitan en la próxima fase.</p>
+        <p className="-mt-3 text-xs text-neutral-500">Stories y estados de WhatsApp comparten el formato 9:16.</p>
 
         <div className="flex flex-col gap-2">
           <span className="font-medium">Variante</span>
@@ -220,7 +276,7 @@ export default function PublicarPage() {
         <div className="text-xs text-neutral-500">
           {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.tipografia.familia_variable}
         </div>
-        <div className="overflow-hidden rounded-md shadow-md" style={{ width: ANCHO_VISTA, height: f.alto * escala }}>
+        <div className="overflow-hidden rounded-md shadow-md" style={{ width: f.ancho * escala, height: f.alto * escala }}>
           <div style={{ transform: `scale(${escala})`, transformOrigin: "top left" }}>
             <Pieza marca={marca} pieza={actual} onResultado={setResultado} />
           </div>
@@ -233,7 +289,16 @@ export default function PublicarPage() {
         >
           {exportando ? "Generando PNG…" : `Descargar PNG (${f.ancho}×${f.alto})`}
         </button>
-        {errorExport && <p className="max-w-[440px] text-sm text-red-700">{errorExport}</p>}
+        <button
+          type="button"
+          onClick={exportarTodos}
+          disabled={exportando}
+          className="rounded-md border border-neutral-300 bg-white px-4 py-2.5 text-sm disabled:opacity-30"
+        >
+          Descargar los 4 formatos (ZIP)
+        </button>
+        {errorExport && <p className="max-w-[460px] text-sm text-red-700">{errorExport}</p>}
+        <TodosLosFormatos marca={marca} piezaEn={piezaEn} actual={actual.formato} onElegir={(formato, canal) => set({ formato, canal })} />
       </section>
 
       {/* Checklist */}
@@ -292,5 +357,55 @@ function Checklist({ resultado }: { resultado: ResultadoChecklist | null }) {
         );
       })}
     </section>
+  );
+}
+
+/** Miniaturas de la misma pieza en los cuatro formatos, cada una con su propio control de calidad. */
+function TodosLosFormatos({
+  marca,
+  piezaEn,
+  actual,
+  onElegir,
+}: {
+  marca: Marca;
+  piezaEn: (formato: Formato, canal: Canal) => TPieza;
+  actual: Formato;
+  onElegir: (formato: Formato, canal: Canal) => void;
+}) {
+  const [estados, setEstados] = useState<Partial<Record<Formato, ResultadoChecklist["estado"]>>>({});
+  const ALTO = 150;
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Todos los formatos</h3>
+      <div className="flex flex-wrap items-end gap-3">
+        {TODOS.map(({ formato, canal }) => {
+          const f = FORMATOS[formato];
+          const escala = ALTO / f.alto;
+          const estado = estados[formato];
+          return (
+            <button key={formato} type="button" onClick={() => onElegir(formato, canal)} className="flex flex-col items-start gap-1 text-left">
+              <div
+                className={`overflow-hidden rounded ${formato === actual ? "ring-2 ring-neutral-900" : "ring-1 ring-neutral-200"}`}
+                style={{ width: f.ancho * escala, height: ALTO }}
+              >
+                <div style={{ transform: `scale(${escala})`, transformOrigin: "top left", pointerEvents: "none" }}>
+                  <Pieza
+                    marca={marca}
+                    pieza={piezaEn(formato, canal)}
+                    onResultado={(r) => setEstados((e) => (e[formato] === r.estado ? e : { ...e, [formato]: r.estado }))}
+                  />
+                </div>
+              </div>
+              <span className="text-xs">
+                {formato}{" "}
+                <span className={estado === "ok" ? "text-emerald-700" : estado ? "text-red-700" : "text-neutral-400"}>
+                  {estado === "ok" ? "✓" : estado === "revision_manual" ? "revisión" : estado ? "✗" : "…"}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

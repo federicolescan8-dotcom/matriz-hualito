@@ -91,3 +91,28 @@ describe("CTA en Modo A", () => {
     expect(r.controles.filter((c) => c.control.startsWith("CTA")).every((c) => c.ok)).toBe(true);
   });
 });
+
+describe("reglas por formato", () => {
+  it("1:1 rechaza un H1 de más de 2 líneas", () => {
+    const tres = [0, 1, 2].map((i) => ({ x: 119, y: 400 + i * 110, w: 700, h: 110 }));
+    const r = evaluarPieza(marca, pieza({ formato: "1:1" }), medicion({ h1: { ...medicion().h1, lineas: tres }, logo: { x: 119, y: 119, w: 300, h: 96 }, cta: null, body: null }));
+    expect(r.controles.find((c) => c.control.startsWith("H1 en 2 líneas"))!.ok).toBe(false);
+  });
+
+  it("Facebook rechaza texto que pasa la mitad del ancho", () => {
+    const m = medicion({
+      h1: { ...medicion().h1, lineas: [{ x: 120, y: 200, w: 700, h: 80 }] },
+      body: null,
+      cta: null,
+      logo: { x: 120, y: 63, w: 200, h: 60 },
+    });
+    const r = evaluarPieza(marca, pieza({ formato: "1200x630", canal: "feed_fb" }), m);
+    expect(r.controles.find((c) => c.control.startsWith("Mensaje en el 50%"))!.ok).toBe(false);
+  });
+
+  it("story exige la zona segura 15-85% del alto", () => {
+    const m = medicion({ logo: { x: 119, y: 200, w: 300, h: 135 } });
+    const r = evaluarPieza(marca, pieza({ formato: "9:16", canal: "stories_ig" }), m);
+    expect(r.controles.find((c) => c.control === "Logo dentro del margen seguro")!.ok).toBe(false);
+  });
+});

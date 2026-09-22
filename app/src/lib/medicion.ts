@@ -20,11 +20,26 @@ export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, al
   if (!zona || !contenido || !h1) return false;
   const body = q(root, "body");
   const px = (v: number) => Math.round(v * escala);
+  // Las cajas reales de las letras (ascendentes y descendentes) pueden sobresalir del interlineado: también tienen
+  // que quedar dentro de la zona del mensaje, si no pisan el margen seguro.
+  const letrasDentro = () => {
+    const z = zona.getBoundingClientRect();
+    return [h1, body].every((el) => {
+      if (!el) return true;
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return [...range.getClientRects()].every((r) => r.top >= z.top - 0.5 && r.bottom <= z.bottom + 0.5);
+    });
+  };
   const cabe = () =>
     contenido.offsetHeight <= zona.clientHeight + 1 &&
+    letrasDentro() &&
     h1.scrollWidth <= h1.clientWidth + 1 &&
     (!body || body.scrollWidth <= body.clientWidth + 1) &&
-    h1.offsetHeight <= plantilla.h1.altoMax * alto;
+    h1.offsetHeight <= plantilla.h1.altoMax * alto &&
+    (!plantilla.h1.maxLineas || lineasH1() <= plantilla.h1.maxLineas);
+  // Renglones del H1 a partir de su alto y su interlineado (1,04).
+  const lineasH1 = () => Math.round(h1.offsetHeight / (parseFloat(getComputedStyle(h1).fontSize) * 1.04));
 
   const prueba = (h: number, b: number) => {
     root.style.setProperty("--h1", `${h}px`);

@@ -1,13 +1,18 @@
 import { useSyncExternalStore } from "react";
 import type { Marca } from "@/engine/diagnostico";
+import { supabase } from "./supabase";
 
-// Fase 1: las marcas se guardan en el navegador. En la fase 2 se reemplaza por Postgres manteniendo esta interfaz.
+// Almacenamiento de marcas. Con Supabase configurado, las marcas viven en la base (compartidas por el equipo y
+// filtradas por organización con RLS). Sin Supabase, en el navegador (modo local).
+
 const CLAVE = "hualito.marcas.v1";
 const EVENTO = "hualito:marcas";
 const VACIO: Marca[] = [];
 
+// ── Modo local (navegador) ──
+
 let cacheRaw: string | null = null;
-let cache: Marca[] = VACIO;
+let cacheLocal: Marca[] = VACIO;
 
 function leerRaw(): string | null {
   try {
@@ -17,20 +22,21 @@ function leerRaw(): string | null {
   }
 }
 
-export function listarMarcas(): Marca[] {
+/** Marcas guardadas en este navegador (también se usa para importarlas a Supabase). */
+export function marcasDelNavegador(): Marca[] {
   const raw = leerRaw();
   if (raw !== cacheRaw) {
     cacheRaw = raw;
     try {
-      cache = raw ? (JSON.parse(raw) as Marca[]) : VACIO;
+      cacheLocal = raw ? (JSON.parse(raw) as Marca[]) : VACIO;
     } catch {
-      cache = VACIO;
+      cacheLocal = VACIO;
     }
   }
-  return cache;
+  return cacheLocal;
 }
 
-function escribir(marcas: Marca[]): boolean {
+function escribirLocal(marcas: Marca[]): boolean {
   try {
     localStorage.setItem(CLAVE, JSON.stringify(marcas));
     window.dispatchEvent(new Event(EVENTO));
@@ -40,18 +46,98 @@ function escribir(marcas: Marca[]): boolean {
   }
 }
 
-export function guardarMarca(m: Marca): boolean {
-  return escribir([m, ...listarMarcas().filter((x) => x.id !== m.id)]);
+// ── Modo Supabase ──
+
+let cacheRemota: Marca[] = VACIO;
+let organizacion: string | null = null;
+export let errorRemoto: string | null = null;
+const oyentes = new Set<() => void>();
+const emitir = () => oyentes.forEach((f) => f());
+
+async function cargarRemotas(): Promise<void> {
+  if (!supabase) return;
+  const { data: sesion } = await supabase.auth.getSession();
+  if (!sesion.session) {
+    cacheRemota = VACIO;
+    organizacion = null;
+    emitir();
+    return;
+  }
+  const [miembro, marcas] = await Promise.all([
+    supabase.from("miembros").select("organizacion_id").maybeSingle(),
+    supabase.from("marcas").select("datos").order("actualizada", { ascending: false }),
+  ]);
+  organizacion = (miembro.data?.organizacion_id as string | undefined) ?? null;
+  errorRemoto =
+    marcas.error?.message ??
+    (organizacion ? null : "Tu email no está asociado a ninguna organización (tabla miembros).");
+  cacheRemota = (marcas.data ?? []).map((f) => f.datos as Marca);
+  emitir();
 }
 
-export function borrarMarca(id: string): void {
-  escribir(listarMarcas().filter((x) => x.id !== id));
+if (supabase && typeof window !== "undefined") {
+  supabase.auth.onAuthStateChange(() => {
+    void cargarRemotas();
+  });
+}
+
+// ── Interfaz común ──
+
+export function listarMarcas(): Marca[] {
+  return supabase ? cacheRemota : marcasDelNavegador();
+}
+
+export async function guardarMarca(m: Marca): Promise<boolean> {
+  if (!supabase) return escribirLocal([m, ...marcasDelNavegador().filter((x) => x.id !== m.id)]);
+  if (!organizacion) {
+    errorRemoto = "No se puede guardar: tu email no está asociado a una organización.";
+    emitir();
+    return false;
+  }
+  const marca = { ...m, organizacion_id: organizacion };
+  const { error } = await supabase
+    .from("marcas")
+    .upsert({ id: marca.id, organizacion_id: organizacion, nombre: marca.nombre, rubro: marca.rubro, datos: marca });
+  if (error) {
+    errorRemoto = error.message;
+    emitir();
+    return false;
+  }
+  errorRemoto = null;
+  cacheRemota = [marca, ...cacheRemota.filter((x) => x.id !== marca.id)];
+  emitir();
+  return true;
+}
+
+export async function borrarMarca(id: string): Promise<void> {
+  if (!supabase) {
+    escribirLocal(marcasDelNavegador().filter((x) => x.id !== id));
+    return;
+  }
+  const { error } = await supabase.from("marcas").delete().eq("id", id);
+  errorRemoto = error?.message ?? null;
+  if (!error) cacheRemota = cacheRemota.filter((x) => x.id !== id);
+  emitir();
+}
+
+/** Sube a Supabase las marcas guardadas en este navegador que todavía no están en la base. */
+export async function importarDelNavegador(): Promise<{ subidas: number; fallidas: number }> {
+  const existentes = new Set(cacheRemota.map((m) => m.id));
+  let subidas = 0;
+  let fallidas = 0;
+  for (const m of marcasDelNavegador().filter((x) => !existentes.has(x.id))) {
+    if (await guardarMarca(m)) subidas++;
+    else fallidas++;
+  }
+  return { subidas, fallidas };
 }
 
 function suscribir(cb: () => void) {
+  oyentes.add(cb);
   window.addEventListener(EVENTO, cb);
   window.addEventListener("storage", cb);
   return () => {
+    oyentes.delete(cb);
     window.removeEventListener(EVENTO, cb);
     window.removeEventListener("storage", cb);
   };
@@ -59,6 +145,10 @@ function suscribir(cb: () => void) {
 
 export function useMarcas(): Marca[] {
   return useSyncExternalStore(suscribir, listarMarcas, () => VACIO);
+}
+
+export function useErrorMarcas(): string | null {
+  return useSyncExternalStore(suscribir, () => errorRemoto, () => null);
 }
 
 export function descargarJson(m: Marca): void {

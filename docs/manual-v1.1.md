@@ -49,7 +49,8 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 13. **Ajuste manual de la paleta en la ficha de marca**: cualquier rol se puede corregir por HEX si el resultado no convence. La paleta calculada se conserva para volver atrás; el texto sobre el acento se vuelve a elegir solo, y los contrastes que no cumplen quedan marcados y bloquean la publicación hasta corregirlos. *(Cap. 3, A.3)*
 14. **CTA en Modo B con contorno o invertido**: si el acento no alcanza 3:1 contra el color de marca (p. ej. rojo y verde de luminosidad parecida), el CTA de Modo B se separa con fondo neutro en vez de rechazar la paleta. *(Cap. 3, Cap. 8, A.3)*
 15. **CTA en Modo A con contorno**: un acento claro sobre el fondo neutro claro lleva un contorno fino en el color de marca. *(Cap. 3, Cap. 8)*
-16. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
+16. **Proporciones por formato**: tamaños de H1, body, CTA y logo definidos por formato y variante; el ajuste de texto usa las cajas reales de las letras para no pisar el margen. *(Cap. 6, A.6)*
+17. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
 
 ---
 
@@ -509,6 +510,19 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 - **Feed 1080×1080 (1:1).** Mismas variantes, con H1 limitado a 2 líneas y catálogo limitado a 2-3 ítems por la menor altura disponible.
 - **Story y estado 1080×1920 (9:16).** 15% superior e inferior reservados. Todo el contenido va en la zona segura entre el 15% y el 85%, con tamaños escalados 15-20%.
 - **Facebook link 1200×630.** Los sectores verticales se reacomodan en horizontal: mensaje a la izquierda con máximo 50% del ancho, y capa decorativa, ítems o contacto a la derecha.
+
+### Proporciones por formato *(v1.1)*
+
+El orden de los slots no cambia entre formatos; cambian los tamaños. Valores en px sobre la escala feed (en story y estado se multiplican por 1,175):
+
+| Formato | Variante 1 (H1 mín–máx · alto máx · logo) | Variante 2 (H1 mín–máx · alto máx · logo) | Regla particular |
+|---|---|---|---|
+| 4:5 | 56–120 px · 50% · 115 px | 64–170 px · 70% · 100 px | referencia |
+| 1:1 | 56–104 px · 42% · 96 px | 64–140 px · 60% · 88 px | H1 en 2 líneas como máximo |
+| 9:16 | 56–120 px · 42% · 115 px | 64–150 px · 55% · 100 px | contenido entre el 15% y el 85% del alto |
+| 1200×630 | 48–80 px · 50% · 60 px | 56–104 px · 66% · 54 px | mensaje en el 50% izquierdo; la forma de fondo ocupa la mitad derecha |
+
+El ajuste de texto busca el H1 más grande que entra y achica primero el body. Para decidir si entra usa las cajas reales de las letras (ascendentes y descendentes), no solo el interlineado: con tipografías de trazos altos como Fraunces, las letras pueden sobresalir del renglón y pisar el margen seguro.
 
 ### Selección de la versión del logo
 

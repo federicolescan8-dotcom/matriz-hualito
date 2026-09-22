@@ -1,7 +1,7 @@
 // Objeto de pieza (manual cap. 9) y plantillas de slots de las variantes (cap. 6).
 
 import type { Marca } from "./diagnostico";
-import type { Canal, Formato } from "./formatos";
+import { CANALES, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
 
 export interface Pieza {
@@ -24,18 +24,26 @@ export interface Pieza {
 export interface PlantillaVariante {
   nombre: string;
   descripcion: string;
-  /** Orden de lectura de los slots (cap. 6). */
+  /** Orden de lectura de los slots (cap. 6). Es el mismo en todos los formatos: solo cambian las proporciones. */
   orden: ("logo" | "H1" | "body" | "cta")[];
   tieneCta: boolean;
-  /** Tamaños en px sobre el lienzo feed; en story se multiplican por el factor de escala. */
-  h1: { min: number; max: number; altoMax: number };
+  /**
+   * Tamaños en px sobre el lienzo feed; en story y estado se multiplican por el factor de escala (+15-20%).
+   * `altoMax` es la fracción del alto de la pieza que puede ocupar el H1; `maxLineas` limita los renglones.
+   */
+  h1: { min: number; max: number; altoMax: number; maxLineas?: number };
   body: { min: number; max: number };
   cta: number;
-  /** Alto del slot de logo, como fracción del alto de la pieza. */
-  logoAlto: number;
+  /** Alto del slot de logo en px (escala feed). */
+  logoPx: number;
 }
 
-/** Variantes habilitadas en la fase 2. Las demás llegan en la fase 3. */
+type AjusteVariante = Partial<Omit<PlantillaVariante, "h1" | "body">> & {
+  h1?: Partial<PlantillaVariante["h1"]>;
+  body?: Partial<PlantillaVariante["body"]>;
+};
+
+/** Variantes habilitadas. Las demás (2B, 3 y 4) llegan con la biblioteca gráfica (fase 3b). */
 export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
   "1": {
     nombre: "1 · Base",
@@ -45,7 +53,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     h1: { min: 56, max: 120, altoMax: 0.5 },
     body: { min: 26, max: 36 },
     cta: 34,
-    logoAlto: 0.085,
+    logoPx: 115,
   },
   "2": {
     nombre: "2 · H1 protagonista",
@@ -55,9 +63,34 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     h1: { min: 64, max: 170, altoMax: 0.7 },
     body: { min: 26, max: 36 },
     cta: 34,
-    logoAlto: 0.075,
+    logoPx: 100,
   },
 };
+
+/**
+ * Proporciones por formato (cap. 6, "Grillas por formato"). El 4:5 es la referencia. El 1:1 limita el H1 a
+ * 2 líneas; el 9:16 usa la zona segura 15-85% y escala tamaños; Facebook reacomoda el mensaje en la mitad izquierda.
+ */
+const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVariante>>>> = {
+  "1:1": {
+    "1": { h1: { max: 104, altoMax: 0.42, maxLineas: 2 }, body: { max: 32 }, logoPx: 96 },
+    "2": { h1: { max: 140, altoMax: 0.6, maxLineas: 2 }, body: { max: 32 }, logoPx: 88 },
+  },
+  "9:16": {
+    "1": { h1: { altoMax: 0.42 } },
+    "2": { h1: { max: 150, altoMax: 0.55 } },
+  },
+  "1200x630": {
+    "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
+    "2": { h1: { min: 56, max: 104, altoMax: 0.66 }, body: { min: 24, max: 28 }, logoPx: 54 },
+  },
+};
+
+export function plantillaPara(variante: Variante, formato: Formato): PlantillaVariante {
+  const base = PLANTILLAS[variante]!;
+  const a = AJUSTES_FORMATO[formato]?.[variante] ?? {};
+  return { ...base, ...a, h1: { ...base.h1, ...a.h1 }, body: { ...base.body, ...a.body } };
+}
 
 export const VARIANTES_HABILITADAS = Object.keys(PLANTILLAS) as Variante[];
 
@@ -93,4 +126,10 @@ export function piezaNueva(marca: Marca): Pieza {
     contenido: { h1: "", body: null, cta: null },
     body_italica: false,
   };
+}
+
+/** Al cambiar de canal, el formato pasa al primero habilitado de ese canal. */
+export function formatoDeCanal(canal: Canal, actual: Formato): Formato {
+  const formatos = CANALES[canal].formatos;
+  return formatos.includes(actual) ? actual : formatos[0];
 }

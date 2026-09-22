@@ -318,7 +318,7 @@ export function DiagnosticoWizard() {
         <section className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{marca.nombre}</h2>
-            <button type="button" onClick={() => setGuardada(guardarMarca(marca))} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
+            <button type="button" onClick={async () => setGuardada(await guardarMarca(marca))} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
               Guardar marca
             </button>
             <button type="button" onClick={() => descargarJson(marca)} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">

@@ -12,8 +12,9 @@ export interface EspecFormato {
   /** Margen mínimo que exige el checklist (bloque 4). */
   zonaMinima: { x: number; y: number };
   escala: "feed" | "story";
-  /** Formatos que se habilitan en la fase 3. */
   habilitado: boolean;
+  /** Formatos horizontales: fracción del ancho donde termina la columna del mensaje (Facebook: 50%). */
+  columnaMensaje?: number;
 }
 
 export const FORMATOS: Record<Formato, EspecFormato> = {
@@ -33,7 +34,7 @@ export const FORMATOS: Record<Formato, EspecFormato> = {
     zona: { x: 0.11, y: 0.11 },
     zonaMinima: { x: 0.1, y: 0.1 },
     escala: "feed",
-    habilitado: false,
+    habilitado: true,
   },
   "9:16": {
     nombre: "Story / estado 9:16 · 1080×1920",
@@ -42,7 +43,7 @@ export const FORMATOS: Record<Formato, EspecFormato> = {
     zona: { x: 0.11, y: 0.15 },
     zonaMinima: { x: 0.1, y: 0.15 },
     escala: "story",
-    habilitado: false,
+    habilitado: true,
   },
   "1200x630": {
     nombre: "Facebook link · 1200×630",
@@ -51,7 +52,8 @@ export const FORMATOS: Record<Formato, EspecFormato> = {
     zona: { x: 0.1, y: 0.1 },
     zonaMinima: { x: 0.1, y: 0.1 },
     escala: "feed",
-    habilitado: false,
+    habilitado: true,
+    columnaMensaje: 0.5,
   },
 };
 

@@ -6,7 +6,7 @@ import { contraste, mezclar, type HSL } from "./color";
 import type { Marca } from "./diagnostico";
 import { FORMATOS } from "./formatos";
 import { coloresModo, controlesCtaModoA, controlesCtaModoB, ctaModoA, ctaModoB, MIN_GRAFICO, MIN_TEXTO } from "./palette";
-import { alineacionesPermitidas, PLANTILLAS, type Pieza } from "./pieza";
+import { alineacionesPermitidas, plantillaPara, PLANTILLAS, type Pieza } from "./pieza";
 import { FACTOR_STORY, pesoH1 } from "./typography";
 
 export interface Rect {
@@ -85,7 +85,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const add = (bloque: Bloque, control: string, ok: boolean, detalle: string, accion: string) =>
     controles.push({ bloque, control, ok, detalle, accion });
   const f = FORMATOS[pieza.formato];
-  const plantilla = PLANTILLAS[pieza.variante];
+  const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato) : undefined;
   const p = marca.paleta;
   const c = coloresModo(p, pieza.modo);
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
@@ -118,6 +118,10 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // ── Bloque 2: tipografía ──
   const pesoEsperado = pesoH1(pieza.contenido.h1, marca.tipografia.familia_variable);
   add("Tipografía", "Peso del H1 según largo", m.h1.peso === pesoEsperado, `${m.h1.peso} (esperado ${pesoEsperado})`, "corregir token");
+  if (plantilla?.h1.maxLineas) {
+    const n = m.h1.lineas.length;
+    add("Tipografía", `H1 en ${plantilla.h1.maxLineas} líneas o menos (${pieza.formato})`, n <= plantilla.h1.maxLineas, `${n} líneas`, "recortar texto");
+  }
   add("Tipografía", "H1 en tamaño mínimo o mayor", m.h1.px >= Math.round((plantilla?.h1.min ?? 48) * escala), `${m.h1.px} px`, "escalar o recortar texto");
   if (m.body) {
     const minBody = Math.round(24 * escala);
@@ -154,6 +158,12 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   add("Zonas seguras", "Logo dentro del margen seguro", !m.logo || dentro(m.logo), m.logo ? "" : "sin logo", "reubicar");
   const todo = unir(contenido);
   add("Zonas seguras", `Contenido dentro del margen (${Math.round(f.zonaMinima.x * 100)}% libre en bordes)`, !todo || contenido.every(dentro), "", "reubicar o recortar texto");
+
+  if (f.columnaMensaje) {
+    const limite = f.ancho * f.columnaMensaje;
+    const fuera = contenido.filter((k) => k.x + k.w > limite + 0.5).length;
+    add("Zonas seguras", `Mensaje en el ${Math.round(f.columnaMensaje * 100)}% izquierdo del ancho`, fuera === 0, fuera ? `${fuera} elemento(s) pasan el límite` : "", "recortar texto");
+  }
 
   // ── Bloque 5: contenido ──
   add("Contenido", "Un mensaje principal", pieza.contenido.h1.trim().length > 0, pieza.contenido.h1.trim() ? "" : "falta el H1", "completar el H1");

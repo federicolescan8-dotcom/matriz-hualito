@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cerrarSesion, useSesion } from "@/lib/sesion";
 
 const LINKS = [
   { href: "/", texto: "Diagnóstico" },
@@ -11,6 +12,7 @@ const LINKS = [
 
 export function Navegacion() {
   const ruta = usePathname();
+  const sesion = useSesion();
   // La página de render es la que captura el PNG: sin navegación.
   if (ruta.startsWith("/render")) return null;
   return (
@@ -22,6 +24,17 @@ export function Navegacion() {
             {l.texto}
           </Link>
         ))}
+        <span className="ml-auto text-xs text-neutral-500">
+          {sesion.estado === "local" && "Modo local · las marcas se guardan en este navegador"}
+          {sesion.estado === "conectado" && (
+            <>
+              {sesion.email} ·{" "}
+              <button type="button" onClick={() => void cerrarSesion()} className="underline">
+                Salir
+              </button>
+            </>
+          )}
+        </span>
       </div>
     </nav>
   );

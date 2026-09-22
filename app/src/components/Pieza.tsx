@@ -6,7 +6,7 @@ import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/c
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
 import { coloresModo, estiloCta, opacidadSegura } from "@/engine/palette";
-import { PLANTILLAS, type Pieza as TPieza } from "@/engine/pieza";
+import { plantillaPara, type Pieza as TPieza } from "@/engine/pieza";
 import { FACTOR_STORY, pesoH1 } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
 import { ajustarTexto, medirPieza } from "@/lib/medicion";
@@ -27,7 +27,8 @@ export function Pieza({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
-  const plantilla = PLANTILLAS[pieza.variante]!;
+  const plantilla = plantillaPara(pieza.variante, pieza.formato);
+  const horizontal = f.columnaMensaje != null;
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const p = marca.paleta;
   const c = coloresModo(p, pieza.modo);
@@ -72,7 +73,7 @@ export function Pieza({
   const px = (v: number) => `${Math.round(v * escala)}px`;
 
   const logo = (
-    <div className="flex shrink-0 items-center" style={{ height: f.alto * plantilla.logoAlto, justifyContent: centrado ? "center" : "flex-start" }}>
+    <div className="flex shrink-0 items-center" style={{ height: Math.round(plantilla.logoPx * escala), justifyContent: centrado ? "center" : "flex-start" }}>
       {logoSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img data-slot="logo" src={logoSrc} alt="" style={{ height: "100%", width: "auto", maxWidth: "70%", objectFit: "contain" }} />
@@ -105,10 +106,10 @@ export function Pieza({
         data-color={JSON.stringify(formaColor)}
         style={{
           position: "absolute",
-          width: f.ancho * 0.72,
-          height: f.ancho * 0.72,
-          right: -f.ancho * 0.24,
-          bottom: -f.ancho * 0.2,
+          // Horizontal: la forma ocupa la mitad derecha, que el mensaje deja libre.
+          ...(horizontal
+            ? { width: f.alto * 1.25, height: f.alto * 1.25, right: -f.alto * 0.1, top: -f.alto * 0.12 }
+            : { width: f.ancho * 0.72, height: f.ancho * 0.72, right: -f.ancho * 0.24, bottom: -f.ancho * 0.2 }),
           borderRadius: "50%",
           background: hslCss(formaColor),
           opacity: formaOpacidad,
@@ -118,18 +119,18 @@ export function Pieza({
         style={{
           position: "absolute",
           left: f.ancho * f.zona.x,
-          right: f.ancho * f.zona.x,
+          right: horizontal ? f.ancho * (1 - f.columnaMensaje!) : f.ancho * f.zona.x,
           top: f.alto * f.zona.y,
           bottom: f.alto * f.zona.y,
           display: "flex",
           flexDirection: "column",
-          gap: px(36),
+          gap: horizontal ? px(20) : px(36),
           textAlign: alinear,
         }}
       >
         {pieza.variante === "1" && logo}
         <div data-slot="mensaje" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div data-slot="mensaje-contenido" style={{ display: "flex", flexDirection: "column", gap: px(28), alignItems: centrado ? "center" : "flex-start" }}>
+          <div data-slot="mensaje-contenido" style={{ display: "flex", flexDirection: "column", gap: horizontal ? px(16) : px(28), alignItems: centrado ? "center" : "flex-start" }}>
             <h1
               data-slot="h1"
               style={{
@@ -173,7 +174,7 @@ export function Pieza({
                 color: hslCss(cta.texto),
                 fontSize: px(plantilla.cta),
                 fontWeight: 600,
-                padding: `${px(22)} ${px(46)}`,
+                padding: horizontal ? `${px(14)} ${px(32)}` : `${px(22)} ${px(46)}`,
                 borderRadius: 999,
                 boxShadow: cta.anillo ? `0 0 0 ${cta.anillo.px}px ${hslCss(cta.anillo.color)}` : undefined,
               }}
