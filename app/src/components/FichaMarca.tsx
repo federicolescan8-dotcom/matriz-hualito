@@ -8,6 +8,8 @@ import {
   controlesCtaModoB,
   ctaModoB,
   ctaModoBAuto,
+  ctaModoBElegidoInvalido,
+  cumple,
   MIN_GRAFICO,
   MIN_TEXTO,
   relacionAcento,
@@ -145,7 +147,7 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
             Volver al texto de ejemplo
           </button>
           <p className="text-xs text-neutral-500">
-            Es solo para probar la marca con textos reales. Las publicaciones se arman en la fase 2.
+            Es solo para probar la marca con textos reales. Las publicaciones se arman en Publicar.
           </p>
         </div>
       </section>
@@ -266,13 +268,20 @@ function CtaModoBPanel({ marca, onChange }: { marca: Marca; onChange?: (m: Marca
     <div className="mt-6 rounded-md border border-neutral-200 p-4">
       <div className="mb-1 text-sm font-medium">CTA en Modo B (fondo color de marca)</div>
       <p className="mb-3 text-xs text-neutral-500">
-        {p.cta_modo_b
+        {p.cta_modo_b && !ctaModoBElegidoInvalido(p)
           ? "Elegido a mano."
           : `Automático: ${auto === "directo" ? "el acento contrasta con la marca" : "el acento no contrasta lo suficiente con la marca, se separa con fondo neutro"}.`}
+        {" "}Las opciones que no cumplen los contrastes no se pueden elegir.
       </p>
+      {ctaModoBElegidoInvalido(p) && (
+        <p className="mb-3 rounded bg-amber-50 p-2 text-xs text-amber-900">
+          La opción elegida a mano ({p.cta_modo_b}) ya no cumple con los colores actuales: se usa la automática.
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-3">
         {CTA_OPCIONES.map(({ modo, etiqueta, descripcion }) => {
           const controles = controlesCtaModoB(p, modo);
+          const valido = cumple(controles);
           const activo = actual === modo;
           const fondo = modo === "invertido" ? p.fondo_neutro : p.acento;
           const texto = modo === "invertido" ? p.acento : colorTextoAcento(p);
@@ -280,9 +289,10 @@ function CtaModoBPanel({ marca, onChange }: { marca: Marca; onChange?: (m: Marca
             <button
               key={modo}
               type="button"
-              disabled={!onChange}
+              disabled={!onChange || !valido}
+              title={valido ? undefined : "No cumple los contrastes mínimos con esta paleta"}
               onClick={() => onChange?.(elegirCtaModoB(marca, modo === auto ? null : modo))}
-              className={`flex flex-col gap-2 rounded-md border-2 p-3 text-left ${activo ? "border-neutral-900" : "border-transparent bg-white"} disabled:cursor-default`}
+              className={`flex flex-col gap-2 rounded-md border-2 p-3 text-left ${activo ? "border-neutral-900" : "border-transparent bg-white"} disabled:cursor-default ${valido ? "" : "opacity-50"}`}
             >
               <div className="flex h-16 items-center justify-center rounded" style={{ background: hslCss(p.color_marca) }}>
                 <span

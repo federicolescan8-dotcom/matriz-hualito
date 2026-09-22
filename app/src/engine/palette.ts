@@ -1,6 +1,6 @@
 // Fórmula de paleta (manual cap. 3 / A.3, v1.1).
 
-import { BLANCO, contraste, distanciaH, normalizarH, type HSL } from "./color";
+import { BLANCO, contraste, distanciaH, mezclar, normalizarH, type HSL } from "./color";
 import { L_tabla, PRESETS, type Rubro, type TipoAcento, type ValorMarca } from "./presets";
 
 export const MIN_TEXTO = 4.5;
@@ -404,8 +404,17 @@ export function ctaModoBAuto(p: Paleta): CtaModoB {
   return orden.find((m) => cumple(controlesCtaModoB(p, m))) ?? "contorno";
 }
 
+/**
+ * Tratamiento vigente: el elegido a mano solo si cumple sus controles (una corrección de colores posterior puede
+ * invalidarlo); si no, el automático.
+ */
 export function ctaModoB(p: Paleta): CtaModoB {
-  return p.cta_modo_b ?? ctaModoBAuto(p);
+  return p.cta_modo_b && cumple(controlesCtaModoB(p, p.cta_modo_b)) ? p.cta_modo_b : ctaModoBAuto(p);
+}
+
+/** El tratamiento elegido a mano no cumple con los colores actuales y se está usando el automático. */
+export function ctaModoBElegidoInvalido(p: Paleta): boolean {
+  return p.cta_modo_b != null && !cumple(controlesCtaModoB(p, p.cta_modo_b));
 }
 
 /**
@@ -452,4 +461,15 @@ export function estiloCta(p: Paleta, modo: "A" | "B"): EstiloCta {
     texto: t === "invertido" ? p.acento : colorTextoAcento(p),
     anillo: t === "contorno" ? { color: p.fondo_neutro, px: 8 } : null,
   };
+}
+
+/**
+ * Opacidad máxima (hasta `base`) de una forma decorativa puesta sobre `fondo`, para que el texto que le pasa por
+ * encima siga cumpliendo `minimo` contra la mezcla. La forma nunca puede bajar el contraste del texto (cap. 5).
+ */
+export function opacidadSegura(fondo: HSL, forma: HSL, texto: HSL, base: number, minimo = MIN_TEXTO): number {
+  for (let a = base; a > 0; a = Math.round((a - 0.01) * 100) / 100) {
+    if (contraste(texto, mezclar(fondo, forma, a)) >= minimo) return a;
+  }
+  return 0;
 }

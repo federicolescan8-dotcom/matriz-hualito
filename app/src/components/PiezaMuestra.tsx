@@ -1,5 +1,5 @@
 import { hslCss } from "@/engine/color";
-import { coloresModo, estiloCta, type Paleta } from "@/engine/palette";
+import { coloresModo, estiloCta, opacidadSegura, type Paleta } from "@/engine/palette";
 import type { Rubro } from "@/engine/presets";
 import { pesoH1, type Tipografia } from "@/engine/typography";
 import type { Diagnostico } from "@/engine/diagnostico";
@@ -69,7 +69,7 @@ export function PiezaMuestra({
           right: "-22%",
           bottom: "-18%",
           background: hslCss(modo === "A" ? c.apoyo : paleta.fondo_neutro),
-          opacity: modo === "A" ? 0.35 : 0.12,
+          opacity: opacidadSegura(c.fondo, modo === "A" ? c.apoyo : paleta.fondo_neutro, c.texto, modo === "A" ? 0.35 : 0.12),
         }}
       />
       <div className="absolute flex flex-col" style={{ inset: margen, gap: px(40) }}>

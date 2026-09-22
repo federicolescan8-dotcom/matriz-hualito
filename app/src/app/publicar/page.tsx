@@ -32,7 +32,10 @@ export default function PublicarPage() {
   const [marcaId, setMarcaId] = useState<string | null>(null);
   const marca = marcas.find((m) => m.id === marcaId) ?? marcas[0] ?? null;
   const [pieza, setPieza] = useState<TPieza | null>(null);
-  const actual = pieza && marca && pieza.marca_id === marca.id ? pieza : marca ? piezaInicial(marca) : null;
+  // La pieza por defecto se crea una sola vez por marca: si se recreara en cada render cambiaría su id y la vista
+  // previa se recalcularía sin fin.
+  const inicial = useMemo(() => (marca ? piezaInicial(marca) : null), [marca]);
+  const actual = pieza && marca && pieza.marca_id === marca.id ? pieza : inicial;
   const [resultado, setResultado] = useState<ResultadoChecklist | null>(null);
   const [exportando, setExportando] = useState(false);
   const [errorExport, setErrorExport] = useState<string | null>(null);
@@ -113,21 +116,34 @@ export default function PublicarPage() {
           <label className="flex flex-col gap-1">
             <span className="font-medium">Canal</span>
             <select value={actual.canal} onChange={(e) => set({ canal: e.target.value as Canal })} className="rounded-md border border-neutral-300 px-3 py-2">
-              {(Object.keys(CANALES) as Canal[]).map((k) => (
-                <option key={k} value={k} disabled={!CANALES[k].formatos.some((fm) => FORMATOS[fm].habilitado)}>
-                  {CANALES[k].nombre}
-                </option>
-              ))}
+              {(Object.keys(CANALES) as Canal[]).map((k) => {
+                const disponible = CANALES[k].formatos.some((fm) => FORMATOS[fm].habilitado);
+                return (
+                  <option key={k} value={k} disabled={!disponible}>
+                    {CANALES[k].nombre}
+                    {disponible ? "" : " · fase 3"}
+                  </option>
+                );
+              })}
             </select>
           </label>
           <label className="flex flex-col gap-1">
             <span className="font-medium">Formato</span>
-            <select value={actual.formato} disabled className="rounded-md border border-neutral-300 px-3 py-2">
-              <option>{actual.formato}</option>
+            <select
+              value={actual.formato}
+              onChange={(e) => set({ formato: e.target.value as TPieza["formato"] })}
+              className="rounded-md border border-neutral-300 px-3 py-2"
+            >
+              {CANALES[actual.canal].formatos.map((fm) => (
+                <option key={fm} value={fm} disabled={!FORMATOS[fm].habilitado}>
+                  {fm}
+                  {FORMATOS[fm].habilitado ? "" : " · fase 3"}
+                </option>
+              ))}
             </select>
           </label>
         </div>
-        <p className="-mt-3 text-xs text-neutral-500">Stories, estados, Facebook y 1:1 llegan en la fase 3.</p>
+        <p className="-mt-3 text-xs text-neutral-500">Por ahora solo Instagram feed 4:5. Las opciones marcadas &quot;fase 3&quot; (1:1, stories, estados de WhatsApp y Facebook) se habilitan en la próxima fase.</p>
 
         <div className="flex flex-col gap-2">
           <span className="font-medium">Variante</span>

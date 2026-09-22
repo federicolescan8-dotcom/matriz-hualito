@@ -26,16 +26,36 @@ export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, al
     (!body || body.scrollWidth <= body.clientWidth + 1) &&
     h1.offsetHeight <= plantilla.h1.altoMax * alto;
 
-  for (let h = px(plantilla.h1.max); h >= px(plantilla.h1.min); h -= 2) {
+  const prueba = (h: number, b: number) => {
     root.style.setProperty("--h1", `${h}px`);
-    for (let b = px(plantilla.body.max); b >= px(plantilla.body.min); b -= 2) {
-      root.style.setProperty("--body", `${b}px`);
-      if (cabe()) return false;
-    }
+    root.style.setProperty("--body", `${b}px`);
+    return cabe();
+  };
+  const h1Min = px(plantilla.h1.min);
+  const bodyMin = px(plantilla.body.min);
+  // 1) El H1 más grande que entra con el body al mínimo; 2) con ese H1, el body más grande que entra.
+  // Búsqueda binaria en pasos de 2 px: unas 10 mediciones en vez de recorrer todas las combinaciones.
+  const h1Px = mayorQueCabe(h1Min, px(plantilla.h1.max), (h) => prueba(h, bodyMin));
+  if (h1Px == null) {
+    prueba(h1Min, bodyMin);
+    return true;
   }
-  root.style.setProperty("--h1", `${px(plantilla.h1.min)}px`);
-  root.style.setProperty("--body", `${px(plantilla.body.min)}px`);
-  return true;
+  const bodyPx = mayorQueCabe(bodyMin, px(plantilla.body.max), (b) => prueba(h1Px, b)) ?? bodyMin;
+  prueba(h1Px, bodyPx);
+  return false;
+}
+
+/** Mayor valor (en pasos de 2 entre min y max) para el que `cabe` es verdadero, suponiendo que achicar siempre ayuda. */
+function mayorQueCabe(min: number, max: number, cabe: (v: number) => boolean): number | null {
+  if (!cabe(min)) return null;
+  let lo = 0;
+  let hi = Math.floor((max - min) / 2);
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (cabe(min + mid * 2)) lo = mid;
+    else hi = mid - 1;
+  }
+  return min + lo * 2;
 }
 
 function relativo(root: HTMLElement, r: DOMRect): Rect {

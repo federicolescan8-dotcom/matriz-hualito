@@ -149,3 +149,33 @@ describe("CTA en Modo B", () => {
     }
   });
 });
+
+describe("protecciones de la paleta de Hualito", () => {
+  const hualito = async () => {
+    const base = derivarPaleta({ rubro: "tech", modo: "optimizado", H: 146 }).paleta!;
+    return {
+      ...base,
+      color_marca: hexToHsl("#136c3a", true)!,
+      tono_apoyo: hexToHsl("#5dd08f", true)!,
+      fondo_neutro: hexToHsl("#e4f1ea", true)!,
+      acento: { ...hexToHsl("#bf391b", true)!, texto: "blanco" as const },
+    };
+  };
+
+  it("un CTA directo elegido a mano que no cumple se reemplaza por el automático", async () => {
+    const { ctaModoB, ctaModoBElegidoInvalido } = await import("./palette");
+    const p = { ...(await hualito()), cta_modo_b: "directo" as const };
+    expect(ctaModoBElegidoInvalido(p)).toBe(true);
+    expect(ctaModoB(p)).toBe("contorno");
+  });
+
+  it("la forma decorativa baja su opacidad para no romper el 4,5:1 del body", async () => {
+    const { opacidadSegura } = await import("./palette");
+    const { mezclar } = await import("./color");
+    const p = await hualito();
+    // Modo B: forma en fondo neutro sobre la marca, texto en fondo neutro.
+    const a = opacidadSegura(p.color_marca, p.fondo_neutro, p.fondo_neutro, 0.12);
+    expect(a).toBeLessThan(0.12);
+    expect(contraste(p.fondo_neutro, mezclar(p.color_marca, p.fondo_neutro, a))).toBeGreaterThanOrEqual(MIN_TEXTO);
+  });
+});

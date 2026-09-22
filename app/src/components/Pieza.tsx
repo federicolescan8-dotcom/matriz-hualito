@@ -5,7 +5,7 @@ import { hslCss } from "@/engine/color";
 import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
-import { coloresModo, estiloCta } from "@/engine/palette";
+import { coloresModo, estiloCta, opacidadSegura } from "@/engine/palette";
 import { PLANTILLAS, type Pieza as TPieza } from "@/engine/pieza";
 import { FACTOR_STORY, pesoH1 } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
@@ -38,13 +38,16 @@ export function Pieza({
   const { h1, body } = pieza.contenido;
   const ctaTexto = plantilla.tieneCta ? pieza.contenido.cta?.trim() : null;
   const formaColor = pieza.modo === "A" ? c.apoyo : p.fondo_neutro;
+  // La forma de fondo nunca baja el contraste del texto que le pasa por encima.
+  const formaOpacidad = opacidadSegura(c.fondo, formaColor, c.texto, pieza.modo === "A" ? 0.35 : 0.12);
 
   const onResultadoRef = useRef(onResultado);
   useLayoutEffect(() => {
     onResultadoRef.current = onResultado;
   });
 
-  const clave = JSON.stringify([pieza, p, marca.tipografia, marca.logo[c.logo]?.length]);
+  // Solo lo que cambia el layout: el id de la pieza no cuenta.
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.tipografia, marca.logo[c.logo]?.length]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -108,7 +111,7 @@ export function Pieza({
           bottom: -f.ancho * 0.2,
           borderRadius: "50%",
           background: hslCss(formaColor),
-          opacity: pieza.modo === "A" ? 0.35 : 0.12,
+          opacity: formaOpacidad,
         }}
       />
       <div
