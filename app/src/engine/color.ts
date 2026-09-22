@@ -99,3 +99,10 @@ export function normalizarHex(v: string): string | null {
   const rgb = hexToRgb(v);
   return rgb ? "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("") : null;
 }
+
+/** Color resultante de poner `arriba` con opacidad `alfa` (0-1) sobre `abajo`. */
+export function mezclar(abajo: HSL, arriba: HSL, alfa: number): HSL {
+  const a = hslToRgb(abajo);
+  const b = hslToRgb(arriba);
+  return rgbToHsl(a.map((v, i) => Math.round(v * (1 - alfa) + b[i] * alfa)) as RGB, true);
+}

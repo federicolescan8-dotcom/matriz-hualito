@@ -48,7 +48,8 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 12. **Peso del H1 limitado al máximo real de cada familia** (Manrope, Sora y Newsreader 800; Space Grotesk 700). *(Cap. 4)*
 13. **Ajuste manual de la paleta en la ficha de marca**: cualquier rol se puede corregir por HEX si el resultado no convence. La paleta calculada se conserva para volver atrás; el texto sobre el acento se vuelve a elegir solo, y los contrastes que no cumplen quedan marcados y bloquean la publicación hasta corregirlos. *(Cap. 3, A.3)*
 14. **CTA en Modo B con contorno o invertido**: si el acento no alcanza 3:1 contra el color de marca (p. ej. rojo y verde de luminosidad parecida), el CTA de Modo B se separa con fondo neutro en vez de rechazar la paleta. *(Cap. 3, Cap. 8, A.3)*
-15. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
+15. **CTA en Modo A con contorno**: un acento claro sobre el fondo neutro claro lleva un contorno fino en el color de marca. *(Cap. 3, Cap. 8)*
+16. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
 
 ---
 
@@ -295,7 +296,9 @@ El mínimo de 3:1 del acento sobre el color de marca existe para que el CTA se v
 | Con contorno | botón en acento con un anillo de fondo neutro (8 px en lienzo de 1080) | texto sobre acento ≥ 4,5:1; acento vs. neutro ≥ 3:1; neutro vs. marca ≥ 3:1 |
 | Invertido | botón en fondo neutro con el texto en acento | acento vs. neutro ≥ 4,5:1; neutro vs. marca ≥ 3:1 |
 
-Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la ficha de marca (`cta_modo_b`). El Modo A no cambia: el CTA siempre va en acento sobre el fondo neutro.
+Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la ficha de marca (`cta_modo_b`).
+
+**Modo A** *(v1.1)*. El mismo problema aparece al revés con los acentos claros (amarillos, cianes): el texto sobre el botón se lee bien, pero el botón se funde con el fondo neutro claro. Si el acento no alcanza 3:1 contra el fondo neutro, el CTA de Modo A lleva un contorno fino (4 px en lienzo de 1080) en el color de texto de la marca, que sí contrasta con el neutro. Es el recurso de los botones claros con borde de las marcas reales.
 
 Caso típico: un acento complementario con la misma luminosidad que la marca, como un rojo sobre un verde. Se distinguen solo por matiz, y esa diferencia se pierde para quien tiene daltonismo rojo-verde. El contorno o la inversión agregan diferencia de luminosidad sin cambiar los colores de la marca.
 

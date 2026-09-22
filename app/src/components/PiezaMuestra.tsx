@@ -1,5 +1,5 @@
 import { hslCss } from "@/engine/color";
-import { colorTextoAcento, coloresModo, ctaModoB, type Paleta } from "@/engine/palette";
+import { coloresModo, estiloCta, type Paleta } from "@/engine/palette";
 import type { Rubro } from "@/engine/presets";
 import { pesoH1, type Tipografia } from "@/engine/typography";
 import type { Diagnostico } from "@/engine/diagnostico";
@@ -52,10 +52,8 @@ export function PiezaMuestra({
   const logoSrc = logo?.[c.logo] ?? null;
   const familia = fontFamily(tipografia.familia_variable);
   const margen = "11%";
-  // CTA: en Modo B puede ir con contorno de fondo neutro o invertido si el acento no contrasta con la marca.
-  const cta = modo === "B" ? ctaModoB(paleta) : "directo";
-  const ctaFondo = cta === "invertido" ? paleta.fondo_neutro : paleta.acento;
-  const ctaTexto = cta === "invertido" ? paleta.acento : colorTextoAcento(paleta);
+  // CTA: con contorno o invertido cuando el acento no contrasta con su fondo (cap. 3, paso 8b).
+  const cta = estiloCta(paleta, modo);
 
   return (
     <div
@@ -110,9 +108,9 @@ export function PiezaMuestra({
           <span
             className="inline-block"
             style={{
-              background: hslCss(ctaFondo),
-              color: hslCss(ctaTexto),
-              boxShadow: cta === "contorno" ? `0 0 0 ${px(8)} ${hslCss(paleta.fondo_neutro)}` : undefined,
+              background: hslCss(cta.fondo),
+              color: hslCss(cta.texto),
+              boxShadow: cta.anillo ? `0 0 0 ${px(cta.anillo.px)} ${hslCss(cta.anillo.color)}` : undefined,
               fontSize: px(32),
               fontWeight: 600,
               padding: `${px(20)} ${px(40)}`,

@@ -407,3 +407,49 @@ export function ctaModoBAuto(p: Paleta): CtaModoB {
 export function ctaModoB(p: Paleta): CtaModoB {
   return p.cta_modo_b ?? ctaModoBAuto(p);
 }
+
+/**
+ * CTA en Modo A (fondo neutro). Un acento claro (amarillos, cianes) se lee bien con su texto pero el botón se funde
+ * con el fondo neutro claro: en ese caso lleva un contorno fino en el color de texto de la marca, como los botones
+ * claros con borde de las marcas reales.
+ */
+export type CtaModoA = "directo" | "contorno";
+
+export function controlesCtaModoA(p: Paleta, modo: CtaModoA): ControlContraste[] {
+  const base = { control: "texto sobre el acento", valor: contraste(p.acento, colorTextoAcento(p)), minimo: MIN_TEXTO };
+  return modo === "directo"
+    ? [base, { control: "acento sobre el fondo neutro", valor: contraste(p.acento, p.fondo_neutro), minimo: MIN_GRAFICO }]
+    : [base, { control: "contorno sobre el fondo neutro", valor: contraste(colorTexto(p), p.fondo_neutro), minimo: MIN_GRAFICO }];
+}
+
+export function ctaModoA(p: Paleta): CtaModoA {
+  return cumple(controlesCtaModoA(p, "directo")) ? "directo" : "contorno";
+}
+
+export interface EstiloCta {
+  tratamiento: CtaModoA | CtaModoB;
+  fondo: HSL;
+  texto: HSL;
+  /** Anillo alrededor del botón (contorno) y su grosor en px sobre un lienzo de 1080. */
+  anillo: { color: HSL; px: number } | null;
+}
+
+/** Colores del botón de CTA según el modo y su tratamiento. */
+export function estiloCta(p: Paleta, modo: "A" | "B"): EstiloCta {
+  if (modo === "A") {
+    const t = ctaModoA(p);
+    return {
+      tratamiento: t,
+      fondo: p.acento,
+      texto: colorTextoAcento(p),
+      anillo: t === "contorno" ? { color: colorTexto(p), px: 4 } : null,
+    };
+  }
+  const t = ctaModoB(p);
+  return {
+    tratamiento: t,
+    fondo: t === "invertido" ? p.fondo_neutro : p.acento,
+    texto: t === "invertido" ? p.acento : colorTextoAcento(p),
+    anillo: t === "contorno" ? { color: p.fondo_neutro, px: 8 } : null,
+  };
+}
