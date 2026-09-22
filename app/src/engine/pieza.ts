@@ -2,13 +2,12 @@
 
 import {
   BIBLIOTECA_RUBRO,
-  decosDisponibles,
-  FORMAS,
-  formasDelRubro,
   ICONOS,
+  rellenosDisponibles,
   type EstiloIconos,
+  type Patron,
+  type RellenoDeco,
   type TipoContacto,
-  type TipoDeco,
 } from "./biblioteca";
 import type { Marca } from "./diagnostico";
 import { CANALES, type Canal, type Formato } from "./formatos";
@@ -37,11 +36,14 @@ export interface Pieza {
   items?: ItemCatalogo[];
 }
 
+/** Capa decorativa 2B: una forma sangrada y su relleno. */
 export interface Deco {
-  tipo: TipoDeco;
-  /** id de forma, id de patrón o nombre de ícono; en foto, la forma de contención. */
-  id: string;
-  /** Foto como data URL (solo tipo foto). */
+  /** id de la forma (del rubro) que se sangra contra el borde. */
+  forma: string;
+  relleno: RellenoDeco;
+  patron?: Patron;
+  icono?: string;
+  /** Foto como data URL (relleno foto). */
   foto?: string | null;
 }
 
@@ -224,26 +226,26 @@ export function estiloIconos(marca: Marca): EstiloIconos {
   return marca.graficos?.estilo_iconos ?? BIBLIOTECA_RUBRO[marca.rubro].estiloIconos;
 }
 
-/** Valor por defecto de cada tipo de capa decorativa para un rubro. */
-export function decoPorDefecto(rubro: Rubro, tipo: TipoDeco): Deco {
+/** Capa decorativa por defecto del rubro con un relleno dado. */
+export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
   const lib = BIBLIOTECA_RUBRO[rubro];
-  if (tipo === "icono") return { tipo, id: ICONOS[lib.iconosSugeridos[0]][0] };
-  if (tipo === "patron") return { tipo, id: lib.patrones[0] };
-  if (tipo === "foto") return { tipo, id: lib.contenedores[0], foto: null };
-  const forma = formasDelRubro(rubro).find((f) => !f.trazo) ?? FORMAS[0];
-  return { tipo, id: forma.id };
+  return { forma: lib.formasDeco[0], relleno, patron: lib.patrones[0], icono: ICONOS[lib.iconosSugeridos[0]][0], foto: null };
 }
 
 /**
- * Capa decorativa efectiva: la elegida si está habilitada; si es foto y no hay foto cargada, se usa la siguiente
- * opción del rubro (la pieza tiene que funcionar completa sin foto, cap. 5).
+ * Capa decorativa efectiva: la elegida si su relleno está habilitado; si es foto y no hay foto cargada, se usa el
+ * siguiente relleno del rubro con la misma forma (la pieza tiene que funcionar completa sin foto, cap. 5).
  */
 export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
-  const disponibles = decosDisponibles(marca.rubro, marca.fotos_habilitadas);
-  const elegida = pieza.deco;
-  if (elegida && disponibles.includes(elegida.tipo) && (elegida.tipo !== "foto" || elegida.foto)) return elegida;
-  const tipo = disponibles.find((t) => t !== "foto") ?? "forma";
-  return decoPorDefecto(marca.rubro, tipo);
+  const lib = BIBLIOTECA_RUBRO[marca.rubro];
+  const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
+  const base = decoPorDefecto(marca.rubro, disponibles[0]);
+  const elegida = { ...base, ...pieza.deco };
+  if (!lib.formasDeco.includes(elegida.forma)) elegida.forma = base.forma;
+  if (!elegida.patron || !lib.patrones.includes(elegida.patron)) elegida.patron = base.patron;
+  const valido = disponibles.includes(elegida.relleno) && (elegida.relleno !== "foto" || !!elegida.foto);
+  if (!valido) elegida.relleno = disponibles.find((t) => t !== "foto") ?? "patron";
+  return elegida;
 }
 
 export function piezaNueva(marca: Marca): Pieza {

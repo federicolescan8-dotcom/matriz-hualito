@@ -102,13 +102,22 @@ export const CONTACTO: Record<TipoContacto, { nombre: string; icono: string }> =
 
 // ── Qué habilita cada rubro (cap. 7 / A.7) ──
 
-export type TipoDeco = "icono" | "forma" | "patron" | "foto";
+/**
+ * Capa decorativa de las variantes 2B (v1.1): una forma grande sangrada contra el borde de la pieza, rellena con foto
+ * (recortada con la forma y overlay de marca) o, sin foto, con un patrón o un ícono adentro que le dan el valor
+ * decorativo. El relleno es lo que mide el checklist.
+ */
+export type RellenoDeco = "foto" | "patron" | "icono";
+/** Tipo que registra la medición de la capa decorativa (igual al relleno). */
+export type TipoDeco = RellenoDeco;
 
 export interface BibliotecaRubro {
   formas: CategoriaForma[];
   patrones: Patron[];
-  /** Capa decorativa de las variantes 2B, en orden de preferencia. La foto solo si la marca tiene fotos. */
-  deco: TipoDeco[];
+  /** Rellenos de la capa decorativa 2B, en orden de preferencia. La foto solo si la marca tiene fotos. */
+  rellenos: RellenoDeco[];
+  /** Formas que se pueden sangrar como capa decorativa 2B (la primera es la sugerida). */
+  formasDeco: string[];
   /** Formas de contención para fotos e ítems de catálogo. */
   contenedores: string[];
   iconosSugeridos: CategoriaIcono[];
@@ -119,7 +128,8 @@ export const BIBLIOTECA_RUBRO: Record<Rubro, BibliotecaRubro> = {
   servicios: {
     formas: ["geometricas", "lineales"],
     patrones: ["grilla", "diagonales"],
-    deco: ["icono", "forma", "foto"],
+    rellenos: ["icono", "patron", "foto"],
+    formasDeco: ["circulo", "cuadrado"],
     contenedores: ["cuadrado", "circulo"],
     iconosSugeridos: ["servicios", "contacto"],
     estiloIconos: "lineal",
@@ -127,7 +137,8 @@ export const BIBLIOTECA_RUBRO: Record<Rubro, BibliotecaRubro> = {
   gastronomia: {
     formas: ["contenedores", "geometricas"],
     patrones: ["puntos"],
-    deco: ["foto", "forma"],
+    rellenos: ["foto", "patron", "icono"],
+    formasDeco: ["circulo", "sello", "arco"],
     contenedores: ["circulo", "arco", "sello"],
     iconosSugeridos: ["gastronomia", "comercio"],
     estiloIconos: "solido",
@@ -135,7 +146,8 @@ export const BIBLIOTECA_RUBRO: Record<Rubro, BibliotecaRubro> = {
   belleza: {
     formas: ["organicas", "lineales"],
     patrones: ["ondas", "ruido"],
-    deco: ["forma", "foto"],
+    rellenos: ["foto", "patron", "icono"],
+    formasDeco: ["blob-1", "blob-2", "circulo"],
     contenedores: ["blob-1", "blob-2", "arco"],
     iconosSugeridos: ["belleza", "comercio"],
     estiloIconos: "lineal",
@@ -143,7 +155,8 @@ export const BIBLIOTECA_RUBRO: Record<Rubro, BibliotecaRubro> = {
   tech: {
     formas: ["geometricas", "contenedores"],
     patrones: ["grilla"],
-    deco: ["forma", "patron", "foto"],
+    rellenos: ["patron", "icono", "foto"],
+    formasDeco: ["circulo", "cuadrado"],
     contenedores: ["cuadrado", "circulo"],
     iconosSugeridos: ["tech", "comercio"],
     estiloIconos: "lineal",
@@ -155,7 +168,7 @@ export function formasDelRubro(rubro: Rubro): Forma[] {
   return BIBLIOTECA_RUBRO[rubro].formas.flatMap((cat) => FORMAS.filter((f) => f.categoria === cat));
 }
 
-/** Opciones de capa decorativa habilitadas para una marca (la foto requiere fotos propias). */
-export function decosDisponibles(rubro: Rubro, fotosHabilitadas: boolean): TipoDeco[] {
-  return BIBLIOTECA_RUBRO[rubro].deco.filter((t) => t !== "foto" || fotosHabilitadas);
+/** Rellenos de capa decorativa habilitados para una marca (la foto requiere fotos propias). */
+export function rellenosDisponibles(rubro: Rubro, fotosHabilitadas: boolean): RellenoDeco[] {
+  return BIBLIOTECA_RUBRO[rubro].rellenos.filter((t) => t !== "foto" || fotosHabilitadas);
 }

@@ -84,6 +84,48 @@ export function FormaSvg({
   );
 }
 
+/** Dibujo de una celda de patrón de lado `s`, en el color `c`. El ruido no tiene celda: usa un filtro. */
+function celdaPatron(id: Patron, s: number, c: string): React.ReactNode {
+  const dibujo: Record<Patron, React.ReactNode> = {
+    puntos: <circle cx={s / 2} cy={s / 2} r={s * 0.12} fill={c} />,
+    diagonales: <path d={`M0 ${s}L${s} 0M${-s / 2} ${s / 2}L${s / 2} ${-s / 2}M${s / 2} ${s * 1.5}L${s * 1.5} ${s / 2}`} stroke={c} strokeWidth={s * 0.08} />,
+    ondas: <path d={`M0 ${s / 2}Q${s / 4} ${s * 0.2} ${s / 2} ${s / 2}T${s} ${s / 2}`} fill="none" stroke={c} strokeWidth={s * 0.07} />,
+    grilla: <path d={`M${s} 0V${s}M0 ${s}H${s}`} stroke={c} strokeWidth={s * 0.05} />,
+    cruces: <path d={`M${s / 2} ${s * 0.3}V${s * 0.7}M${s * 0.3} ${s / 2}H${s * 0.7}`} stroke={c} strokeWidth={s * 0.07} strokeLinecap="round" />,
+    ruido: null,
+  };
+  return dibujo[id];
+}
+
+/** Defs de un patrón (o del filtro de ruido) y el relleno que hay que usar para pintarlo. */
+function defsPatron(id: Patron, uid: string, s: number, c: string, frecuenciaRuido = 0.8) {
+  if (id === "ruido") {
+    // El ruido solo define la transparencia; el color es el que recibe el patrón.
+    return {
+      defs: (
+        <filter id={`r${uid}`}>
+          <feTurbulence type="fractalNoise" baseFrequency={frecuenciaRuido} numOctaves="2" seed="7" result="ruido" />
+          <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.2 1.2 1.2 0 -1.6" result="alfa" />
+          <feComposite in="SourceGraphic" in2="alfa" operator="in" />
+        </filter>
+      ),
+      pintar: (props: React.SVGProps<SVGRectElement>) => (
+        <g filter={`url(#r${uid})`}>
+          <rect {...props} fill={c} />
+        </g>
+      ),
+    };
+  }
+  return {
+    defs: (
+      <pattern id={`p${uid}`} width={s} height={s} patternUnits="userSpaceOnUse">
+        {celdaPatron(id, s, c)}
+      </pattern>
+    ),
+    pintar: (props: React.SVGProps<SVGRectElement>) => <rect {...props} fill={`url(#p${uid})`} />,
+  };
+}
+
 /** Patrón repetible generado por código, llena su contenedor. `celda` es el tamaño de la repetición en px. */
 export function PatronSvg({
   id,
@@ -99,39 +141,11 @@ export function PatronSvg({
   slot?: string;
 }) {
   const uid = useId().replace(/:/g, "");
-  const c = hslCss(color);
-  const s = celda;
-  const dibujo: Record<Patron, React.ReactNode> = {
-    puntos: <circle cx={s / 2} cy={s / 2} r={s * 0.12} fill={c} />,
-    diagonales: <path d={`M0 ${s}L${s} 0M${-s / 2} ${s / 2}L${s / 2} ${-s / 2}M${s / 2} ${s * 1.5}L${s * 1.5} ${s / 2}`} stroke={c} strokeWidth={s * 0.08} />,
-    ondas: <path d={`M0 ${s / 2}Q${s / 4} ${s * 0.2} ${s / 2} ${s / 2}T${s} ${s / 2}`} fill="none" stroke={c} strokeWidth={s * 0.07} />,
-    grilla: <path d={`M${s} 0V${s}M0 ${s}H${s}`} stroke={c} strokeWidth={s * 0.05} />,
-    cruces: <path d={`M${s / 2} ${s * 0.3}V${s * 0.7}M${s * 0.3} ${s / 2}H${s * 0.7}`} stroke={c} strokeWidth={s * 0.07} strokeLinecap="round" />,
-    ruido: null,
-  };
+  const { defs, pintar } = defsPatron(id, uid, celda, hslCss(color));
   return (
     <svg data-slot={slot} data-patron={id} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: opacidad }}>
-      <defs>
-        {id === "ruido" ? (
-          // El ruido solo define la transparencia; el color es el que recibe el patrón.
-          <filter id={`r${uid}`}>
-            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" result="ruido" />
-            <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.2 1.2 1.2 0 -1.6" result="alfa" />
-            <feComposite in="SourceGraphic" in2="alfa" operator="in" />
-          </filter>
-        ) : (
-          <pattern id={`p${uid}`} width={s} height={s} patternUnits="userSpaceOnUse">
-            {dibujo[id]}
-          </pattern>
-        )}
-      </defs>
-      {id === "ruido" ? (
-        <g filter={`url(#r${uid})`}>
-          <rect width="100%" height="100%" fill={c} />
-        </g>
-      ) : (
-        <rect width="100%" height="100%" fill={`url(#p${uid})`} />
-      )}
+      <defs>{defs}</defs>
+      {pintar({ width: "100%", height: "100%" })}
     </svg>
   );
 }
@@ -165,6 +179,87 @@ export function FotoEnForma({
       <g clipPath={`url(#c${uid})`}>
         <image href={foto} x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" />
         {overlay && <rect x="0" y="0" width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * Forma rellena de la capa decorativa 2B (v1.1): la silueta de una forma de la biblioteca, rellena con una foto (con
+ * overlay de marca) o, sin foto, con el tono de apoyo más un patrón o un ícono grande adentro. Se dibuja en un
+ * viewBox de 100×100; `tamanoPx` es el lado real, para que las celdas del patrón tengan un tamaño parejo.
+ */
+export function FormaRellena({
+  formaId,
+  relleno,
+  fondo,
+  foto,
+  overlay,
+  patron,
+  colorPatron,
+  opacidadPatron,
+  icono,
+  estiloIcono,
+  colorIcono,
+  opacidadIcono,
+  visible = { x: 0, y: 0, w: 100, h: 100 },
+  zonaIcono,
+  tamanoPx,
+}: {
+  formaId: string;
+  relleno: "foto" | "patron" | "icono";
+  fondo: HSL;
+  foto?: string | null;
+  overlay?: { color: HSL; opacidad: number };
+  patron?: Patron;
+  colorPatron?: HSL;
+  opacidadPatron?: number;
+  icono?: string;
+  estiloIcono?: EstiloIconos;
+  colorIcono?: HSL;
+  opacidadIcono?: number;
+  /**
+   * Parte de la forma que queda dentro de la pieza, en unidades del viewBox (una forma sangrada se ve a medias). La
+   * foto se encuadra en esa parte y el ícono se centra en ella.
+   */
+  visible?: { x: number; y: number; w: number; h: number };
+  /** Dónde va el ícono dentro de la parte visible (por defecto, centrado en ella). */
+  zonaIcono?: { x: number; y: number; w: number; h: number };
+  tamanoPx: number;
+}) {
+  const uid = useId().replace(/:/g, "");
+  const f = formaPorId(formaId) ?? formaPorId("circulo")!;
+  const celda = (100 * 44) / Math.max(tamanoPx, 1);
+  const pat = patron && colorPatron ? defsPatron(patron, uid, celda, hslCss(colorPatron), (0.33 * tamanoPx) / 100) : null;
+  const IconoC = icono ? (ICONOS[icono] ?? Star) : null;
+  const zi = zonaIcono ?? visible;
+  const ladoIcono = Math.min(42, zi.w * 0.84, zi.h * 0.84);
+  const centroIcono = { x: zi.x + zi.w / 2, y: zi.y + zi.h / 2 };
+  return (
+    <svg viewBox="0 0 100 100" style={{ display: "block", width: "100%", height: "100%", overflow: "visible" }}>
+      <defs>
+        <clipPath id={`c${uid}`}>
+          <path d={f.d} />
+        </clipPath>
+        {pat?.defs}
+      </defs>
+      <g clipPath={`url(#c${uid})`}>
+        {relleno === "foto" && foto ? (
+          <>
+            <image href={foto} x={visible.x} y={visible.y} width={visible.w} height={visible.h} preserveAspectRatio="xMidYMid slice" />
+            {overlay && <rect width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
+          </>
+        ) : (
+          <>
+            <rect width="100" height="100" fill={hslCss(fondo)} />
+            {relleno === "patron" && pat && <g opacity={opacidadPatron}>{pat.pintar({ width: 100, height: 100 })}</g>}
+            {relleno === "icono" && IconoC && colorIcono && (
+              <g opacity={opacidadIcono} transform={`translate(${centroIcono.x - ladoIcono / 2} ${centroIcono.y - ladoIcono / 2})`}>
+                <IconoC size={ladoIcono} weight={estiloIcono === "solido" ? "fill" : "regular"} color={hslCss(colorIcono)} />
+              </g>
+            )}
+          </>
+        )}
       </g>
     </svg>
   );

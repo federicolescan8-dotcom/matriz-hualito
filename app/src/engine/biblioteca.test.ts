@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BIBLIOTECA_RUBRO, decosDisponibles, FORMAS, formasDelRubro, TODOS_LOS_ICONOS } from "./biblioteca";
+import { BIBLIOTECA_RUBRO, FORMAS, formasDelRubro, rellenosDisponibles, TODOS_LOS_ICONOS } from "./biblioteca";
 import { evaluarPieza, type Medicion } from "./checklist";
 import { construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
 import { decoEfectiva, maxIconos, maxItems, piezaNueva, type Pieza } from "./pieza";
@@ -18,30 +18,37 @@ describe("biblioteca", () => {
     expect(new Set(TODOS_LOS_ICONOS).size).toBe(TODOS_LOS_ICONOS.length);
   });
 
-  it("cada rubro habilita formas y contenedores que existen", () => {
+  it("cada rubro habilita formas, contenedores y formas decorativas que existen y recortan", () => {
     for (const r of RUBROS) {
       expect(formasDelRubro(r).length).toBeGreaterThan(0);
-      for (const id of BIBLIOTECA_RUBRO[r].contenedores) expect(FORMAS.find((f) => f.id === id)?.contiene).toBe(true);
+      for (const id of [...BIBLIOTECA_RUBRO[r].contenedores, ...BIBLIOTECA_RUBRO[r].formasDeco]) {
+        expect(FORMAS.find((f) => f.id === id)?.contiene).toBe(true);
+      }
     }
   });
 
   it("la foto solo se ofrece si la marca tiene fotos propias", () => {
-    expect(decosDisponibles("gastronomia", false)).not.toContain("foto");
-    expect(decosDisponibles("gastronomia", true)).toContain("foto");
+    expect(rellenosDisponibles("gastronomia", false)).not.toContain("foto");
+    expect(rellenosDisponibles("gastronomia", true)).toContain("foto");
   });
 });
 
 describe("capa decorativa efectiva", () => {
-  it("sin fotos, gastronomía usa su forma sugerida (sello)", () => {
-    expect(decoEfectiva(marca, { ...piezaNueva(marca), variante: "2B-L" })).toMatchObject({ tipo: "forma", id: "sello" });
+  it("sin fotos, gastronomía sangra un semicírculo relleno con su patrón (puntos)", () => {
+    expect(decoEfectiva(marca, { ...piezaNueva(marca), variante: "2B-L" })).toMatchObject({ forma: "circulo", relleno: "patron", patron: "puntos" });
   });
 
-  it("foto pedida sin foto cargada: la pieza funciona con la capa siguiente del rubro", () => {
+  it("foto pedida sin foto cargada: la misma forma se rellena con el relleno siguiente del rubro", () => {
     const conFotos = { ...marca, fotos_habilitadas: true };
-    const p = { ...piezaNueva(conFotos), variante: "2B-L" as const, deco: { tipo: "foto" as const, id: "circulo", foto: null } };
-    expect(decoEfectiva(conFotos, p).tipo).toBe("forma");
+    const p = { ...piezaNueva(conFotos), variante: "2B-L" as const, deco: { forma: "sello", relleno: "foto" as const, foto: null } };
+    expect(decoEfectiva(conFotos, p)).toMatchObject({ forma: "sello", relleno: "patron" });
     const conFoto = { ...p, deco: { ...p.deco, foto: "data:image/png;base64,AAAA" } };
-    expect(decoEfectiva(conFotos, conFoto).tipo).toBe("foto");
+    expect(decoEfectiva(conFotos, conFoto)).toMatchObject({ forma: "sello", relleno: "foto" });
+  });
+
+  it("una forma o un patrón que el rubro no habilita se reemplazan por los del rubro", () => {
+    const p = { ...piezaNueva(marca), variante: "2B-L" as const, deco: { forma: "blob-1", relleno: "patron" as const, patron: "grilla" as const } };
+    expect(decoEfectiva(marca, p)).toMatchObject({ forma: "circulo", patron: "puntos" });
   });
 
   it("límites de íconos e ítems por variante y formato", () => {
@@ -69,7 +76,7 @@ describe("checklist de elementos gráficos", () => {
   const falla = (r: ReturnType<typeof evaluarPieza>, control: string) => r.controles.find((c) => c.control.startsWith(control))?.ok === false;
 
   it("2B: la capa decorativa no puede tapar el texto", () => {
-    const deco = { tipo: "forma" as const, caja: { x: 300, y: 380, w: 400, h: 400 }, opacidad: 1, overlay: null, color: marca.paleta.tono_apoyo };
+    const deco = { tipo: "patron" as const, caja: { x: 300, y: 380, w: 400, h: 400 }, opacidad: 1, overlay: null, color: marca.paleta.tono_apoyo };
     expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco })), "Capa decorativa sin tapar")).toBe(true);
     const aparte = { ...deco, caja: { x: 600, y: 380, w: 340, h: 340 } };
     expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco: aparte })), "Capa decorativa sin tapar")).toBe(false);

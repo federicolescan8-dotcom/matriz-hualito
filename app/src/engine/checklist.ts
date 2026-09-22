@@ -5,7 +5,17 @@
 import { contraste, mezclar, type HSL } from "./color";
 import type { Marca } from "./diagnostico";
 import { FORMATOS } from "./formatos";
-import { coloresModo, controlesCtaModoA, controlesCtaModoB, ctaModoA, ctaModoB, MIN_GRAFICO, MIN_TEXTO } from "./palette";
+import {
+  coloresModo,
+  controlesCtaModoA,
+  controlesCtaModoB,
+  controlesCtaSobre,
+  ctaModoA,
+  ctaModoB,
+  fondoCapaDecorativa,
+  MIN_GRAFICO,
+  MIN_TEXTO,
+} from "./palette";
 import { alineacionesPermitidas, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Pieza } from "./pieza";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { FACTOR_STORY, pesoH1 } from "./typography";
@@ -117,7 +127,13 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const cBody = peorContraste(c.texto, m.body.lineas);
     add("Color y contraste", "Body sobre su fondo", cBody >= MIN_TEXTO, `${r(cBody)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)");
   }
-  if (m.cta) {
+  // 2B-S vertical (v1.1): el CTA y el logo se apoyan sobre la cúpula decorativa.
+  const cupula = plantilla?.deco === "inferior" && !f.columnaMensaje && m.deco != null;
+  if (m.cta && cupula) {
+    for (const k of controlesCtaSobre(p, fondoCapaDecorativa(p, m.deco!.tipo))) {
+      add("Color y contraste", `CTA sobre la cúpula: ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "corregir el acento o el tono de apoyo");
+    }
+  } else if (m.cta) {
     const modo = pieza.modo === "B" ? ctaModoB(p) : ctaModoA(p);
     const lista = pieza.modo === "B" ? controlesCtaModoB(p, ctaModoB(p)) : controlesCtaModoA(p, ctaModoA(p));
     for (const k of lista) {
@@ -177,8 +193,10 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const d = m.deco;
     add("Composición", "Una capa decorativa", d != null, d ? d.tipo : "falta la capa decorativa", "agregar o corregir capa");
     if (d) {
-      const pisa = [...textos, ...(m.logo ? [m.logo] : [])].some((k) => seTocan(k, d.caja));
-      add("Composición", "Capa decorativa sin tapar texto ni logo", !pisa, pisa ? "se superpone" : "", "corregir capa");
+      // En la cúpula el CTA y el logo van encima a propósito (con contraste validado); el mensaje nunca.
+      const protegidos = cupula ? [...m.h1.lineas, ...(m.body?.lineas ?? [])] : [...textos, ...(m.logo ? [m.logo] : [])];
+      const pisa = protegidos.some((k) => seTocan(k, d.caja));
+      add("Composición", cupula ? "Capa decorativa sin tapar el mensaje" : "Capa decorativa sin tapar texto ni logo", !pisa, pisa ? "se superpone" : "", "corregir capa");
       if (d.tipo === "icono") {
         const ok = d.opacidad >= OPACIDAD_ICONO_DECO.min - 1e-6 && d.opacidad <= OPACIDAD_ICONO_DECO.max + 1e-6;
         add("Composición", "Ícono decorativo al 15-25% de opacidad", ok, `${Math.round(d.opacidad * 100)}%`, "corregir opacidad");
@@ -235,7 +253,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (plantilla && !plantilla.tieneCta) {
     add("Contenido", "Variante sin CTA", !m.cta, m.cta ? "la variante no lleva CTA" : "", "quitar el CTA");
   }
-  const fotoPedida = pieza.deco?.tipo === "foto";
+  const fotoPedida = pieza.deco?.relleno === "foto";
   const usaFoto = m.deco?.tipo === "foto" || items.some((k) => k.tieneVisual) && (pieza.items ?? []).some((i) => i.foto);
   add(
     "Contenido",

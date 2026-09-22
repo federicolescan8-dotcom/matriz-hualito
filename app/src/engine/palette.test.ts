@@ -179,3 +179,16 @@ describe("protecciones de la paleta de Hualito", () => {
     expect(contraste(p.fondo_neutro, mezclar(p.color_marca, p.fondo_neutro, a))).toBeGreaterThanOrEqual(MIN_TEXTO);
   });
 });
+
+describe("CTA sobre la cúpula del 2B-S", () => {
+  it("sobre un tono de apoyo de luminosidad media, el CTA se resuelve con un contorno de tinta de marca", async () => {
+    const { estiloCtaSobre, controlesCtaSobre, cumple } = await import("./palette");
+    for (let H = 0; H < 360; H += 20) {
+      for (const rubro of RUBROS) {
+        const p = derivarPaleta({ rubro, modo: "optimizado", H }).paleta!;
+        expect(cumple(controlesCtaSobre(p, p.tono_apoyo)), `${rubro} H${H} ${estiloCtaSobre(p, p.tono_apoyo).tratamiento}`).toBe(true);
+        expect(cumple(controlesCtaSobre(p, p.color_marca)), `${rubro} H${H} sobre foto`).toBe(true);
+      }
+    }
+  });
+});

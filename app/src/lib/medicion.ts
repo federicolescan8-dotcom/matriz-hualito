@@ -148,12 +148,19 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
   };
 }
 
+function recortarAlLienzo(r: Rect, ancho: number, alto: number): Rect {
+  const x = Math.max(0, r.x);
+  const y = Math.max(0, r.y);
+  return { x, y, w: Math.max(0, Math.min(ancho, r.x + r.w) - x), h: Math.max(0, Math.min(alto, r.y + r.h) - y) };
+}
+
 function medirDeco(root: HTMLElement): Medicion["deco"] {
   const el = q(root, "deco");
   if (!el) return null;
   return {
     tipo: el.dataset.decoTipo as TipoDeco,
-    caja: relativo(root, el.getBoundingClientRect()),
+    // La forma puede estar sangrada fuera del lienzo: se mide solo la parte visible.
+    caja: recortarAlLienzo(relativo(root, el.getBoundingClientRect()), root.offsetWidth, root.offsetHeight),
     opacidad: parseFloat(el.dataset.opacidad ?? "1"),
     overlay: el.dataset.overlay ? parseFloat(el.dataset.overlay) : null,
     color: JSON.parse(el.dataset.color!) as HSL,

@@ -3,46 +3,54 @@
 import {
   BIBLIOTECA_RUBRO,
   CONTACTO,
-  decosDisponibles,
-  formasDelRubro,
   ICONOS,
   PATRONES,
+  rellenosDisponibles,
   TODOS_LOS_ICONOS,
+  type RellenoDeco,
   type TipoContacto,
-  type TipoDeco,
 } from "@/engine/biblioteca";
 import type { Marca } from "@/engine/diagnostico";
-import { decoEfectiva, decoPorDefecto, MAX_CONTACTO, maxItems, estiloIconos, type Pieza } from "@/engine/pieza";
+import { decoEfectiva, MAX_CONTACTO, maxItems, estiloIconos, type Deco, type Pieza } from "@/engine/pieza";
 import { reducirFoto } from "@/lib/imagen";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
 // Editores de los elementos gráficos de cada variante (fase 3b): capa decorativa (2B), contacto (3) y catálogo (4).
 
-const NOMBRE_DECO: Record<TipoDeco, string> = { icono: "Ícono", forma: "Forma", patron: "Patrón", foto: "Foto" };
+const NOMBRE_RELLENO: Record<RellenoDeco, string> = { foto: "Foto", patron: "Patrón", icono: "Ícono" };
 const CAJA = "flex h-11 w-11 items-center justify-center rounded border";
 
+/**
+ * Capa decorativa 2B (v1.1): se elige la forma que se sangra contra el borde y su relleno. La foto toma la silueta de
+ * la forma; sin foto, un patrón o un ícono adentro le dan el valor decorativo.
+ */
 export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
-  const disponibles = decosDisponibles(marca.rubro, marca.fotos_habilitadas);
+  const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
   const efectiva = decoEfectiva(marca, pieza);
-  const elegido = pieza.deco?.tipo ?? efectiva.tipo;
   const lib = BIBLIOTECA_RUBRO[marca.rubro];
   const p = marca.paleta;
   const estilo = estiloIconos(marca);
-  const set = (id: string, extra: Partial<NonNullable<Pieza["deco"]>> = {}) =>
-    onChange({ deco: { tipo: elegido, id, foto: pieza.deco?.foto ?? null, ...extra } });
+  const set = (d: Partial<Deco>) => onChange({ deco: { ...efectiva, ...pieza.deco, ...d } });
+  // El relleno pedido (puede ser foto aunque todavía no haya foto cargada).
+  const pedido = pieza.deco?.relleno ?? efectiva.relleno;
 
   return (
     <div className="flex flex-col gap-2">
       <span className="font-medium">Capa decorativa</span>
+      <div className="flex flex-wrap gap-1">
+        {lib.formasDeco.map((id) => (
+          <button key={id} type="button" title="Forma" onClick={() => set({ forma: id })} className={`${CAJA} overflow-hidden ${efectiva.forma === id ? "border-neutral-900" : "border-neutral-200"}`}>
+            {/* Vista de la forma sangrada: solo la mitad visible, como en la pieza. */}
+            <div style={{ width: 36, height: 36, transform: "translateX(18px)" }}>
+              <FormaSvg id={id} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
+            </div>
+          </button>
+        ))}
+      </div>
       <div className="flex overflow-hidden rounded-md border border-neutral-300">
         {disponibles.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => onChange({ deco: pieza.deco?.tipo === t ? pieza.deco : decoPorDefecto(marca.rubro, t) })}
-            className={`flex-1 py-1.5 text-xs ${elegido === t ? "bg-neutral-900 text-white" : "bg-white"}`}
-          >
-            {NOMBRE_DECO[t]}
+          <button key={t} type="button" onClick={() => set({ relleno: t })} className={`flex-1 py-1.5 text-xs ${pedido === t ? "bg-neutral-900 text-white" : "bg-white"}`}>
+            {NOMBRE_RELLENO[t]}
           </button>
         ))}
       </div>
@@ -50,51 +58,35 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
         <p className="text-xs text-neutral-500">Foto: la marca no tiene fotos propias habilitadas (se activa en la ficha de marca).</p>
       )}
 
-      {elegido === "icono" && (
-        <div className="flex max-h-36 flex-wrap gap-1 overflow-y-auto">
-          {[...lib.iconosSugeridos.flatMap((cat) => ICONOS[cat]), ...TODOS_LOS_ICONOS.filter((n) => !lib.iconosSugeridos.some((cat) => ICONOS[cat].includes(n)))].map((n) => (
-            <button key={n} type="button" title={n} onClick={() => set(n)} className={`${CAJA} ${efectiva.id === n ? "border-neutral-900" : "border-neutral-200"}`}>
-              <Icono nombre={n} estilo={estilo} color={p.color_marca} tamano={22} />
-            </button>
-          ))}
-        </div>
-      )}
-      {elegido === "forma" && (
-        <div className="flex flex-wrap gap-1">
-          {formasDelRubro(marca.rubro).map((f) => (
-            <button key={f.id} type="button" title={f.nombre} onClick={() => set(f.id)} className={`${CAJA} p-1.5 ${efectiva.id === f.id ? "border-neutral-900" : "border-neutral-200"}`}>
-              <FormaSvg id={f.id} color={p.tono_apoyo} grosor={8} style={{ width: "100%", height: "100%" }} />
-            </button>
-          ))}
-        </div>
-      )}
-      {elegido === "patron" && (
+      {pedido === "patron" && (
         <div className="flex flex-wrap gap-1">
           {PATRONES.filter((pt) => lib.patrones.includes(pt.id)).map((pt) => (
-            <button key={pt.id} type="button" title={pt.nombre} onClick={() => set(pt.id)} className={`${CAJA} relative overflow-hidden ${efectiva.id === pt.id ? "border-neutral-900" : "border-neutral-200"}`}>
+            <button key={pt.id} type="button" title={pt.nombre} onClick={() => set({ patron: pt.id })} className={`${CAJA} relative overflow-hidden ${efectiva.patron === pt.id ? "border-neutral-900" : "border-neutral-200"}`}>
               <PatronSvg id={pt.id} color={p.color_marca} opacidad={0.6} celda={12} />
             </button>
           ))}
         </div>
       )}
-      {elegido === "foto" && (
-        <div className="flex flex-col gap-2 text-xs">
+      {pedido === "icono" && (
+        <div className="flex max-h-36 flex-wrap gap-1 overflow-y-auto">
+          {[...lib.iconosSugeridos.flatMap((cat) => ICONOS[cat]), ...TODOS_LOS_ICONOS.filter((n) => !lib.iconosSugeridos.some((cat) => ICONOS[cat].includes(n)))].map((n) => (
+            <button key={n} type="button" title={n} onClick={() => set({ icono: n })} className={`${CAJA} ${efectiva.icono === n ? "border-neutral-900" : "border-neutral-200"}`}>
+              <Icono nombre={n} estilo={estilo} color={p.color_marca} tamano={22} />
+            </button>
+          ))}
+        </div>
+      )}
+      {pedido === "foto" && (
+        <div className="flex flex-col gap-1 text-xs">
           <input
             type="file"
             accept="image/*"
             onChange={async (e) => {
               const file = e.target.files?.[0];
-              if (file) set(pieza.deco?.tipo === "foto" ? pieza.deco.id : lib.contenedores[0], { tipo: "foto", foto: await reducirFoto(file) });
+              if (file) set({ relleno: "foto", foto: await reducirFoto(file) });
             }}
           />
-          <div className="flex gap-1">
-            {lib.contenedores.map((id) => (
-              <button key={id} type="button" title="Forma de contención" onClick={() => set(id, { tipo: "foto" })} className={`${CAJA} p-1.5 ${pieza.deco?.id === id ? "border-neutral-900" : "border-neutral-200"}`}>
-                <FormaSvg id={id} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
-              </button>
-            ))}
-          </div>
-          {!pieza.deco?.foto && <span className="text-neutral-500">Sin foto cargada se usa la siguiente opción del rubro.</span>}
+          {!pieza.deco?.foto && <span className="text-neutral-500">Sin foto cargada, la forma se rellena con {NOMBRE_RELLENO[efectiva.relleno].toLowerCase()}.</span>}
         </div>
       )}
     </div>

@@ -473,3 +473,41 @@ export function opacidadSegura(fondo: HSL, forma: HSL, texto: HSL, base: number,
   }
   return 0;
 }
+
+/**
+ * CTA sobre un fondo arbitrario (v1.1: la cúpula del 2B-S, donde el botón se apoya sobre la capa decorativa). Se
+ * elige el primer tratamiento que cumple: directo, con contorno (anillo del color que más contraste con el fondo) o
+ * invertido (botón de ese color con el texto en acento o en color de marca).
+ */
+export function estiloCtaSobre(p: Paleta, fondo: HSL): EstiloCta {
+  const texto = colorTextoAcento(p);
+  if (contraste(p.acento, fondo) >= MIN_GRAFICO && contraste(p.acento, texto) >= MIN_TEXTO) {
+    return { tratamiento: "directo", fondo: p.acento, texto, anillo: null };
+  }
+  // Candidatos de contorno: neutro, marca, su tinta profunda (para fondos de luminosidad media) y blanco.
+  const [anillo] = [p.fondo_neutro, colorTexto(p), tintaMarca(colorTexto(p)), BLANCO].sort(
+    (a, b) => contraste(b, fondo) - contraste(a, fondo),
+  );
+  if (contraste(anillo, fondo) >= MIN_GRAFICO && contraste(p.acento, anillo) >= MIN_GRAFICO && contraste(p.acento, texto) >= MIN_TEXTO) {
+    return { tratamiento: "contorno", fondo: p.acento, texto, anillo: { color: anillo, px: 8 } };
+  }
+  const [textoInv] = [p.acento, colorTexto(p), tintaMarca(colorTexto(p))].sort((a, b) => contraste(b, anillo) - contraste(a, anillo));
+  return { tratamiento: "invertido", fondo: anillo, texto: textoInv, anillo: null };
+}
+
+export function controlesCtaSobre(p: Paleta, fondo: HSL): ControlContraste[] {
+  const e = estiloCtaSobre(p, fondo);
+  const lista: ControlContraste[] = [{ control: "texto sobre el botón", valor: contraste(e.fondo, e.texto), minimo: MIN_TEXTO }];
+  if (e.anillo) {
+    lista.push({ control: "contorno sobre la capa decorativa", valor: contraste(e.anillo.color, fondo), minimo: MIN_GRAFICO });
+    lista.push({ control: "botón sobre el contorno", valor: contraste(e.fondo, e.anillo.color), minimo: MIN_GRAFICO });
+  } else {
+    lista.push({ control: "botón sobre la capa decorativa", valor: contraste(e.fondo, fondo), minimo: MIN_GRAFICO });
+  }
+  return lista;
+}
+
+/** Fondo sobre el que se apoyan el CTA y el logo en la cúpula del 2B-S. Con foto, el overlay de marca domina. */
+export function fondoCapaDecorativa(p: Paleta, relleno: "foto" | "patron" | "icono"): HSL {
+  return relleno === "foto" ? p.color_marca : p.tono_apoyo;
+}

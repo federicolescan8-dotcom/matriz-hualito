@@ -2,11 +2,11 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { contraste, hslCss, type HSL } from "@/engine/color";
-import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type Patron } from "@/engine/biblioteca";
+import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
 import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
-import { coloresModo, estiloCta, MIN_GRAFICO, opacidadSegura } from "@/engine/palette";
+import { coloresModo, estiloCta, estiloCtaSobre, fondoCapaDecorativa, MIN_GRAFICO, opacidadSegura } from "@/engine/palette";
 import {
   decoEfectiva,
   estiloIconos,
@@ -19,7 +19,7 @@ import {
 import { FACTOR_STORY, pesoH1 } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
 import { ajustarTexto, medirPieza } from "@/lib/medicion";
-import { FormaSvg, FotoEnForma, Icono, PatronSvg } from "./Graficos";
+import { FormaRellena, FormaSvg, FotoEnForma, Icono } from "./Graficos";
 
 /**
  * Pieza a tamaño real de lienzo (p. ej. 1080×1350). La misma pieza se usa en la vista previa (escalada con CSS) y
@@ -48,6 +48,7 @@ export function Pieza({
   const cta = estiloCta(p, pieza.modo);
   const estilo = estiloIconos(marca);
   const logoSrc = marca.logo[c.logo];
+  const colorTextoMarca = p.version_funcional ?? p.color_marca;
   const centrado = pieza.alineacion === "centrado";
   const italica = pieza.body_italica && marca.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
@@ -97,18 +98,24 @@ export function Pieza({
 
   const justificar = centrado ? "center" : "flex-start";
 
-  const logo = (
-    <div style={{ display: "flex", flexShrink: 0, alignItems: "center", height: px(plantilla.logoPx), justifyContent: justificar }}>
-      {logoSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img data-slot="logo" src={logoSrc} alt="" style={{ height: "100%", width: "auto", maxWidth: "70%", objectFit: "contain" }} />
-      ) : (
-        <span data-slot="logo" style={{ color: hslCss(c.texto), fontSize: px(40), fontWeight: 600 }}>
-          {marca.nombre}
-        </span>
-      )}
-    </div>
-  );
+  /** Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. */
+  const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL) => {
+    const src = marca.logo[version] ?? logoSrc;
+    const colorNombre = [c.texto, p.fondo_neutro, colorTextoMarca].sort((a, b) => contraste(b, fondoLogo) - contraste(a, fondoLogo))[0];
+    return (
+      <div style={{ display: "flex", flexShrink: 0, alignItems: "center", height: px(plantilla.logoPx), justifyContent: justificar }}>
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img data-slot="logo" src={src} alt="" style={{ height: "100%", width: "auto", maxWidth: "70%", objectFit: "contain" }} />
+        ) : (
+          <span data-slot="logo" style={{ color: hslCss(colorNombre), fontSize: px(40), fontWeight: 600 }}>
+            {marca.nombre}
+          </span>
+        )}
+      </div>
+    );
+  };
+  const logo = logoCon(c.logo, c.fondo);
 
   const bodyEstilo: React.CSSProperties = {
     margin: 0,
@@ -160,27 +167,96 @@ export function Pieza({
     </div>
   );
 
-  const botonCta = ctaTexto && (
-    <div style={{ display: "flex", justifyContent: justificar, padding: cta.anillo ? cta.anillo.px : 0, flexShrink: 0 }}>
-      <span
-        data-slot="cta"
+  const botonCtaCon = (e: typeof cta) =>
+    ctaTexto && (
+      <div style={{ display: "flex", justifyContent: justificar, padding: e.anillo ? e.anillo.px : 0, flexShrink: 0 }}>
+        <span
+          data-slot="cta"
+          data-cta-fondo={JSON.stringify(e.fondo)}
+          style={{
+            display: "inline-block",
+            background: hslCss(e.fondo),
+            color: hslCss(e.texto),
+            fontSize: px(plantilla.cta),
+            fontWeight: 600,
+            padding: horizontal ? `${px(14)}px ${px(32)}px` : `${px(22)}px ${px(46)}px`,
+            borderRadius: 999,
+            boxShadow: e.anillo ? `0 0 0 ${e.anillo.px}px ${hslCss(e.anillo.color)}` : undefined,
+          }}
+        >
+          {ctaTexto}
+        </span>
+      </div>
+    );
+  const botonCta = botonCtaCon(cta);
+
+  // ── Capa decorativa 2B (v1.1): forma grande sangrada contra el borde derecho, alineada con el bloque del mensaje ──
+  const zonaArriba = f.alto * f.zona.y;
+  const zonaAbajo = f.alto * (1 - f.zona.y);
+  const bloqueAbajo = zonaAbajo - px(plantilla.logoPx) - (horizontal ? px(20) : px(36));
+  // Diámetro de la forma: el alto del bloque título + texto + CTA, sin comerse más del 40% del ancho de la pieza.
+  const diametroDeco = horizontal
+    ? f.alto * 0.95
+    : Math.min((bloqueAbajo - zonaArriba) * 0.95, f.ancho * (pieza.formato === "9:16" ? 0.7 : 0.8));
+  const centroDecoY = horizontal ? f.alto / 2 : (zonaArriba + bloqueAbajo) / 2;
+  // 2B-S en formatos verticales: cúpula. Un círculo de 1,3 veces el ancho con el centro bajo el borde inferior, que
+  // asoma ~38% del alto. A la altura del CTA ya cubre todo el ancho, así el CTA y el logo se apoyan enteros sobre ella.
+  const cupula = deco && pieza.variante === "2B-S" && !horizontal;
+  const diametroCupula = f.ancho * 1.3;
+  const altoCupula = f.alto * (pieza.formato === "1:1" ? 0.4 : 0.38);
+  const topeCupula = f.alto - altoCupula;
+  const fondoCupula = deco ? fondoCapaDecorativa(p, deco.relleno) : c.fondo;
+  const decoCupula = cupula ? (
+    <div
+      style={{
+        position: "absolute",
+        left: (f.ancho - diametroCupula) / 2,
+        top: topeCupula,
+        width: diametroCupula,
+        height: diametroCupula,
+      }}
+    >
+      <CapaDecorativa
+        deco={deco}
+        marca={marca}
+        modo={pieza.modo}
+        estilo={estilo}
+        tamanoPx={diametroCupula}
+        // El lienzo recorta la cúpula a lo ancho: se ve la franja central del círculo.
+        visible={{ x: 50 - (50 * f.ancho) / diametroCupula, y: 0, w: (100 * f.ancho) / diametroCupula, h: (altoCupula / diametroCupula) * 100 }}
+        // Ícono a la derecha, lejos del CTA y el logo que se apoyan a la izquierda.
+        zonaIcono={{ x: 52, y: 0, w: 34, h: (altoCupula / diametroCupula) * 100 }}
+      />
+    </div>
+  ) : null;
+  // CTA y logo sobre la cúpula: se validan contra el relleno (tono de apoyo, o la foto con overlay de marca).
+  const ctaSobreCupula = cupula ? estiloCtaSobre(p, fondoCupula) : null;
+  const logoSobreCupula: "mono_claro" | "mono_oscuro" =
+    deco?.relleno === "foto" || contraste(fondoCupula, { H: 0, S: 0, L: 100 }) >= MIN_GRAFICO ? "mono_claro" : "mono_oscuro";
+
+  const decoSangrada =
+    deco && (pieza.variante === "2B-L" || (pieza.variante === "2B-S" && horizontal)) ? (
+      <div
         style={{
-          display: "inline-block",
-          background: hslCss(cta.fondo),
-          color: hslCss(cta.texto),
-          fontSize: px(plantilla.cta),
-          fontWeight: 600,
-          padding: horizontal ? `${px(14)}px ${px(32)}px` : `${px(22)}px ${px(46)}px`,
-          borderRadius: 999,
-          boxShadow: cta.anillo ? `0 0 0 ${cta.anillo.px}px ${hslCss(cta.anillo.color)}` : undefined,
+          position: "absolute",
+          left: f.ancho - diametroDeco / 2,
+          top: centroDecoY - diametroDeco / 2,
+          width: diametroDeco,
+          height: diametroDeco,
         }}
       >
-        {ctaTexto}
-      </span>
-    </div>
-  );
-
-  const capaDeco = deco && <CapaDecorativa deco={deco} marca={marca} modo={pieza.modo} estilo={estilo} fondo={c.fondo} />;
+        <CapaDecorativa
+          deco={deco}
+          marca={marca}
+          modo={pieza.modo}
+          estilo={estilo}
+          tamanoPx={diametroDeco}
+          visible={{ x: 0, y: 0, w: 50, h: 100 }}
+          zonaIcono={{ x: 4, y: 0, w: 46, h: 100 }}
+        />
+      </div>
+    ) : null;
+  const capaDeco = null;
 
   const catalogo = items.length > 0 && (
     <Catalogo
@@ -213,8 +289,13 @@ export function Pieza({
     textAlign: centrado ? "center" : "left",
   };
   // Horizontal: el mensaje ocupa la mitad izquierda; el elemento lateral (deco, contacto o ítems), la derecha.
-  const lateral = horizontal && (capaDeco || listaContacto || catalogo);
-  const colIzq: React.CSSProperties = { ...zonaBase, right: horizontal ? f.ancho * (1 - f.columnaMensaje!) : f.ancho * f.zona.x };
+  const lateral = horizontal && (decoSangrada || capaDeco || listaContacto || catalogo);
+  const derechaCol = horizontal
+    ? f.ancho * (1 - f.columnaMensaje!)
+    : decoSangrada
+      ? diametroDeco / 2 + 40
+      : f.ancho * f.zona.x;
+  const colIzq: React.CSSProperties = { ...zonaBase, right: derechaCol };
   const colDer: React.CSSProperties = {
     position: "absolute",
     left: f.ancho * f.columnaMensaje! + 40,
@@ -232,32 +313,37 @@ export function Pieza({
       <>
         <div data-columna style={colIzq}>
           {(pieza.variante === "1" || pieza.variante === "4") && logo}
-          {mensaje()}
-          {botonCta}
+          {pieza.variante === "2B-L" || pieza.variante === "2B-S" ? mensaje(botonCta) : mensaje()}
+          {pieza.variante !== "2B-L" && pieza.variante !== "2B-S" && botonCta}
           {pieza.variante !== "1" && pieza.variante !== "4" && logo}
         </div>
-        {lateral && <div style={colDer}>{capaDeco || listaContacto || catalogo}</div>}
+        {decoSangrada}
+        {lateral && !decoSangrada && <div style={colDer}>{capaDeco || listaContacto || catalogo}</div>}
       </>
     );
   } else if (pieza.variante === "2B-L") {
     contenidoPieza = (
-      <div data-columna style={colIzq}>
-        <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", gap: px(32) }}>
-          {mensaje(undefined, { flex: 1.25, alignSelf: "stretch" })}
-          <div style={{ flex: 1, alignSelf: "center", aspectRatio: "1" }}>{capaDeco}</div>
+      <>
+        {decoSangrada}
+        <div data-columna style={colIzq}>
+          {/* Título, texto y CTA forman un solo bloque centrado, a la altura de la forma. */}
+          {mensaje(botonCta)}
+          {logo}
         </div>
-        {botonCta}
-        {logo}
-      </div>
+      </>
     );
   } else if (pieza.variante === "2B-S") {
     contenidoPieza = (
-      <div data-columna style={colIzq}>
-        {mensaje()}
-        <div style={{ height: f.alto * (pieza.formato === "1:1" ? 0.22 : 0.26), flexShrink: 0 }}>{capaDeco}</div>
-        {botonCta}
-        {logo}
-      </div>
+      <>
+        {decoCupula}
+        <div data-columna style={colIzq}>
+          {/* El mensaje ocupa lo que queda arriba de la cúpula; CTA y logo se apoyan sobre ella. */}
+          <div style={{ height: topeCupula - zonaArriba - px(36), flexShrink: 0, display: "flex", flexDirection: "column" }}>{mensaje()}</div>
+          <div style={{ flex: 1 }} />
+          {botonCtaCon(ctaSobreCupula!)}
+          {logoCon(logoSobreCupula, fondoCupula)}
+        </div>
+      </>
     );
   } else if (pieza.variante === "3") {
     contenidoPieza = (
@@ -322,68 +408,65 @@ export function Pieza({
   );
 }
 
-/** Capa decorativa de las variantes 2B: una sola opción por pieza (ícono, forma, patrón o foto con overlay). */
+/**
+ * Capa decorativa de las variantes 2B (v1.1): una forma de la biblioteca rellena con foto (overlay de marca 65%) o,
+ * sin foto, con tono de apoyo más un patrón (marca al 18%) o un ícono grande (fondo neutro al 25%).
+ */
 function CapaDecorativa({
   deco,
   marca,
   modo,
   estilo,
-  fondo,
+  tamanoPx,
+  visible,
+  zonaIcono,
 }: {
   deco: Deco;
   marca: Marca;
   modo: "A" | "B";
   estilo: "lineal" | "solido";
-  fondo: HSL;
+  tamanoPx: number;
+  visible?: { x: number; y: number; w: number; h: number };
+  zonaIcono?: { x: number; y: number; w: number; h: number };
 }) {
   const p = marca.paleta;
-  const caja: React.CSSProperties = { position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" };
-  let opacidad = 1;
-  let color: HSL = p.tono_apoyo;
-  let contenido: React.ReactNode = null;
-
-  if (deco.tipo === "icono") {
-    // Ícono decorativo: grande, 15-25% de opacidad, en tono de apoyo o fondo neutro. Nunca marca ni acento.
-    color = modo === "A" ? p.tono_apoyo : p.fondo_neutro;
-    opacidad = OPACIDAD_ICONO_DECO.uso;
-    contenido = <Icono nombre={deco.id} estilo={estilo} color={color} tamano="100%" />;
-  } else if (deco.tipo === "forma") {
-    color = p.tono_apoyo;
-    opacidad = modo === "A" ? 1 : 0.85;
-    contenido = <FormaSvg id={deco.id} color={color} grosor={5} style={{ width: "100%", height: "100%" }} />;
-  } else if (deco.tipo === "patron") {
-    // Patrón: 10-20% de opacidad, en color de marca o tono de apoyo. Nunca acento.
-    color = modo === "A" ? p.color_marca : p.tono_apoyo;
-    opacidad = OPACIDAD_PATRON.uso;
-    contenido = (
-      <div style={{ position: "absolute", inset: 0, borderRadius: 32, overflow: "hidden" }}>
-        <PatronSvg id={deco.id as Patron} color={color} opacidad={1} celda={56} />
-      </div>
-    );
-  } else if (deco.tipo === "foto" && deco.foto) {
-    opacidad = 1;
-    contenido = (
-      <FotoEnForma
-        foto={deco.foto}
-        formaId={deco.id || BIBLIOTECA_RUBRO[marca.rubro].contenedores[0]}
-        overlay={{ color: p.color_marca, opacidad: OVERLAY_FOTO.uso }}
-        style={{ width: "100%", height: "100%" }}
-      />
-    );
-  }
-
+  const opacidadPatron = OPACIDAD_PATRON.max - 0.02;
+  const opacidadIcono = OPACIDAD_ICONO_DECO.max;
+  // El valor que mide el checklist depende del relleno: opacidad y color del patrón o del ícono, u overlay de la foto.
+  const medida =
+    deco.relleno === "foto"
+      ? { opacidad: 1, color: p.color_marca }
+      : deco.relleno === "patron"
+        ? { opacidad: opacidadPatron, color: p.color_marca }
+        : { opacidad: opacidadIcono, color: p.fondo_neutro };
   return (
     <div
       data-slot="deco"
-      data-deco-tipo={deco.tipo}
-      data-deco-id={deco.id}
-      data-opacidad={opacidad}
-      data-overlay={deco.tipo === "foto" ? OVERLAY_FOTO.uso : undefined}
-      data-color={JSON.stringify(color)}
-      data-fondo={JSON.stringify(fondo)}
-      style={{ ...caja, opacity: opacidad }}
+      data-deco-tipo={deco.relleno}
+      data-deco-forma={deco.forma}
+      data-opacidad={medida.opacidad}
+      data-overlay={deco.relleno === "foto" ? OVERLAY_FOTO.uso : undefined}
+      data-color={JSON.stringify(medida.color)}
+      data-modo={modo}
+      style={{ position: "relative", width: "100%", height: "100%" }}
     >
-      {contenido}
+      <FormaRellena
+        formaId={deco.forma}
+        relleno={deco.relleno}
+        fondo={p.tono_apoyo}
+        foto={deco.foto}
+        overlay={{ color: p.color_marca, opacidad: OVERLAY_FOTO.uso }}
+        patron={deco.patron}
+        colorPatron={p.color_marca}
+        opacidadPatron={opacidadPatron}
+        icono={deco.icono}
+        estiloIcono={estilo}
+        colorIcono={p.fondo_neutro}
+        opacidadIcono={opacidadIcono}
+        visible={visible}
+        zonaIcono={zonaIcono}
+        tamanoPx={tamanoPx}
+      />
     </div>
   );
 }

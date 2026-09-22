@@ -446,14 +446,28 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 
 **Qué habilita cada rubro:**
 
-| Rubro | Formas | Patrones | Capa decorativa 2B | Contenedores de foto e ítems |
+| Rubro | Formas | Patrones | Capa 2B: formas / rellenos | Contenedores de foto e ítems |
 |---|---|---|---|---|
-| Servicios | geométricas, lineales | grilla, diagonales | ícono, forma, foto | cuadrado, círculo |
-| Gastronomía | contenedores, geométricas | puntos | foto, forma | círculo, arco, sello |
-| Belleza | orgánicas, lineales | ondas, ruido | forma, foto | blob, arco |
-| Tech | geométricas, contenedores | grilla | forma, patrón, foto | cuadrado, círculo |
+| Servicios | geométricas, lineales | grilla, diagonales | círculo, cuadrado / ícono, patrón, foto | cuadrado, círculo |
+| Gastronomía | contenedores, geométricas | puntos | círculo, sello, arco / foto, patrón, ícono | círculo, arco, sello |
+| Belleza | orgánicas, lineales | ondas, ruido | blobs, círculo / foto, patrón, ícono | blob, arco |
+| Tech | geométricas, contenedores | grilla | círculo, cuadrado / patrón, ícono, foto | cuadrado, círculo |
 
-La foto solo se ofrece si la marca tiene fotos propias. Si se elige foto y no se carga ninguna, la pieza usa la opción siguiente del rubro.
+La foto solo se ofrece si la marca tiene fotos propias. Si se elige foto y no se carga ninguna, la misma forma se rellena con el relleno siguiente del rubro.
+
+**Capa decorativa de las variantes 2B *(v1.1)*.** Una forma chica al costado del texto no aporta valor decorativo, por eso la capa 2B es una **forma grande sangrada** contra el borde de la pieza, que ocupa el espacio negativo. La forma se rellena con:
+
+- **Foto:** recortada con la silueta de la forma y overlay de color de marca al 65%. La foto se encuadra en la parte visible de la forma.
+- **Patrón** (sin foto): tono de apoyo con el patrón del rubro en color de marca al 18%.
+- **Ícono** (sin foto): tono de apoyo con un ícono grande en fondo neutro al 25%, centrado en la parte visible.
+
+| Variante | Posición de la forma | Tamaño |
+|---|---|---|
+| 2B-L | Media forma contra el borde derecho: lado recto sobre el borde, curva hacia el centro. Centrada con el bloque de título, texto y CTA, que va agrupado a la izquierda. | Diámetro igual al alto del bloque del mensaje (hasta el 80% del ancho; 70% en 9:16). |
+| 2B-S | **Cúpula**: círculo de 1,3 veces el ancho con el centro debajo del borde inferior, que asoma el ~38% de abajo. A la altura del CTA ya cubre todo el ancho, así el CTA y el logo se apoyan enteros sobre ella, con la misma alineación que el mensaje. | 38% del alto (40% en 1:1). |
+| 2B-L y 2B-S en Facebook | Media forma contra el borde derecho, en la mitad libre. | 95% del alto. |
+
+En la cúpula, el CTA y el logo van sobre la capa decorativa y se validan contra su relleno: el tono de apoyo o, con foto, el color de marca del overlay. El CTA toma el primer tratamiento que cumple: directo, con contorno o invertido. Para el contorno se prueban el fondo neutro, el color de marca, la tinta de marca y el blanco, porque con un tono de apoyo de luminosidad media solo la tinta llega a 3:1. El logo va en monocromo claro sobre foto o sobre un apoyo oscuro, y en monocromo oscuro sobre un apoyo claro. El título y el texto nunca van sobre la cúpula.
 
 **Color de cada elemento:**
 - Ícono decorativo: tono de apoyo (Modo A) o fondo neutro (Modo B), al 20%.
