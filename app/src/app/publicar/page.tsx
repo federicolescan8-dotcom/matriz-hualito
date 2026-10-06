@@ -9,13 +9,15 @@ import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
 import { descargar, renderizar, slug } from "@/lib/exportar";
-import type { Marca } from "@/engine/diagnostico";
+import { registrarEnHistorial, type Marca } from "@/engine/diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
+  aceptarControl,
   alineacionesPermitidas,
   formatoDeCanal,
   piezaNueva,
   PLANTILLAS,
+  quitarAceptacion,
   secuenciaModo,
   varianteSugerida,
   VARIANTES_HABILITADAS,
@@ -23,7 +25,8 @@ import {
 } from "@/engine/pieza";
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
-import { elegirMarcaActiva, useMarcaActiva, useMarcas } from "@/lib/marcas";
+import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
+import { useSesion } from "@/lib/sesion";
 import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
@@ -64,6 +67,7 @@ export default function PublicarPage() {
   const [exportando, setExportando] = useState(false);
   const [errorExport, setErrorExport] = useState<string | null>(null);
   const [tipo, setTipo] = useState<"simple" | "carrusel">("simple");
+  const sesion = useSesion();
 
   if (!marca || !actual) {
     return (
@@ -349,7 +353,24 @@ export default function PublicarPage() {
       </section>
 
       {/* Checklist */}
-      <Checklist resultado={resultado} />
+      <Checklist
+        resultado={resultado}
+        onAceptar={(control, motivo) => {
+          // Un aviso aceptado queda en la pieza (el render lo vuelve a evaluar) y en el historial de la marca (E9).
+          const autor = sesion.estado === "conectado" ? sesion.email : "estudio (modo local)";
+          const aceptada = aceptarControl(actual, control, motivo, autor);
+          const a = aceptada.aceptaciones!.at(-1)!;
+          set({ aceptaciones: aceptada.aceptaciones });
+          void guardarMarca(
+            registrarEnHistorial(marca, {
+              tipo: "aceptacion",
+              ...a,
+              pieza: `${CANALES[actual.canal].nombre} · ${actual.formato} · variante ${actual.variante} · modo ${actual.modo}`,
+            }),
+          );
+        }}
+        onQuitar={(control) => set({ aceptaciones: quitarAceptacion(actual, control).aceptaciones })}
+      />
 
       {hoja && (
         <HojaContactos

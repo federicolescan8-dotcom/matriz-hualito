@@ -42,7 +42,8 @@ manuales.
   - la navegación sigue el orden nuevo;
   - tests y checklist igual que antes.
 
-### E9 · Niveles de regla y control con justificación · [ ] pendiente · depende de E1
+### E9 · Niveles de regla y control con justificación · [x] hecha · depende de E1
+- **Quedó:** `NivelRegla` en cada `Control`, `Pieza.aceptaciones` (viaja al render), `Marca.historial` y "Historial de decisiones" en `/marcas`, etiquetas y "Aceptar con justificación" en `Checklist.tsx`. Pendiente: el carrusel aún no permite aceptar avisos.
 - **Por qué va acá:** es chica y habilita todo lo demás. Sin ella, cada decisión creativa que se sale de la fórmula
   choca contra un control que bloquea.
 - **Alcance:**

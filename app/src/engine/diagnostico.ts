@@ -48,8 +48,26 @@ export interface Marca {
   diagnostico: Omit<Diagnostico, "logo">;
   /** Sistema visual de la marca (E1): color, tipografía, logo, recursos gráficos y fotografía. */
   identidad: Identidad;
+  /** Decisiones registradas sobre la marca, de la más vieja a la más nueva (E9: avisos aceptados con justificación). */
+  historial?: EntradaHistorial[];
   version_manual: "1.1";
   creada: string;
+}
+
+/** Una decisión que queda registrada: un aviso del checklist aceptado a propósito en una pieza. */
+export interface EntradaHistorial {
+  tipo: "aceptacion";
+  control: string;
+  motivo: string;
+  autor: string;
+  fecha: string;
+  /** Qué pieza: canal, formato y variante, para ubicarla. */
+  pieza: string;
+}
+
+/** Suma una entrada al historial de la marca. */
+export function registrarEnHistorial(m: Marca, entrada: EntradaHistorial): Marca {
+  return { ...m, historial: [...(m.historial ?? []), entrada] };
 }
 
 export function diagnosticoVacio(): Diagnostico {

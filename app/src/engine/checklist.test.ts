@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { areaCubierta, evaluarPieza, type Medicion } from "./checklist";
 import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
-import { piezaNueva, type Pieza } from "./pieza";
+import { aceptarControl, piezaNueva, quitarAceptacion, type Pieza } from "./pieza";
 import { pesoH1 } from "./typography";
 
 const d = { ...diagnosticoVacio(), nombre: "Test", personalidad: { tono: "seria" as const, valor: "calma" as const } };
@@ -62,7 +62,8 @@ describe("checklist de pieza", () => {
   });
 
   it("un color ajustado a mano que no cumple se acepta con aviso y no bloquea", () => {
-    const gris = { H: 0, S: 0, L: 60 };
+    // Gris claro: el body queda entre 3:1 y 4,5:1 (aviso). Por debajo de 3:1 sería bloqueante (E9).
+    const gris = { H: 0, S: 0, L: 80 };
     const r0 = evaluarPieza({ ...marca, identidad: { ...marca.identidad, paleta: { ...marca.identidad.paleta, fondo_neutro: gris } } }, pieza(), medicion());
     expect(r0.estado).toBe("rechazado");
     const ajustada = ajustarColorMarca(marca, "fondo_neutro", gris);
@@ -227,3 +228,51 @@ describe("reglas por formato", () => {
   });
 });
 
+
+describe("niveles de regla y aceptación con justificación (E9)", () => {
+  it("cada control tiene nivel, y la alineación del rubro es sugerencia", () => {
+    const r = evaluarPieza(marca, pieza(), medicion());
+    expect(r.controles.every((c) => ["bloqueante", "aviso", "sugerencia"].includes(c.nivel))).toBe(true);
+    expect(r.controles.find((c) => c.control === "Alineación del mensaje")!.nivel).toBe("sugerencia");
+    expect(r.controles.find((c) => c.control === "Un mensaje principal")!.nivel).toBe("bloqueante");
+  });
+
+  it("una sugerencia que falla no frena la pieza", () => {
+    const r = evaluarPieza(marca, pieza({ alineacion: "centrado" }), medicion());
+    const k = r.controles.find((c) => c.control === "Alineación del mensaje")!;
+    expect(k.ok).toBe(false);
+    expect(r.estado).toBe("ok");
+  });
+
+  it("un aviso que falla frena hasta que se acepta con justificación", () => {
+    const conCuerpoChico = medicion({ body: { ...medicion().body!, px: 18 } });
+    const r0 = evaluarPieza(marca, pieza(), conCuerpoChico);
+    const k = r0.controles.find((c) => !c.ok)!;
+    expect(k.nivel).toBe("aviso");
+    expect(r0.estado).toBe("rechazado");
+    const aceptada = aceptarControl(pieza(), k.control, "Pedido del cliente: pieza para imprimir", "estudio");
+    const r1 = evaluarPieza(marca, aceptada, conCuerpoChico);
+    const k1 = r1.controles.find((c) => c.control === k.control)!;
+    expect(k1.aceptado).toBe(true);
+    expect(k1.justificacion).toMatchObject({ motivo: "Pedido del cliente: pieza para imprimir", autor: "estudio" });
+    expect(r1.estado).toBe("ok");
+    expect(evaluarPieza(marca, quitarAceptacion(aceptada, k.control), conCuerpoChico).estado).toBe("rechazado");
+  });
+
+  it("un bloqueante no se acepta aunque tenga justificación", () => {
+    const sinH1 = { ...pieza(), contenido: { ...pieza().contenido, h1: "" } };
+    const aceptada = aceptarControl(sinH1, "Un mensaje principal", "lo quiero así", "estudio");
+    const r = evaluarPieza(marca, aceptada, medicion());
+    expect(r.controles.find((c) => c.control === "Un mensaje principal")!.aceptado).toBeUndefined();
+    expect(r.estado).toBe("rechazado");
+  });
+
+  it("un texto bajo 3:1 es bloqueante aunque la paleta tenga ajustes manuales", () => {
+    const ajustada = ajustarColorMarca(marca, "fondo_neutro", { H: 0, S: 0, L: 60 });
+    const r = evaluarPieza(ajustada, pieza(), medicion());
+    const bloqueantes = r.controles.filter((c) => !c.ok && c.nivel === "bloqueante");
+    expect(bloqueantes.length).toBeGreaterThan(0);
+    expect(bloqueantes.every((c) => !c.aceptado)).toBe(true);
+    expect(r.estado).toBe("rechazado");
+  });
+});

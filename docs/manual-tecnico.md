@@ -58,14 +58,14 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `presets.ts` | Rubros: rango de matiz, secuencia de modos, familias, alineaciones, variantes prioritarias. Tipos `Variante`, `Modo`, `Rubro` |
 | `palette.ts` | Fórmula de paleta (`derivarPaleta`, cap. 3): modo optimizado y heredado (con o sin versión funcional), acento y su texto, CTA en Modo A, Modo B y sobre cualquier fondo, `controlesPaleta`/`fallasPaleta`, sugerencias (`colorValidoCercano`) |
 | `typography.ts` | Familias, peso del H1 según el largo, escala, compensación óptica, jerarquía (`JERARQUIA_H1`, `CTA_MIN`) |
-| `diagnostico.ts` | `Diagnostico` → `Marca`: chips, ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad` |
+| `diagnostico.ts` | `Diagnostico` → `Marca`: chips, ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad`. También `registrarEnHistorial` (suma una `EntradaHistorial` a `marca.historial`) |
 | `identidad.ts` | Tipo `Identidad` (todo lo visual de la marca) y migración de marcas guardadas antes de E1: `migrarMarca`, `esMarcaV1`, tipo `MarcaV1` |
 | `biblioteca.ts` | Formas, patrones, íconos y contenedores por rubro; opacidades y overlay |
 | `decoraciones.ts` | Decoraciones de plantilla (arco lateral, esquinas en diagonal) como geometría de círculos |
 | `formatos.ts` | Formatos (4:5, 1:1, 9:16, 1200×630) con márgenes, zonas de interfaz y recorte de grilla, y canales (IG feed y stories, WA estados, FB feed, link) |
-| `pieza.ts` | Objeto `Pieza`, plantillas por variante (1, 2, 2B-L, 2B-S, 3, 4, P) y ajustes por formato, capa decorativa efectiva, geometría del 2B-L |
+| `pieza.ts` | Objeto `Pieza` (con `aceptaciones?: Aceptacion[]`, `aceptarControl`, `quitarAceptacion`), plantillas por variante (1, 2, 2B-L, 2B-S, 3, 4, P) y ajustes por formato, capa decorativa efectiva, geometría del 2B-L |
 | `carrusel.ts` | `Carrusel`/`Slide`, `piezaDeSlide` (cada slide pasa a ser una pieza simple), modos por rol, `evaluarCarrusel` |
-| `checklist.ts` | `evaluarPieza(marca, pieza, medicion)`: controles de color, tipografía, composición, zonas seguras y contenido. Estado `ok`, `rechazado` o `revision_manual`, con controles *aceptados* (decisión del cliente) y *avisos* |
+| `checklist.ts` | `evaluarPieza(marca, pieza, medicion)`: controles de color, tipografía, composición, zonas seguras y contenido. Estado `ok`, `rechazado` o `revision_manual`, con controles *aceptados* (decisión del cliente) y *avisos*. Cada `Control` lleva un `nivel` (`NivelRegla`: `bloqueante`, `aviso` o `sugerencia`; `add` usa `aviso` por defecto). `estadoDe` da `ok` si cada control cumple, está aceptado o es sugerencia. `aplicarAceptaciones` marca `aceptado` + `justificacion` solo en avisos que fallan; la excepción v1.1 de color acepta los controles de color que fallan salvo los bloqueantes (`nivelTexto(valor)`: bajo `MIN_GRAFICO` es bloqueante, si no aviso) |
 | `logo.ts` | Recoloreo de SVG para las versiones monocromas |
 
 ## 5. Del dato al PNG
@@ -92,6 +92,8 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
   - `fotos_habilitadas`.
 
   Los lectores (`Pieza.tsx`, `EditoresPieza.tsx`, `checklist.ts`, `pieza.ts` y Publicaciones) leen de `marca.identidad.*`.
+- `Marca.historial?: EntradaHistorial[]`: decisiones de la marca, `{ tipo: "aceptacion", control, motivo, autor, fecha, pieza }`. Al aceptar un aviso en Publicaciones (`app/publicar/page.tsx`) se guarda la marca con la entrada; `/marcas` la muestra en "Historial de decisiones". La aceptación misma vive en `Pieza.aceptaciones` y viaja a `/api/render`, por eso el render del servidor la respeta y exporta.
+- `components/Checklist.tsx` muestra una etiqueta de nivel en cada control que falla. En los avisos, si recibe `onAceptar`, ofrece "Aceptar con justificación" (campo de motivo); los aceptados muestran autor, fecha y motivo con "Quitar", y los bloqueantes avisan que no se pueden aceptar. Publicaciones conecta `onAceptar`/`onQuitar` (autor: email de la sesión o "estudio (modo local)"); el carrusel todavía no lo conecta.
 - **Migración** (`engine/identidad.ts › migrarMarca`): lleva una marca guardada antes de E1 (`MarcaV1`, con lo visual en la raíz) al formato nuevo sin perder datos. Si no tenía `graficos`, fija el estilo de íconos del rubro, que era lo que valía por defecto. Las marcas ya migradas pasan tal cual (misma referencia); `esMarcaV1` detecta el formato viejo. Se aplica en:
   - `lib/marcas.ts › marcasDelNavegador`: migra y reescribe `localStorage` una sola vez, sin emitir evento;
   - `cargarRemotas` (Supabase): migra al leer; la fila queda en el formato nuevo en el próximo guardado;
@@ -118,7 +120,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | Quiero… | Dónde |
 |---|---|
 | una regla de diseño nueva | función en `engine/`, su test y una entrada en el manual de diseño |
-| un control del checklist | `engine/checklist.ts › evaluarPieza`, con su test en `checklist.test.ts` |
+| un control del checklist | `engine/checklist.ts › evaluarPieza`, con su test en `checklist.test.ts`. Elegí su nivel: `bloqueante` (legibilidad crítica, no se acepta), `aviso` (por defecto, se acepta con justificación) o `sugerencia` (lo que fija el rubro, no frena) |
 | una variante de layout | plantilla en `pieza.ts › PLANTILLAS` (y `AJUSTES_FORMATO`) y su composición en `Pieza.tsx` |
 | un formato o canal | `formatos.ts`: `FORMATOS`, `CANALES` y el tipo `Formato`/`Canal`; ajustes por variante en `pieza.ts` |
 | una decoración de plantilla | una entrada en `decoraciones.ts › DECORACIONES` |

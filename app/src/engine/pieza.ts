@@ -42,6 +42,29 @@ export interface Pieza {
   items?: ItemCatalogo[];
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
+  /** Avisos del checklist aceptados a mano, con su justificación (E9). */
+  aceptaciones?: Aceptacion[];
+}
+
+/** Un aviso del checklist aceptado a propósito: qué control, por qué, quién y cuándo (E9). */
+export interface Aceptacion {
+  /** Nombre del control, tal como lo muestra el checklist. */
+  control: string;
+  motivo: string;
+  autor: string;
+  /** ISO 8601. */
+  fecha: string;
+}
+
+/** Acepta un aviso del checklist con su justificación. Reemplaza una aceptación anterior del mismo control. */
+export function aceptarControl(pieza: Pieza, control: string, motivo: string, autor: string, fecha = new Date().toISOString()): Pieza {
+  const otras = (pieza.aceptaciones ?? []).filter((a) => a.control !== control);
+  return { ...pieza, aceptaciones: [...otras, { control, motivo: motivo.trim(), autor, fecha }] };
+}
+
+/** Quita la aceptación de un control: vuelve a frenar la pieza si sigue fallando. */
+export function quitarAceptacion(pieza: Pieza, control: string): Pieza {
+  return { ...pieza, aceptaciones: (pieza.aceptaciones ?? []).filter((a) => a.control !== control) };
 }
 
 /** Capa decorativa 2B: una forma sangrada y su relleno. */

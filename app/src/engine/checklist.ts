@@ -16,7 +16,7 @@ import {
   MIN_GRAFICO,
   MIN_TEXTO,
 } from "./palette";
-import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Pieza } from "./pieza";
+import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { FACTOR_STORY, JERARQUIA_H1, pesoH1 } from "./typography";
@@ -73,12 +73,24 @@ export interface Medicion {
 
 export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido";
 
+/**
+ * Nivel de cada regla (replanteo, E9):
+ * - bloqueante: legibilidad crítica (texto bajo 3:1, texto tapado o fuera de la zona segura, pieza sin mensaje).
+ *   Si falla, la pieza no se exporta y no se puede aceptar;
+ * - aviso: el resto de las reglas del manual. Si falla, bloquea hasta que se acepte con justificación;
+ * - sugerencia: lo que fija el rubro (alineación, itálica por familia). Se muestra y no frena.
+ */
+export type NivelRegla = "bloqueante" | "aviso" | "sugerencia";
+
 export interface Control {
   bloque: Bloque;
   control: string;
   ok: boolean;
   detalle: string;
   accion: string;
+  nivel: NivelRegla;
+  /** Aviso aceptado a mano en la pieza: quién, cuándo y por qué (E9). */
+  justificacion?: Aceptacion;
   /**
    * No cumple, pero se acepta sin bloquear: la paleta tiene colores ajustados a mano después del cálculo de la fórmula
    * (decisión del cliente, v1.1). Solo aplica a los controles de color.
@@ -199,11 +211,13 @@ export function areaCubierta(rects: Rect[], ancho: number, alto: number, paso = 
 
 export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): ResultadoChecklist {
   const controles: Control[] = [];
-  const add = (bloque: Bloque, control: string, ok: boolean, detalle: string, accion: string) =>
-    controles.push({ bloque, control, ok, detalle, accion });
+  const add = (bloque: Bloque, control: string, ok: boolean, detalle: string, accion: string, nivel: NivelRegla = "aviso") =>
+    controles.push({ bloque, control, ok, detalle, accion, nivel });
   /** Control que no bloquea: si no se cumple, queda como sugerencia. */
   const sugerir = (bloque: Bloque, control: string, cumple: boolean, detalle: string, sugerencia: string) =>
-    controles.push({ bloque, control, ok: true, detalle, accion: "—", ...(cumple ? {} : { aviso: sugerencia }) });
+    controles.push({ bloque, control, ok: true, detalle, accion: "—", nivel: "sugerencia", ...(cumple ? {} : { aviso: sugerencia }) });
+  // Un texto por debajo de 3:1 no se lee: es bloqueante. Entre 3:1 y el mínimo de su regla es un aviso.
+  const nivelTexto = (valor: number): NivelRegla => (valor < MIN_GRAFICO ? "bloqueante" : "aviso");
   const f = FORMATOS[pieza.formato];
   const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato, marca.identidad.tipografia.familia_variable) : undefined;
   const p = marca.identidad.paleta;
@@ -221,33 +235,33 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   // ── Bloque 1: color y contraste ──
   const cH1 = peorContraste(c.texto, m.h1.lineas);
-  add("Color y contraste", "H1 grande sobre su fondo", cH1 >= MIN_GRAFICO, `${r(cH1)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)");
+  add("Color y contraste", "H1 grande sobre su fondo", cH1 >= MIN_GRAFICO, `${r(cH1)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cH1));
   if (m.body) {
     const cBody = peorContraste(c.texto, m.body.lineas);
-    add("Color y contraste", "Body sobre su fondo", cBody >= MIN_TEXTO, `${r(cBody)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)");
+    add("Color y contraste", "Body sobre su fondo", cBody >= MIN_TEXTO, `${r(cBody)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cBody));
   }
   // 2B-S vertical (v1.1): el CTA y el logo se apoyan sobre la cúpula decorativa.
   const cupula = plantilla?.deco === "inferior" && !f.columnaMensaje && m.deco != null;
   if (m.cta && cupula) {
     for (const k of controlesCtaSobre(p, fondoCapaDecorativa(p, m.deco!.tipo))) {
-      add("Color y contraste", `CTA sobre la cúpula: ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "corregir el acento o el tono de apoyo");
+      add("Color y contraste", `CTA sobre la cúpula: ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "corregir el acento o el tono de apoyo", k.control.includes("texto") ? nivelTexto(k.valor) : "aviso");
     }
   } else if (m.cta) {
     const modo = pieza.modo === "B" ? ctaModoB(p) : ctaModoA(p);
     const lista = pieza.modo === "B" ? controlesCtaModoB(p, ctaModoB(p)) : controlesCtaModoA(p, ctaModoA(p));
     for (const k of lista) {
-      add("Color y contraste", `CTA (${modo}): ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "elegir otro tratamiento del CTA o corregir el acento");
+      add("Color y contraste", `CTA (${modo}): ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "elegir otro tratamiento del CTA o corregir el acento", k.control.includes("texto") ? nivelTexto(k.valor) : "aviso");
     }
   }
   const contacto = m.contacto ?? [];
   const items = m.items ?? [];
   if (contacto.length) {
     const cT = Math.min(...contacto.map((k) => peorContraste(c.texto, k.texto.lineas)));
-    add("Color y contraste", "Datos de contacto sobre su fondo", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)");
+    add("Color y contraste", "Datos de contacto sobre su fondo", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cT));
   }
   if (items.length) {
     const cI = Math.min(...items.map((k) => peorContraste(c.texto, k.texto.lineas)));
-    add("Color y contraste", "Texto de los ítems sobre su fondo", cI >= MIN_TEXTO, `${r(cI)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)");
+    add("Color y contraste", "Texto de los ítems sobre su fondo", cI >= MIN_TEXTO, `${r(cI)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cI));
   }
   const soportes = contacto.filter((k) => k.soporte);
   if (soportes.length) {
@@ -302,7 +316,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   add("Tipografía", "Itálica nunca en H1", !m.h1.italica, m.h1.italica ? "H1 en itálica" : "sin itálica", "quitar itálica");
   if (m.cta) add("Tipografía", "Itálica nunca en el CTA", !m.cta.italica, m.cta.italica ? "CTA en itálica" : "sin itálica", "quitar itálica");
   if (m.body?.italica) {
-    add("Tipografía", "Itálica solo en rubros y familias habilitados", marca.identidad.tipografia.italic_habilitado, marca.identidad.tipografia.familia_variable, "quitar itálica");
+    add("Tipografía", "Itálica solo en rubros y familias habilitados", marca.identidad.tipografia.italic_habilitado, marca.identidad.tipografia.familia_variable, "quitar itálica", "sugerencia");
   }
 
   // ── Bloque 3: composición ──
@@ -327,7 +341,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const negativo = 1 - cubierto;
   add("Composición", "Espacio negativo", negativo >= ESPACIO_NEGATIVO_MIN, `${Math.round(negativo * 100)}% (mín. 30%)`, "reducir elementos o escalar tipografía");
   const permitidas = alineacionesPermitidas(marca.rubro, pieza.variante);
-  add("Composición", "Alineación del mensaje", permitidas.includes(pieza.alineacion), `${pieza.alineacion} (permitidas: ${permitidas.join(", ")})`, "corregir");
+  add("Composición", "Alineación del mensaje", permitidas.includes(pieza.alineacion), `${pieza.alineacion} (permitidas: ${permitidas.join(", ")})`, "corregir", "sugerencia");
   // Elementos gráficos (cap. 5 y 6).
   const tope = maxIconos(pieza.variante, items.length);
   const nIconos = m.iconos ?? 0;
@@ -345,7 +359,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
             ? tocaContorno(k, d.contorno)
             : seTocan(k, d.caja),
       );
-      add("Composición", cupula ? "Capa decorativa sin tapar el mensaje" : "Capa decorativa sin tapar texto ni logo", !pisa, pisa ? "se superpone" : "", "corregir capa");
+      add("Composición", cupula ? "Capa decorativa sin tapar el mensaje" : "Capa decorativa sin tapar texto ni logo", !pisa, pisa ? "se superpone" : "", "corregir capa", "bloqueante");
       if (d.tipo === "icono") {
         const ok = d.opacidad >= OPACIDAD_ICONO_DECO.min - 1e-6 && d.opacidad <= OPACIDAD_ICONO_DECO.max + 1e-6;
         add("Composición", "Ícono decorativo al 15-25% de opacidad", ok, `${Math.round(d.opacidad * 100)}%`, "corregir opacidad");
@@ -375,6 +389,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       tapados.length === 0,
       tapados.map((e) => e.nombre).join(", "),
       "recortar texto o quitar la decoración",
+      "bloqueante",
     );
   }
   if (plantilla?.bloque === "contacto") {
@@ -409,7 +424,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     zm.arriba === zm.x && zm.abajo === zm.x
       ? `${pct(zm.x)} libre en bordes`
       : `${pct(zm.x)} a los lados, ${pct(zm.arriba)} arriba y ${pct(zm.abajo)} abajo`;
-  add("Zonas seguras", `Contenido dentro del margen (${margenTexto})`, !todo || contenido.every(dentro), "", "reubicar o recortar texto");
+  add("Zonas seguras", `Contenido dentro del margen (${margenTexto})`, !todo || contenido.every(dentro), "", "reubicar o recortar texto", "bloqueante");
 
   // Interfaz de la plataforma (stories y estados): nada que informe queda debajo de la cabecera ni de la barra de
   // respuesta.
@@ -424,6 +439,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       tapados.length === 0,
       tapados.map((e) => e.nombre).join(", "),
       "reubicar dentro de la zona segura",
+      "bloqueante",
     );
   }
 
@@ -451,7 +467,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   }
 
   // ── Bloque 5: contenido ──
-  add("Contenido", "Un mensaje principal", pieza.contenido.h1.trim().length > 0, pieza.contenido.h1.trim() ? "" : "falta el H1", "completar el H1");
+  add("Contenido", "Un mensaje principal", pieza.contenido.h1.trim().length > 0, pieza.contenido.h1.trim() ? "" : "falta el H1", "completar el H1", "bloqueante");
   if (plantilla && !plantilla.tieneCta) {
     add("Contenido", "Variante sin CTA", !m.cta, m.cta ? "la variante no lleva CTA" : "", "quitar el CTA");
   }
@@ -468,12 +484,33 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   add("Contenido", "Fotos dentro de una forma de contención", sinForma === 0, sinForma ? `${sinForma} sin recortar` : "", "recortar en una forma");
 
   // Excepción v1.1 (decisión del cliente): con colores ajustados a mano o con el color heredado sin versión funcional,
-  // los contrastes que no cumplen se aceptan con aviso.
+  // los contrastes que no cumplen se aceptan con aviso. Un bloqueante nunca se acepta (E9).
   if ((marca.identidad.ajustes_manuales ?? []).length > 0 || marca.identidad.color.solo_heredado) {
-    for (const k of controles) if (!k.ok && k.bloque === "Color y contraste") k.aceptado = true;
+    for (const k of controles) if (!k.ok && k.bloque === "Color y contraste" && k.nivel !== "bloqueante") k.aceptado = true;
   }
+  aplicarAceptaciones(controles, pieza.aceptaciones);
 
   const motivos_revision = m.desborde ? ["El texto no entra en el slot ni siquiera en el tamaño mínimo permitido."] : [];
-  const estado = motivos_revision.length ? "revision_manual" : controles.every((k) => k.ok || k.aceptado) ? "ok" : "rechazado";
-  return { estado, controles, motivos_revision };
+  return { estado: estadoDe(controles, motivos_revision), controles, motivos_revision };
+}
+
+/**
+ * Avisos aceptados a mano en la pieza (E9): el control que falla se da por aceptado con su justificación. Solo los
+ * avisos: un bloqueante no se puede aceptar y una sugerencia no hace falta aceptarla.
+ */
+export function aplicarAceptaciones(controles: Control[], aceptaciones: Aceptacion[] | undefined): void {
+  for (const k of controles) {
+    if (k.ok || k.nivel !== "aviso") continue;
+    const j = aceptaciones?.find((a) => a.control === k.control);
+    if (j) {
+      k.aceptado = true;
+      k.justificacion = j;
+    }
+  }
+}
+
+/** Estado de la pieza: solo frenan los bloqueantes y los avisos sin aceptar. Las sugerencias no frenan. */
+export function estadoDe(controles: Control[], motivos_revision: string[]): ResultadoChecklist["estado"] {
+  if (motivos_revision.length) return "revision_manual";
+  return controles.every((k) => k.ok || k.aceptado || k.nivel === "sugerencia") ? "ok" : "rechazado";
 }

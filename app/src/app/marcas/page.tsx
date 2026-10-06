@@ -135,6 +135,24 @@ function DatosMarca({ marca }: { marca: Marca }) {
       <p className="text-xs text-neutral-500">
         Color, tipografía, logo, recursos gráficos y fotografía se ajustan en la identidad de la marca.
       </p>
+      <h3 className="mt-4 text-sm font-semibold uppercase tracking-wide text-neutral-500">Historial de decisiones</h3>
+      {marca.historial?.length ? (
+        <ul className="flex flex-col gap-2 text-sm">
+          {[...marca.historial].reverse().map((h) => (
+            <li key={`${h.fecha}-${h.control}`} className="rounded-md border border-neutral-200 bg-white p-3">
+              <div className="font-medium">Aviso aceptado: {h.control}</div>
+              <div className="text-neutral-700">«{h.motivo}»</div>
+              <div className="text-xs text-neutral-500">
+                {h.autor} · {new Date(h.fecha).toLocaleString("es-AR")} · {h.pieza}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-neutral-500">
+          Todavía no hay decisiones registradas. Cuando se acepta un aviso del checklist con su justificación, queda acá.
+        </p>
+      )}
     </div>
   );
 }

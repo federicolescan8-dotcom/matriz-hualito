@@ -65,6 +65,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 29. **Decoración de plantilla**: figuras opcionales que forman parte del diseño, con sombra mínima: arco lateral para H1 protagonista y esquinas en diagonal para Contacto, medidas sobre los ejemplos de referencia. Reemplazan a la forma de fondo automática, y sumar una nueva es agregar una entrada al catálogo. Aparte, en Contacto los íconos pueden ir sobre un soporte (cuadrado redondeado). *(Cap. 6, Cap. 8, A.8)*
 30. **Carrusel 4:5 y Facebook en vertical**: se suma el carrusel (2 a 10 slides) con portada, contenido y cierre, la variante P (Punto) para el contenido, el ritmo de modos y el control de la serie. El feed orgánico de Facebook pasa al 4:5 y al 1:1, y el 1200×630 queda como vista previa de links y anuncios. *(Cap. 1, Cap. 6, Cap. 8)*
 31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
+32. **Niveles de regla y aceptación con justificación**: cada control del checklist tiene un nivel: *bloqueante* (legibilidad crítica, nunca se acepta), *aviso* (se puede aceptar con justificación) o *sugerencia* (lo que fija el rubro, no frena). Un aviso aceptado queda registrado con motivo, autor y fecha, viaja con la pieza (la exportación lo respeta) y se guarda en el historial de decisiones de la marca. La alineación del mensaje y la itálica pasan a ser sugerencias: ya no rechazan la pieza. La excepción de los ajustes manuales de color (cambio 19) no alcanza a los bloqueantes: un texto bajo 3:1 ya no se acepta por esa vía. *(Cap. 8, Cap. 3 paso 9, Cap. 9)*
 
 ---
 
@@ -334,7 +335,7 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 - La paleta calculada por la fórmula se guarda aparte, junto con la lista de roles ajustados a mano (`paleta_calculada`, `ajustes_manuales`). Cada rol se puede volver al valor calculado, o toda la paleta de una vez.
 - El texto sobre el acento se vuelve a elegir con el criterio del paso 4b cada vez que cambia el acento o la marca.
 - Los colores ajustados no pasan por la fórmula: los contrastes se muestran en vivo y los que no alcanzan el mínimo quedan marcados.
-- **Excepción por decisión del cliente.** Hay clientes que quieren respetar más de un color heredado aunque no cumpla los mínimos. Por eso, un color ajustado a mano *después* del cálculo de la fórmula no bloquea la publicación. Los controles de color del capítulo 8 que fallen en esa marca se registran como **aceptados con aviso**, y la pieza se exporta. La excepción no alcanza a una paleta sin ajustes manuales: ahí el checklist sigue siendo binario. Tampoco alcanza a los controles de tipografía, composición, zonas seguras o contenido.
+- **Excepción por decisión del cliente.** Hay clientes que quieren respetar más de un color heredado aunque no cumpla los mínimos. Por eso, un color ajustado a mano *después* del cálculo de la fórmula no bloquea la publicación. Los controles de color del capítulo 8 que fallen en esa marca se registran como **aceptados con aviso**, y la pieza se exporta, salvo los bloqueantes: un texto bajo 3:1 no se acepta por esta vía *(v1.1, E9)*. La excepción no alcanza a una paleta sin ajustes manuales: ahí el checklist sigue siendo binario. Tampoco alcanza a los controles de tipografía, composición, zonas seguras o contenido.
 - **Sugerencia del color válido más próximo.** Para cada rol ajustado que no cumple, salvo el color de marca (elección del cliente), se muestra el color más próximo al elegido que sí cumple todos los controles de paleta en los que interviene ese rol, con el resto de la paleta como está. Esos controles son:
   - texto de marca sobre el fondo neutro, 4,5:1;
   - texto sobre la marca en Modo B, 3:1;
@@ -741,9 +742,24 @@ Cada canal lleva su propia secuencia independiente: feed de Instagram, stories d
 
 Reunir en un solo lugar todas las validaciones que una pieza debe pasar antes de darse por publicable. El checklist no introduce criterios nuevos: formaliza las reglas de los capítulos 3 a 7 como controles verificables, con un resultado binario y una acción definida para cada falla.
 
-Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente. Única excepción *(v1.1)*: los controles de color de una marca con colores ajustados a mano, o con el color heredado sin versión funcional, por decisión del cliente, se registran como aceptados con aviso y no bloquean (cap. 3, pasos 8 y 9).
+Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente. Excepciones *(v1.1)*: un aviso aceptado con justificación (ver "Niveles de regla") y los controles de color de una marca con colores ajustados a mano, o con el color heredado sin versión funcional, por decisión del cliente, que se registran como aceptados con aviso y no bloquean (cap. 3, pasos 8 y 9). Ninguna de las dos alcanza a los controles bloqueantes.
 
 Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de oficio que no son reglas duras. Una sugerencia nunca bloquea la exportación; se muestra en ámbar con su recomendación.
+
+### Niveles de regla y aceptación con justificación *(v1.1)*
+
+Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
+
+| Nivel | Qué es | Qué pasa si falla |
+|---|---|---|
+| Bloqueante | Legibilidad crítica: contraste de texto bajo 3:1 (H1, body, contacto, ítems y los textos de los CTA), capa decorativa o decoración que tapa texto o logo, contenido fuera del margen, nada tapado por la interfaz de la plataforma, un solo mensaje principal | La pieza se rechaza y no se puede aceptar |
+| Aviso | Todo el resto: contraste de texto entre 3:1 y 4,5:1, reglas de estilo, controles del carrusel | Rechaza hasta que se corrige o se acepta con justificación |
+| Sugerencia | Lo que fija el rubro (alineación del mensaje, itálica en rubros y familias habilitados) y las mejoras de oficio | Se muestra, no frena |
+
+- **Aceptar con justificación.** Un aviso que falla se acepta escribiendo el motivo. Queda registrado quién, cuándo y por qué (`control`, `motivo`, `autor`, `fecha`), la justificación se muestra en el checklist y se puede quitar. La aceptación viaja con la pieza, así que la exportación la respeta. Cada aceptación se suma al historial de decisiones de la marca.
+- **Estado de la pieza.** Es aprobada si cada control cumple, está aceptado o es una sugerencia.
+- **Excepción de color (cap. 3, paso 9).** Sigue aceptando los controles de color que fallan, salvo los bloqueantes.
+- El carrusel todavía no permite aceptar avisos.
 
 ### Bloque 1 — Color y contraste
 
@@ -767,7 +783,7 @@ Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de o
 | Sin contraste de peso dentro de una pieza | prohibido | rechazo |
 | Tamaño mínimo del elemento | menor 18 px caption, 24 px body | escalar o recortar texto |
 | Escala en story y estado | +15-20% sobre feed | recalcular |
-| Itálica solo en rubros y familias habilitados | belleza y gastronomía, solo si la familia tiene itálica (cap. 4, paso 3) *(v1.1)* | quitar itálica |
+| Itálica solo en rubros y familias habilitados *(sugerencia)* | belleza y gastronomía, solo si la familia tiene itálica (cap. 4, paso 3) *(v1.1)* | quitar itálica |
 | Itálica en peso regular y nivel permitido | máximo 1 bloque por pieza | quitar itálica |
 | Itálica ausente en precios, fechas y CTA | sin excepción | rechazo |
 | H1 con margen sobre su tamaño mínimo *(v1.1)* | el ajuste no lo dejó en el piso de su rango | sugerencia: recortar palabras antes que achicar la letra |
@@ -786,7 +802,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Orden de capas | fondo, forma, deco o foto, texto e íconos | reordenar |
 | Logo dentro del margen seguro | sin excepción | reubicar |
 | Orden de slots según variante | el definido en el capítulo 6 | rechazo |
-| Alineación del mensaje | izquierda o centrado según rubro | corregir |
+| Alineación del mensaje *(sugerencia)* | izquierda o centrado según rubro | corregir |
 | Líneas de body en centrado | máximo 4 | recortar texto |
 | Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
 | Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
