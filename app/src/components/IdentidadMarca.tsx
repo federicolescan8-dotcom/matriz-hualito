@@ -37,6 +37,25 @@ import { CampoHex } from "./CampoHex";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 import { BIBLIOTECA_RUBRO, formasDelRubro, ICONOS, OPACIDAD_PATRON, PATRONES } from "@/engine/biblioteca";
 import { estiloIconos } from "@/engine/pieza";
+import { MATRICES_DALTONISMO, type Daltonismo } from "@/engine/laboratorio";
+import { LaboratorioColor } from "./LaboratorioColor";
+
+/** Filtros SVG para ver la identidad como la ve una persona con daltonismo (E3). Mismas matrices que el motor. */
+function FiltrosDaltonismo() {
+  return (
+    <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden>
+      {(Object.keys(MATRICES_DALTONISMO) as Daltonismo[]).map((t) => {
+        const m = MATRICES_DALTONISMO[t];
+        const valores = [0, 1, 2].map((f) => `${m[f * 3]} ${m[f * 3 + 1]} ${m[f * 3 + 2]} 0 0`).join(" ") + " 0 0 0 1 0";
+        return (
+          <filter key={t} id={`daltonismo-${t}`} colorInterpolationFilters="linearRGB">
+            <feColorMatrix type="matrix" values={valores} />
+          </filter>
+        );
+      })}
+    </svg>
+  );
+}
 
 function Ratio({ valor, minimo }: { valor: number; minimo: number }) {
   const ok = valor >= minimo;
@@ -238,6 +257,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
   const B = coloresModo(p, "B");
   const familia = fontFamily(marca.identidad.tipografia.familia_variable);
   const pendientes = pendientesMarca(marca.identidad.logo);
+  const [vision, setVision] = useState<Daltonismo | null>(null);
   const [textos, setTextos] = useState<TextosPieza>(() => textosPara(marca.rubro, marca.diagnostico.contenido));
   const ajustes = marca.identidad.ajustes_manuales ?? [];
   const soloHeredado = marca.identidad.color.solo_heredado === true;
@@ -269,7 +289,8 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
     : preset.secuencia;
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10" style={vision ? { filter: `url(#daltonismo-${vision})` } : undefined}>
+      <FiltrosDaltonismo />
       <section aria-label="Prueba de la identidad" className="grid gap-6 lg:grid-cols-[1fr_1fr_18rem]">
         <div>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
@@ -336,6 +357,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
         }
       >
         {onChange && puedeElegirFuncional(marca) && <OpcionFuncional marca={marca} onChange={onChange} />}
+        {onChange && <LaboratorioColor marca={marca} onChange={onChange} vision={vision} onVision={setVision} />}
         {soloHeredado && fallasPaleta(p).length > 0 && (
           <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
             El color heredado se usa sin versión funcional, por decisión del cliente. Estos contrastes no llegan al mínimo del

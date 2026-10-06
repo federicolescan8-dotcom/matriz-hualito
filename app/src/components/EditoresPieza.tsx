@@ -173,6 +173,25 @@ export function EditorDecoracion({ marca, pieza, onChange }: { marca: Marca; pie
           </button>
         ))}
       </div>
+      {elegida && (marca.identidad.paleta_extendida?.secundarios.length ?? 0) > 0 && (
+        <div className="flex items-center gap-2 text-xs">
+          <span>Color</span>
+          {[null, ...marca.identidad.paleta_extendida!.secundarios.map((_, i) => i)].map((i) => {
+            const color = i == null ? p.tono_apoyo : marca.identidad.paleta_extendida!.secundarios[i].color;
+            const activo = (pieza.color_decoracion ?? null) === i;
+            return (
+              <button
+                key={i ?? "apoyo"}
+                type="button"
+                title={i == null ? "Tono de apoyo" : `Secundario ${i + 1}`}
+                onClick={() => onChange({ color_decoracion: i })}
+                className={`h-6 w-6 rounded-full border-2 ${activo ? "border-neutral-900" : "border-white shadow"}`}
+                style={{ background: hslCss(color) }}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

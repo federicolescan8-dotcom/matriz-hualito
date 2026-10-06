@@ -73,3 +73,22 @@ export async function reducirFoto(file: File, max = 1600): Promise<string> {
   canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/jpeg", 0.85);
 }
+
+/** Píxeles de una imagen reducida a `lado` px de lado mayor, para extraer sus colores (laboratorio de color, E3). */
+export async function pixelesDeImagen(src: string, lado = 72): Promise<{ rgb: [number, number, number]; alfa: number }[]> {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const k = Math.min(1, lado / Math.max(img.naturalWidth || lado, img.naturalHeight || lado));
+  const w = Math.max(1, Math.round((img.naturalWidth || lado) * k));
+  const h = Math.max(1, Math.round((img.naturalHeight || lado) * k));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const salida: { rgb: [number, number, number]; alfa: number }[] = [];
+  for (let i = 0; i < d.length; i += 4) salida.push({ rgb: [d[i], d[i + 1], d[i + 2]], alfa: d[i + 3] });
+  return salida;
+}

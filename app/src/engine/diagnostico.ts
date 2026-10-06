@@ -1,6 +1,7 @@
 // Diagnóstico con el cliente (manual cap. 2 / A.2, v1.1) y armado del objeto de marca (cap. 9).
 
-import { hexToHsl, normalizarH, type HSL } from "./color";
+import { distanciaColor, hexToHsl, normalizarH, type HSL } from "./color";
+import { revalidarExtendida, type Alternativa } from "./laboratorio";
 import { ajustarRol, derivarPaleta, type CtaModoB, enBandaProhibida, type Paleta, type ResultadoPaleta, type RolPaleta } from "./palette";
 import { type Rubro, type Tono, type ValorMarca } from "./presets";
 import { resolverTipografia } from "./typography";
@@ -264,6 +265,7 @@ function conPaleta(m: Marca, paleta: Paleta, ajustes: RolPaleta[]): Marca {
     paleta_calculada: id.paleta_calculada ?? id.paleta,
     ajustes_manuales: ajustes,
     color: { ...id.color, base: paleta.color_marca, version_funcional: paleta.version_funcional },
+    paleta_extendida: id.paleta_extendida && revalidarExtendida(id.paleta_extendida, paleta),
   });
 }
 
@@ -285,6 +287,29 @@ export function restaurarColorMarca(m: Marca, rol?: RolPaleta): Marca {
   if (valor == null) return m;
   const ajustes = (m.identidad.ajustes_manuales ?? []).filter((r) => r !== rol);
   return conPaleta(m, ajustarRol(m.identidad.paleta, rol, valor), ajustes);
+}
+
+/**
+ * Aplica una alternativa del laboratorio de color (E3): la paleta nueva, la calculada por la fórmula y los roles
+ * bloqueados que quedaron como ajuste manual. Si cambió el color de marca, la marca pasa a modo optimizado. La paleta
+ * extendida se vuelve a validar contra el fondo nuevo.
+ */
+export function aplicarAlternativa(m: Marca, alt: Alternativa): Marca {
+  const id = m.identidad;
+  const cambioMarca = distanciaColor(alt.paleta.color_marca, id.paleta.color_marca) > 0.5;
+  return conIdentidad(m, {
+    paleta: alt.paleta,
+    paleta_calculada: alt.calculada,
+    ajustes_manuales: alt.ajustes,
+    color: {
+      ...id.color,
+      modo: cambioMarca ? "optimizado" : id.color.modo,
+      base: alt.paleta.color_marca,
+      version_funcional: alt.paleta.version_funcional,
+      solo_heredado: cambioMarca ? undefined : id.color.solo_heredado,
+    },
+    paleta_extendida: id.paleta_extendida && revalidarExtendida(id.paleta_extendida, alt.paleta),
+  });
 }
 
 /** Fija a mano cómo va el CTA en Modo B, o lo vuelve a automático con null. */

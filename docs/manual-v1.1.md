@@ -67,6 +67,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
 32. **Niveles de regla y aceptación con justificación**: cada control del checklist tiene un nivel: *bloqueante* (legibilidad crítica, nunca se acepta), *aviso* (se puede aceptar con justificación) o *sugerencia* (lo que fija el rubro, no frena). Un aviso aceptado queda registrado con motivo, autor y fecha, viaja con la pieza (la exportación lo respeta) y se guarda en el historial de decisiones de la marca. La alineación del mensaje y la itálica pasan a ser sugerencias: ya no rechazan la pieza. La excepción de los ajustes manuales de color (cambio 19) no alcanza a los bloqueantes: un texto bajo 3:1 ya no se acepta por esa vía. *(Cap. 8, Cap. 3 paso 9, Cap. 9)*
 33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
+34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par queda para E3b. *(Cap. 3, Cap. 6, Cap. 9)*
 
 ---
 
@@ -362,6 +363,34 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 - **Variante por contraste.** Junto a la sugerencia anterior se muestra una segunda, tomada de la técnica de Adobe Leonardo: conserva el matiz y el croma del color elegido medidos en OKLCH, un espacio donde a igual luminosidad los colores se perciben igual de claros, y recorre solo la luminosidad, del cambio más chico al más grande, hasta cumplir los mismos controles. Si a esa luminosidad el croma no entra en sRGB, se baja. El resultado es el mismo color más claro o más oscuro, sin el desvío de matiz que puede tener la sugerencia por ΔE. Respeta los mismos rangos por rol y la banda prohibida. Si las dos sugerencias coinciden, se muestra una sola. Aplicarla es opcional.
 - Los ejemplos de Modo A y Modo B de la identidad muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
 
+### Paleta extendida y laboratorio de color *(v1.1, E3a)*
+
+**Paleta extendida (opcional).** Suma a los cuatro roles dos secundarios y un neutro oscuro, según una armonía elegida sobre el matiz de la marca:
+
+| Armonía | Matices de los secundarios (° respecto de la marca) |
+|---|---|
+| Análoga | +30, −30 |
+| Complementaria | 180, 150 |
+| Triádica | 120, 240 |
+| Complementaria dividida | 150, 210 |
+
+- **Secundario:** S 55 y la L más clara (desde 60, de a 2) que alcanza 3:1 contra el fondo neutro, de modo que sirve como masa (decoración, formas). Es **texto** (`texto: true`) solo si además llega a 4,5:1; si no, **nunca** va como texto.
+- **Neutro oscuro:** el matiz de la marca con S ≤ 20 y L 14.
+- Si cambia el fondo neutro (ajuste manual o alternativa aplicada), la marca de `texto` de los secundarios se recalcula.
+- Se suma, reemplaza o quita desde la identidad; es opcional y no altera la paleta base ni el checklist.
+- **En las piezas:** la decoración de plantilla (cap. 6) puede dibujarse en un secundario, con la misma opacidad segura del Modo A que protege el texto.
+
+**Bloquear y regenerar.** Se bloquean uno o más roles (marca, apoyo, fondo, acento) y se piden 3 alternativas para el resto:
+- Con la marca bloqueada, el resto se deriva en modo heredado con ese color exacto (respeta la elección de solo heredado); si no, el matiz se mueve ±70° en modo optimizado.
+- El acento corre ±15° y el valor alterna entre energía y calma, salvo que el diagnóstico fije uno.
+- Los roles bloqueados se imponen tal cual; si difieren de la fórmula, cuentan como ajuste manual (paso 9).
+- Las alternativas que cumplen todos los controles van primero. Se descartan las repetidas (ΔE < 4). El resultado es reproducible con la misma semilla.
+- Aplicar una alternativa reemplaza paleta, paleta calculada y ajustes; si cambió el color de marca, la marca pasa a modo optimizado.
+
+**Tomar colores.** Del logo, de una foto o referencia, o de la pantalla (cuentagotas, donde el navegador lo permita), para usarlos como marca o acento. Al extraer de una imagen (reducida a 72 px) se agrupan 5 colores; se ignoran los transparentes, casi blancos (> 240) y casi negros (< 18), se descartan grupos de menos del 2% y se fusionan los que están a ΔE < 8.
+
+**Daltonismo.** "Ver la identidad como" simula visión típica, protanopía, deuteranopía o tritanopía (matrices de Machado, Oliveira y Fernandes 2009, severidad 1, en RGB lineal). Se avisa de los pares acento/marca, acento/fondo y marca/apoyo que con visión típica se distinguen pero simulados quedan a ΔE < 12. Es un aviso: no bloquea ni cambia la paleta.
+
 ---
 
 ## Capítulo 4 — Sistema tipográfico
@@ -613,7 +642,7 @@ Figuras que forman parte del diseño de la pieza. No son un relleno como la capa
 
 Reglas comunes:
 
-- Las figuras van en tono de apoyo. En Modo B van opacas sobre el color de marca. En Modo A van sobre el fondo neutro, con la opacidad segura de la forma de fondo (35% o menos).
+- Las figuras van en tono de apoyo o, si la marca tiene paleta extendida, en un secundario a elección (`color_decoracion`, *v1.1*). En Modo B van opacas sobre el color de marca. En Modo A van sobre el fondo neutro, con la opacidad segura de la forma de fondo (35% o menos). El secundario usa esa misma opacidad segura, que protege el texto.
 - Llevan una sombra mínima hacia el fondo, medida del ejemplo de referencia: oscurece ~8% junto al borde y se desvanece en ~30 px (desenfoque 12 px, opacidad 20%).
 - Van sobre el fondo y debajo del texto. Ninguna figura pasa por debajo de un texto ni del logo. El texto se aleja 40 px de su contorno y, si lo toca, se achica.
 - Pueden pasar por debajo de la interfaz de stories y del recorte de la grilla: son decoración, no contenido.
@@ -922,6 +951,11 @@ marca: {
       version_funcional: { H, S, L },   // solo en modo heredado
       banda_prohibida: [H_min, H_max] | null
     },
+    paleta_extendida?: {                                // (v1.1, E3a) opcional
+      armonia: "analoga | complementaria | triadica | complementaria_dividida",
+      secundarios: [{ H, S: 55, L, texto: bool }, { H, S: 55, L, texto: bool }],  // texto: true solo si llega a 4,5:1
+      neutro_oscuro: { H, S: <= 20, L: 14 }
+    },
     logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
     tipografia: { familia_variable, italic_habilitado: bool },
     graficos: { estilo_iconos },
@@ -956,7 +990,8 @@ pieza: {
     items: [{ texto, imagen_id | icono_id }] | null,   // variante 4
     contacto: [{ tipo, valor }] | null                 // variante 3
   },
-  imagen: { id, uso: "decorativa | informativa" } | null
+  imagen: { id, uso: "decorativa | informativa" } | null,
+  color_decoracion?: number | null   // (v1.1, E3a) índice del secundario; null = tono de apoyo
 }
 ```
 

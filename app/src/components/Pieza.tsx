@@ -76,6 +76,9 @@ export function Pieza({
   // protagonistas (cap. 6).
   // Decoración de plantilla (v1.1): reemplaza a la forma de fondo automática.
   const decoracion = decoracionEfectiva(pieza);
+  // La decoración puede ir en un secundario de la paleta extendida (E3): es masa, nunca texto, y su opacidad en Modo A
+  // se limita para que el texto que pase por encima siga cumpliendo.
+  const colorDeco = (pieza.color_decoracion != null && marca.identidad.paleta_extendida?.secundarios[pieza.color_decoracion]?.color) || p.tono_apoyo;
   const geoDecoracion = decoracion?.geometria(pieza.formato) ?? null;
   const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion;
   const formaColor = pieza.modo === "A" ? c.apoyo : p.fondo_neutro;
@@ -530,7 +533,7 @@ export function Pieza({
           }}
         />
       )}
-      {geoDecoracion && <CapaDecoracion geometria={geoDecoracion} ancho={f.ancho} alto={f.alto} color={p.tono_apoyo} opacidad={pieza.modo === "B" ? 1 : opacidadSegura(c.fondo, p.tono_apoyo, c.texto, 0.35)} />}
+      {geoDecoracion && <CapaDecoracion geometria={geoDecoracion} ancho={f.ancho} alto={f.alto} color={colorDeco} opacidad={pieza.modo === "B" ? 1 : opacidadSegura(c.fondo, colorDeco, c.texto, 0.35)} />}
       {contenidoPieza}
       {enCarrusel?.rol === "portada" && (
         // Portada del carrusel: la señal para deslizar, abajo a la derecha (el logo va a la izquierda).

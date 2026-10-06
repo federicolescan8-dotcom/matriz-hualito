@@ -8,6 +8,7 @@ import type { EstiloIconos } from "./biblioteca";
 import { BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Paleta, RolPaleta } from "./palette";
 import type { Tipografia } from "./typography";
+import type { PaletaExtendida } from "./laboratorio";
 
 export interface Identidad {
   /** Color: cómo se eligió el color de marca y la paleta que sale de él (cap. 3). */
@@ -27,6 +28,8 @@ export interface Identidad {
   paleta_calculada?: Paleta;
   /** Roles que se modificaron a mano después del cálculo. */
   ajustes_manuales?: RolPaleta[];
+  /** Paleta extendida (E3): secundarios de una armonía y neutro oscuro. Opcional. */
+  paleta_extendida?: PaletaExtendida;
   /** Tipografía (cap. 4). */
   tipografia: Tipografia;
   /** Logo y su par monocromo, como data URLs. */

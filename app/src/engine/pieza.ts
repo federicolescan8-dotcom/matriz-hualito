@@ -42,6 +42,8 @@ export interface Pieza {
   items?: ItemCatalogo[];
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
+  /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
+  color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */
   aceptaciones?: Aceptacion[];
 }
