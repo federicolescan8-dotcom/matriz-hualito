@@ -134,7 +134,8 @@ manuales.
     lado a lado en un panel;
   - los recursos cargados se respetan en todos los formatos y el checklist mide su contorno real.
 
-### E4 · Logo como sistema · [ ] pendiente · depende de E1
+### E4 · Logo como sistema · [x] hecha · depende de E1
+> Quedó: versiones del logo (horizontal, vertical, símbolo, monograma) elegidas por pieza según el lugar (`elegirVersionLogo`), monocromo derivado de los SVG, logo sobre foto en mono, placa o sombra, tres avisos en el checklist (tamaño mínimo, área de seguridad y contraste con el fondo), `engine/entregables.ts` (brief del logo y paleta en ASE, CSS y JSON) y `SistemaLogo.tsx` en la identidad. Observación pendiente, ya existía antes de E4: en 1200×630 la variante 2 con un logo cargado da "Contenido dentro del margen" (bloqueante).
 - **Criterio:** el logo y sus versiones los hace un diseñador con Illustrator, Photoshop o Corel. La herramienta
   **pide, recibe y controla**; no genera versiones.
 - **Alcance:**

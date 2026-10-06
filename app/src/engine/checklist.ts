@@ -19,6 +19,7 @@ import {
 import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
+import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
 import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
 
 export interface Rect {
@@ -41,6 +42,12 @@ export interface Medicion {
   body: MedidaTexto | null;
   cta: (MedidaTexto & { caja: Rect }) | null;
   logo: Rect | null;
+  /** Color del logo tal como está dibujado (E4): blanco, tinta o su color dominante. Null si no se conoce. */
+  logoColor?: HSL | null;
+  /** Fondo inmediato sobre el que está el logo (E4). */
+  logoFondo?: HSL | null;
+  /** El logo es una imagen cargada (E4). Sin logo cargado, en su lugar va el nombre en texto, que no se controla. */
+  logoImagen?: boolean;
   /** Forma de fondo (función estructural) con su color y opacidad efectivos. */
   forma: { caja: Rect; color: HSL; opacidad: number } | null;
   /** El texto no entró en su slot ni siquiera al tamaño mínimo. */
@@ -152,6 +159,11 @@ function tocaContorno(k: Rect, pol: { x: number; y: number }[]): boolean {
     [k.x, k.y + k.h],
     [k.x + k.w, k.y + k.h],
   ].some(([x, y]) => dentroDePoligono(x, y, pol));
+}
+
+/** Rect achicado `k` px por cada lado (la tolerancia de roce de las cajas de las letras). */
+function achicar(a: Rect, k: number): Rect {
+  return { x: a.x + k, y: a.y + k, w: Math.max(0, a.w - 2 * k), h: Math.max(0, a.h - 2 * k) };
 }
 
 function seTocan(a: Rect, b: Rect): boolean {
@@ -418,6 +430,23 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     k.x + k.w <= f.ancho * (1 - zm.x) + 0.5 &&
     k.y + k.h <= f.alto * (1 - zm.abajo) + 0.5;
   add("Zonas seguras", "Logo dentro del margen seguro", !m.logo || dentro(m.logo), m.logo ? "" : "sin logo", "reubicar");
+  // Logo como sistema (E4): tamaño mínimo, área de seguridad y contraste con su fondo, sobre la caja visible del logo.
+  // Solo con un logo cargado: el nombre en texto que lo reemplaza no es el logo.
+  if (m.logo && m.logoImagen) {
+    const minimo = Math.round(LOGO_MIN_PX * (f.escala === "story" ? FACTOR_STORY : 1));
+    add("Zonas seguras", `Logo de tamaño mínimo (${minimo} px de alto)`, m.logo.h >= minimo - 0.5, `${Math.round(m.logo.h)} px`, "agrandar el logo o usar una versión más legible");
+    const aire = m.logo.h * AREA_SEGURIDAD;
+    const area: Rect = { x: m.logo.x - aire, y: m.logo.y - aire, w: m.logo.w + 2 * aire, h: m.logo.h + 2 * aire };
+    const invade = elementosInformativos(m)
+      .filter((e) => e.nombre !== "logo")
+      .filter((e) => e.cajas.some((k) => seTocan(area, achicar(k, ROCE))))
+      .map((e) => e.nombre);
+    add("Zonas seguras", "Área de seguridad del logo", invade.length === 0, invade.length ? `invade: ${invade.join(", ")}` : "", "separar el logo de los otros elementos");
+    if (m.logoColor && m.logoFondo) {
+      const cL = contraste(m.logoColor, m.logoFondo);
+      add("Color y contraste", "Logo contrasta con su fondo", cL >= MIN_GRAFICO, `${r(cL)} (mín. 3:1)`, "usar la versión monocromo o una placa detrás");
+    }
+  }
   const todo = unir(contenido);
   const pct = (v: number) => `${Math.round(v * 100)}%`;
   const margenTexto =

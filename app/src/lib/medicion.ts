@@ -5,6 +5,7 @@
 import type { HSL } from "@/engine/color";
 import type { Medicion, MedidaTexto, Rect } from "@/engine/checklist";
 import type { TipoDeco } from "@/engine/biblioteca";
+import { cajaVisible } from "@/engine/logo";
 import { h1Minimo, type PlantillaVariante } from "@/engine/pieza";
 import { tocaDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
 import { CTA_MIN, JERARQUIA_H1 } from "@/engine/typography";
@@ -269,6 +270,21 @@ function medirTexto(root: HTMLElement, el: HTMLElement): MedidaTexto {
   };
 }
 
+function leerHsl(json: string | undefined): HSL | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as HSL;
+  } catch {
+    return null;
+  }
+}
+
+function cajaDelLogo(root: HTMLElement, logo: HTMLElement) {
+  const caja = relativo(root, logo.getBoundingClientRect());
+  const aspecto = parseFloat(logo.dataset.logoAspecto ?? "");
+  return aspecto > 0 ? cajaVisible(caja, aspecto) : caja;
+}
+
 export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
   const h1 = q(root, "h1")!;
   const body = q(root, "body");
@@ -279,7 +295,11 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
     h1: medirTexto(root, h1),
     body: body && body.textContent?.trim() ? medirTexto(root, body) : null,
     cta: cta ? { ...medirTexto(root, cta), caja: relativo(root, cta.getBoundingClientRect()) } : null,
-    logo: logo ? relativo(root, logo.getBoundingClientRect()) : null,
+    // El logo se mide por su caja visible (object-fit: contain deja aire dentro del <img>), no por la del elemento.
+    logo: logo ? cajaDelLogo(root, logo) : null,
+    logoColor: leerHsl(logo?.dataset.logoColor),
+    logoFondo: leerHsl(logo?.dataset.logoFondo),
+    logoImagen: logo?.tagName === "IMG",
     forma: forma
       ? {
           caja: relativo(root, forma.getBoundingClientRect()),

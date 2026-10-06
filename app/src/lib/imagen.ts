@@ -1,5 +1,7 @@
 // Utilidades de imagen del lado del navegador.
 
+import { svgADataUrl } from "@/engine/logo";
+
 export interface ImagenRecortada {
   dataUrl: string;
   /** Lado mayor de la imagen original, antes de recortar. */
@@ -125,4 +127,26 @@ export function contornoDeSvg(texto: string, n = 360): { x: number; y: number }[
   } finally {
     host.remove();
   }
+}
+
+/** Proporción (ancho / alto) de una imagen, medida en el navegador. SVG sin tamaño propio usa su viewBox. */
+export async function aspectoDeImagen(src: string): Promise<number> {
+  const img = await cargar(src);
+  const w = img.naturalWidth || 1;
+  const h = img.naturalHeight || 1;
+  return w / h;
+}
+
+/** Lee un archivo de logo (SVG o PNG) como data URL y mide su proporción (E4). */
+export async function leerArchivoLogo(file: File): Promise<{ src: string; aspecto: number; formato: "svg" | "png" }> {
+  const esSvg = file.type === "image/svg+xml" || /\.svg$/i.test(file.name);
+  const src = esSvg
+    ? svgADataUrl(await file.text())
+    : await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+  return { src, aspecto: await aspectoDeImagen(src), formato: esSvg ? "svg" : "png" };
 }

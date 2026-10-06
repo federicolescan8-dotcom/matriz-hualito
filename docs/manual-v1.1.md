@@ -71,6 +71,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 35. **Tipografía en par, catálogo ampliado y fuente propia (E3b)**: el catálogo suma 6 familias variables (Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque) y cada familia tiene una clase (serif, geométrica, grotesca, humanista). La marca puede usar una familia display (H1 y H2) y otra de texto (body, CTA, datos de contacto e ítems del catálogo), con una regla de combinación que se muestra en vivo y sugiere sin bloquear. La itálica y la compensación óptica del body salen de la familia de texto. Se puede subir una fuente propia (WOFF2, WOFF, TTF u OTF) con su clase. Con esto el principio de una sola familia pasa a ser el caso por defecto, no una obligación. *(Cap. 4, Cap. 9, A.4)*
 37. **Rasgos propios de la marca (E2)**: la marca puede tener formas propias (SVG del diseñador o paramétricas derivadas de los ejes), un patrón propio y un detalle recurrente (subrayado o marco). La capa decorativa 2B, el patrón y la forma de fondo usan primero lo propio, y el checklist mide su contorno real igual que el de las formas de la biblioteca. Dos marcas del mismo rubro con recursos propios distintos dan piezas distintas. *(Cap. 5, Cap. 6, Cap. 9)*
 36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
+38. **Logo como sistema (E4)**: el diseñador entrega el logo en versiones (horizontal, vertical, solo símbolo y monograma, además de la principal y sus monocromos) y cada pieza elige la que se ve más grande en el lugar del logo; si empatan, la más completa. Sobre foto el logo va en mono, sobre una placa o con sombra, a elección de la marca. El espacio entre bloques del mensaje nunca es menor que el área de seguridad del logo más 12 px. El checklist suma tres avisos, solo con un logo cargado: tamaño mínimo, área de seguridad y contraste del logo con su fondo. La herramienta arma el brief para el diseñador y exporta la paleta en ASE, CSS y JSON. *(Cap. 2 paso 4, Cap. 6, Cap. 8, Cap. 9)*
 
 ---
 
@@ -180,6 +181,8 @@ Los chips no se muestran como muestras de color sueltas: se muestran aplicados s
 | Monocromo oscuro (negro o gris oscuro) | fondos claros donde la versión color no contrasta |
 
 Si el cliente solo tiene la versión color, se genera el par monocromo a partir de ella antes de habilitar la marca en el sistema. Es un trabajo de una sola vez por cliente, y sin él la marca no puede operar en Modo B.
+
+**Versiones del logo** *(v1.1, E4)*. Además de esas tres, el diseñador puede entregar cuatro versiones, cada una con su proporción (ancho / alto): **horizontal** (lugares anchos), **vertical** (lugares altos o angostos), **solo símbolo** (espacios chicos y cuadrados) y **monograma** (avatar, íconos y sellos). La herramienta no las genera: las pide con un brief y las recibe en la sección Logo de la identidad. El monocromo de una versión SVG se deriva solo (blanco `#FFFFFF` o tinta `#1A1A1A`); un PNG no se recolorea y usa el monocromo cargado. El brief del logo (Markdown) lista las versiones cargadas y las faltantes, los colores en HEX y RGB, los monocromos, el área de seguridad, el tamaño mínimo, el formato (SVG con contornos y fondo transparente) y el uso sobre foto. La paleta se descarga en ASE (Adobe Swatch Exchange), CSS (variables `--color-…`) y JSON (HEX y HSL).
 
 **Formato del archivo.** Se requiere vectorial, SVG o PDF. Si el cliente solo tiene un PNG, se acepta con un mínimo de 1000 px de lado mayor y fondo transparente, y se anota como deuda técnica para vectorizar.
 
@@ -780,6 +783,12 @@ No es una decisión de diseño por pieza: se deriva del modo de paleta y del ele
 
 El logo se valida con el mismo mínimo que los elementos gráficos, 3:1 contra el fondo inmediato. Si ninguna de las tres versiones alcanza ese mínimo, se ubica el logo sobre una forma de contención del color que sí contrasta, y solo si eso tampoco es viable se eleva a revisión manual.
 
+**Versión según el lugar** *(v1.1, E4)*. Si la marca cargó versiones, el lugar del logo es el 70% del ancho del contenedor del mensaje por el alto de su slot, y se usa la versión que se ve más grande ahí (alto visible con la imagen contenida). Si dos empatan (±5%), gana la más completa: principal, horizontal, vertical, símbolo, monograma. Sin versiones cargadas, se usa la principal como antes. La versión de color o monocromo sigue la tabla de arriba.
+
+**Logo sobre foto** *(v1.1, E4)*. La marca elige cómo va el logo sobre la cúpula del 2B-S con foto: **mono** (por defecto, la regla de la tabla), **placa** (logo en color sobre una placa de fondo neutro) o **sombra** (mono claro con sombra proyectada).
+
+**Aire del logo** *(v1.1, E4)*. El espacio entre bloques de la columna del mensaje es al menos el área de seguridad del logo (25% de su alto) más 12 px, porque las cajas de las letras del H1 sobresalen de su línea. En vertical no cambia (36 px); en 1200×630 pasa de 20 a unos 27 px.
+
 ### Regla de coherencia entre formatos
 
 La variante elegida para una pieza mantiene su orden de lectura en todos los formatos. Solo cambian las proporciones de cada zona, nunca el orden de los slots.
@@ -862,6 +871,7 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 |---|---|---|
 | Texto body y caption sobre su fondo | 4,5:1 | función de ajuste (cap. 3, paso 6) |
 | H1 y H2 grandes (≥36 px, bold) sobre su fondo | 3:1 | función de ajuste |
+| Logo contrasta con su fondo *(v1.1, E4, aviso, solo con logo cargado y si se conocen el color del logo y su fondo)* | 3:1 | usar la versión monocromo o una placa detrás |
 | Acento como fondo de botón con su texto (blanco o color de marca) | 4,5:1 | ajustar L del acento (cap. 3, paso 4b) *(v1.1)* |
 | Acento sobre color de marca en Modo B | 3:1 | recalcular matiz (cap. 3, paso 5) |
 | Acento fuera de la banda prohibida | — | cascada de recálculo |
@@ -901,6 +911,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Líneas de body en centrado | máximo 4 | recortar texto |
 | Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
 | Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
+| Área de seguridad del logo *(v1.1, E4, aviso, solo con logo cargado)* | ningún otro elemento informativo toca la caja del logo agrandada 25% de su alto por lado | separar el logo de los otros elementos |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -913,6 +924,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Story y estado 9:16 | nada que informe debajo de la interfaz: 250 px arriba y 340 px abajo *(v1.1)* |
 | Feed 1:1 | H1 máximo 2 líneas, catálogo máximo 3 ítems |
 | Facebook 1200×630 | mensaje máximo 50% del ancho |
+| Todos | logo de tamaño mínimo: 48 px de alto visible (56 px en story y estado), solo con logo cargado *(v1.1, E4, aviso)* |
 
 ### Bloque 5 — Contenido
 
@@ -1004,7 +1016,10 @@ marca: {
       secundarios: [{ H, S: 55, L, texto: bool }, { H, S: 55, L, texto: bool }],  // texto: true solo si llega a 4,5:1
       neutro_oscuro: { H, S: <= 20, L: 14 }
     },
-    logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
+    logo: { svg_color, svg_mono_claro, svg_mono_oscuro,
+            aspecto?, color_dominante?,                    // (v1.1, E4) proporción y color dominante del logo principal
+            versiones?: { horizontal?, vertical?, simbolo?, monograma? },  // (v1.1, E4) cada una { src, aspecto }
+            sobre_foto?: "mono" | "placa" | "sombra" },    // (v1.1, E4) por defecto "mono"
     tipografia: { familia_variable, italic_habilitado: bool,
                   familia_texto?: string,                // (v1.1, E3b) body, CTA, contacto e ítems; sin ella, familia_variable
                   propia?: { nombre, archivo, clase } }, // (v1.1, E3b) fuente subida; archivo = data URL; clase: serif | geométrica | grotesca | humanista

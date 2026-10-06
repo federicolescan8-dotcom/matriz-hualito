@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useLayoutEffect, useRef } from "react";
-import { contraste, hslCss, type HSL } from "@/engine/color";
+import { contraste, hexToHsl, hslCss, type HSL } from "@/engine/color";
+import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
 import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
@@ -97,7 +98,7 @@ export function Pieza({
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -127,19 +128,64 @@ export function Pieza({
 
   const justificar = centrado ? "center" : "flex-start";
 
-  /** Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. */
-  const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL) => {
-    const src = marca.identidad.logo[version] ?? logoSrc;
+  // Lugar del logo (E4): ~70% del ancho del contenedor del mensaje (todo el ancho útil, o la columna del mensaje en
+  // 1200×630) por el alto de su slot. Con él se elige la versión que se ve más grande ahí.
+  const anchoMensaje = horizontal ? f.ancho * (f.columnaMensaje ?? 1) - f.ancho * f.zonaMinima.x : f.ancho * (1 - 2 * f.zonaMinima.x);
+  const lugarLogo = { ancho: anchoMensaje * 0.7, alto: px(plantilla.logoPx) };
+  const logoDef = marca.identidad.logo;
+  const principal = logoDef.color && logoDef.aspecto ? { src: logoDef.color, aspecto: logoDef.aspecto } : null;
+  const elegida = logoDef.versiones && Object.keys(logoDef.versiones).length ? elegirVersionLogo(principal, logoDef.versiones, lugarLogo) : null;
+  const BLANCO: HSL = { H: 0, S: 0, L: 100 };
+  const TINTA: HSL = { H: 0, S: 0, L: hexToHsl("#1a1a1a", true)?.L ?? 10 };
+
+  /**
+   * Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. Con versiones
+   * cargadas (E4) se usa la que mejor entra en el lugar; si el fondo pide mono y la versión es SVG se recolorea, y si
+   * no se puede (PNG) se cae al mono_claro / mono_oscuro de siempre.
+   */
+  const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL, sobreFoto = false) => {
     const colorNombre = [c.texto, p.fondo_neutro, colorTextoMarca].sort((a, b) => contraste(b, fondoLogo) - contraste(a, fondoLogo))[0];
+    const modoFoto = sobreFoto ? (logoDef.sobre_foto ?? "mono") : "mono";
+    // Sobre una placa el logo va en color y el fondo pasa a ser el neutro de la marca.
+    const conPlaca = modoFoto === "placa" && !!(logoDef.color ?? elegida);
+    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : version;
+    const fondoReal = conPlaca ? p.fondo_neutro : fondoLogo;
+    let src: string | null | undefined = logoDef[versionEfectiva] ?? logoSrc;
+    let aspecto: number | undefined = versionEfectiva === "color" ? logoDef.aspecto : undefined;
+    if (elegida) {
+      src = elegida.archivo.src;
+      aspecto = elegida.archivo.aspecto;
+      if (versionEfectiva !== "color") src = monocromoDe(src, versionEfectiva === "mono_claro") ?? logoDef[versionEfectiva] ?? src;
+    }
+    const colorLogo: HSL | null | undefined = versionEfectiva === "mono_claro" ? BLANCO : versionEfectiva === "mono_oscuro" ? TINTA : logoDef.color_dominante;
+    const img = src ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        data-slot="logo"
+        data-logo-aspecto={aspecto}
+        data-logo-color={colorLogo ? JSON.stringify(colorLogo) : undefined}
+        data-logo-fondo={JSON.stringify(fondoReal)}
+        src={src}
+        alt=""
+        style={{
+          height: "100%",
+          width: "auto",
+          maxWidth: "70%",
+          objectFit: "contain",
+          ...(modoFoto === "sombra" ? { filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.45))" } : {}),
+        }}
+      />
+    ) : (
+      <span data-slot="logo" style={{ color: hslCss(colorNombre), fontSize: px(40), fontWeight: 600, lineHeight: 1.1 }}>
+        {marca.nombre}
+      </span>
+    );
     return (
       <div style={{ display: "flex", flexShrink: 0, alignItems: "center", height: px(plantilla.logoPx), justifyContent: justificar }}>
-        {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img data-slot="logo" src={src} alt="" style={{ height: "100%", width: "auto", maxWidth: "70%", objectFit: "contain" }} />
+        {conPlaca && src ? (
+          <div style={{ height: "100%", maxWidth: "70%", boxSizing: "border-box", padding: px(10), borderRadius: px(16), background: hslCss(p.fondo_neutro), display: "flex" }}>{img}</div>
         ) : (
-          <span data-slot="logo" style={{ color: hslCss(colorNombre), fontSize: px(40), fontWeight: 600, lineHeight: 1.1 }}>
-            {marca.nombre}
-          </span>
+          img
         )}
       </div>
     );
@@ -382,7 +428,9 @@ export function Pieza({
     bottom: f.alto * f.zona.abajo,
     display: "flex",
     flexDirection: "column",
-    gap: horizontal ? px(20) : px(36),
+    // El espacio entre bloques nunca es menor que el área de seguridad del logo (E4), más 12 px: la caja de las letras
+    // del H1 (tildes, ascendentes) sobresale por encima de su línea.
+    gap: Math.max(horizontal ? px(20) : px(36), Math.ceil(px(plantilla.logoPx) * AREA_SEGURIDAD) + 12),
     textAlign: centrado ? "center" : "left",
   };
   // Horizontal: el mensaje ocupa la mitad izquierda; el elemento lateral (deco, contacto o ítems), la derecha.
@@ -465,7 +513,7 @@ export function Pieza({
           <div style={{ height: topeCupula - zonaArriba - px(36), flexShrink: 0, display: "flex", flexDirection: "column" }}>{mensaje()}</div>
           <div style={{ flex: 1 }} />
           {botonCtaCon(ctaSobreCupula!)}
-          {logoCon(logoSobreCupula, fondoCupula)}
+          {logoCon(logoSobreCupula, fondoCupula, deco?.relleno === "foto")}
         </div>
       </>
     );

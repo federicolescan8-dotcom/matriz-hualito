@@ -33,6 +33,7 @@ import { PRESETS } from "@/engine/presets";
 import { escala, familiaTexto, pesoH1, PESOS } from "@/engine/typography";
 import { ParTipografico } from "./ParTipografico";
 import { RasgosPropios } from "./RasgosPropios";
+import { SistemaLogo } from "./SistemaLogo";
 import { fontFamily } from "@/lib/fuentes";
 import { PiezaMuestra, textosPara, type TextosPieza } from "./PiezaMuestra";
 import { CampoHex } from "./CampoHex";
@@ -462,6 +463,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
             </div>
           ))}
         </div>
+        {onChange && <SistemaLogo marca={marca} onChange={onChange} />}
         {pendientes.length > 0 && (
           <ul className="list-disc pl-5 text-sm text-amber-800">
             {pendientes.map((x) => <li key={x}>{x}</li>)}

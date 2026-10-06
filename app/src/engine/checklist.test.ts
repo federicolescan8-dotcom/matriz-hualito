@@ -37,6 +37,55 @@ describe("checklist de pieza", () => {
     expect(r.estado).toBe("ok");
   });
 
+  describe("logo como sistema (E4)", () => {
+    // Logo cargado (imagen): los controles del logo solo corren con un logo de verdad.
+    const ctl = (m: Partial<Medicion>, nombre: string, pz = pieza()) =>
+      evaluarPieza(marca, pz, medicion({ logoImagen: true, ...m })).controles.find((c) => c.control.startsWith(nombre))!;
+
+    it("sin logo cargado (el nombre en texto en su lugar) no se controla el logo", () => {
+      const r = evaluarPieza(marca, pieza(), medicion({ logo: { x: 119, y: 149, w: 300, h: 44 }, logoImagen: false }));
+      expect(r.controles.some((c) => /Logo de tamaño|Área de seguridad del logo/.test(c.control))).toBe(false);
+    });
+
+    it("logo de tamaño mínimo: ok y falla (avisos)", () => {
+      expect(ctl({ logo: { x: 119, y: 149, w: 100, h: 48 } }, "Logo de tamaño mínimo").ok).toBe(true);
+      const c = ctl({ logo: { x: 119, y: 149, w: 100, h: 40 } }, "Logo de tamaño mínimo");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("aviso");
+    });
+
+    it("en story el mínimo crece con el factor de escala", () => {
+      const story = pieza({ formato: "9:16" });
+      const caja = { x: 119, y: 300, w: 100, h: 50 };
+      expect(ctl({ logo: caja }, "Logo de tamaño mínimo", story).ok).toBe(false);
+      expect(ctl({ logo: { ...caja, h: 57 } }, "Logo de tamaño mínimo", story).ok).toBe(true);
+    });
+
+    it("área de seguridad: ok con aire y falla si otro elemento la invade", () => {
+      expect(ctl({}, "Área de seguridad del logo").ok).toBe(true);
+      // El H1 arranca 10 px debajo del logo (aire exigido: 27,5 px).
+      const c = ctl({ logo: { x: 119, y: 300, w: 300, h: 110 }, h1: { ...medicion().h1, lineas: [{ x: 119, y: 420, w: 700, h: 110 }] } }, "Área de seguridad del logo");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("aviso");
+      expect(c.detalle).toContain("H1");
+    });
+
+    it("contraste del logo con su fondo: ok y falla", () => {
+      const negro = { H: 0, S: 0, L: 10 };
+      const blanco = { H: 0, S: 0, L: 100 };
+      expect(ctl({ logoColor: negro, logoFondo: blanco }, "Logo contrasta").ok).toBe(true);
+      const mal = ctl({ logoColor: { H: 0, S: 0, L: 90 }, logoFondo: blanco }, "Logo contrasta");
+      expect(mal.ok).toBe(false);
+      expect(mal.nivel).toBe("aviso");
+    });
+
+    it("sin logo medido no agrega estos controles; sin colores no controla contraste", () => {
+      const r = evaluarPieza(marca, pieza(), medicion({ logo: null }));
+      expect(r.controles.some((c) => /Logo de tamaño|Área de seguridad del logo|Logo contrasta/.test(c.control))).toBe(false);
+      expect(ctl({}, "Logo contrasta")).toBeUndefined();
+    });
+  });
+
   it("rechaza contenido fuera de la zona segura", () => {
     const r = evaluarPieza(marca, pieza(), medicion({ logo: { x: 40, y: 40, w: 300, h: 110 } }));
     expect(r.estado).toBe("rechazado");
