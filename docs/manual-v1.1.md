@@ -427,18 +427,18 @@ Si el cliente tiene tipografía previa y existe en versión variable, se prioriz
 |---|---|---|---|---|
 | Fraunces | serif | sí | 900 | 47% |
 | Newsreader | serif | sí | 800 | 44% |
-| Playfair Display | serif | sí | 900 | 51% |
-| Literata | serif | sí | 900 | 47% |
+| Playfair Display | serif | sí | 900 | 52% |
+| Literata | serif | sí | 900 | 51% |
 | Sora | geométrica | no | 800 | 54% |
-| DM Sans | geométrica | sí | 900 | 50% |
-| Outfit | geométrica | no | 900 | 50% |
+| DM Sans | geométrica | sí | 900 | 51% |
+| Outfit | geométrica | no | 900 | 48% |
 | Inter | grotesca | sí | 900 | 55% |
 | Space Grotesk | grotesca | no | 700 | 49% |
-| Work Sans | grotesca | sí | 900 | 52% |
+| Work Sans | grotesca | sí | 900 | 50% |
 | Manrope | humanista | no | 800 | 54% |
 | Bricolage Grotesque | humanista | no | 800 | 52% |
 
-Las alturas de x de las seis nuevas son estimadas, no medidas.
+Las alturas de x de las seis nuevas se midieron en el navegador sobre la fuente real (canvas, `actualBoundingBoxAscent` de "x"), con el mismo método que las originales. Ninguna queda por debajo del 48%, así que no se compensan.
 
 **Par display + texto.** La familia *display* (la de la marca) se usa en H1 y H2; la familia de *texto*, opcional, en body, CTA, datos de contacto e ítems del catálogo. Sin familia de texto, todo va en la display. La regla de combinación es una sugerencia visible, no bloquea:
 
@@ -483,7 +483,7 @@ En formato story y estado, todos los tamaños se escalan entre 15% y 20% respect
 - el body llega como máximo a la mitad del H1;
 - el CTA también llega como máximo a la mitad del H1, y nunca baja de 24 px en feed.
 
-**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44% (las de las familias de E3b, en la tabla del catálogo, son estimadas). *(v1.1, E3b)* Se aplica a la familia de texto. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
+**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44% (las de las familias de E3b están en la tabla del catálogo). *(v1.1, E3b)* Se aplica a la familia de texto. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
 
 El H1 del 2B-L tiene un mínimo más alto (64 px en feed), porque su columna es angosta. Si ni así entra, la pieza va a revisión manual: hay que acortar el texto o usar la opción figura y patrón.
 

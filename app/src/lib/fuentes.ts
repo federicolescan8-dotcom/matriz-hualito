@@ -77,8 +77,10 @@ const POR_FAMILIA: Record<string, { style: { fontFamily: string } }> = {
 export function asegurarFamilias(familias: string[]): Promise<void> {
   if (typeof document === "undefined") return Promise.resolve();
   const pedidos = [...new Set(familias)].flatMap((f) => {
-    const pila = POR_FAMILIA[f]?.style.fontFamily ?? `"${f}"`;
-    return [400, 600, 900].map((w) => document.fonts.load(`${w} 32px ${pila}`).catch(() => []));
+    // Solo la primera familia de la pila: la de reemplazo de next/font es un local() que en Linux no existe, y si
+    // falla una cara `document.fonts.load` rechaza todo, aunque la principal siga cargando.
+    const principal = (POR_FAMILIA[f]?.style.fontFamily ?? `"${f}"`).split(",")[0].trim();
+    return [400, 600, 900].map((w) => document.fonts.load(`${w} 32px ${principal}`).catch(() => []));
   });
   return Promise.all(pedidos).then(() => undefined);
 }

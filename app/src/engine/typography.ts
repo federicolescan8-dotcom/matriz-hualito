@@ -171,11 +171,11 @@ export const ALTURA_X: Record<string, number> = {
   "Space Grotesk": 0.49,
   Fraunces: 0.47,
   Newsreader: 0.44,
-  "Playfair Display": 0.51,
-  Literata: 0.47,
-  "DM Sans": 0.5,
-  "Work Sans": 0.52,
-  Outfit: 0.5,
+  "Playfair Display": 0.52,
+  Literata: 0.51,
+  "DM Sans": 0.51,
+  "Work Sans": 0.5,
+  Outfit: 0.48,
   "Bricolage Grotesque": 0.52,
 };
 /** Altura de x de referencia (las sans del sistema) y umbral: por debajo, el texto secundario se compensa. */
