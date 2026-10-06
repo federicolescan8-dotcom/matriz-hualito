@@ -73,6 +73,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
 38. **Logo como sistema (E4)**: el diseñador entrega el logo en versiones (horizontal, vertical, solo símbolo y monograma, además de la principal y sus monocromos) y cada pieza elige la que se ve más grande en el lugar del logo; si empatan, la más completa. Sobre foto el logo va en mono, sobre una placa o con sombra, a elección de la marca. El espacio entre bloques del mensaje nunca es menor que el área de seguridad del logo más 12 px. El checklist suma tres avisos, solo con un logo cargado: tamaño mínimo, área de seguridad y contraste del logo con su fondo. La herramienta arma el brief para el diseñador y exporta la paleta en ASE, CSS y JSON. *(Cap. 2 paso 4, Cap. 6, Cap. 8, Cap. 9)*
 39. **Rescate de marca existente (E11)**: para clientes que ya tienen marca, se acuerda un grado de cambio (rescate, refresco o evolución) y se cargan varias referencias (logos, capturas, fotos de cartel). Los colores de todas se agrupan por ΔE < 10 y el informe dice, por ejemplo, "Tu verde aparece en 4 tonos". Cada grupo tiene un color canónico según el grado y se puede asignar a un rol de la paleta o a un secundario. La herramienta arma el brief para el diseñador (logo y tipografía no se vectorizan ni se detectan) y guarda "el antes" para compararlo con la identidad nueva y descargarlo como HTML. *(Cap. 9)*
+40. **Exploración de caminos (E5)**: para una marca nueva, el diagnóstico suma referencias del cliente (colores sacados de las imágenes de su moodboard y colores de la competencia) y propone 3 caminos visiblemente distintos: "Fiel a lo que contaste", "Más expresivo", "Más sobrio y clásico" y, con moodboard, uno inspirado en su color dominante. Cada camino trae ejes, color, par tipográfico y forma propia; difieren en matiz (20° o más) o en familia tipográfica, y el cliente elige uno. Los colores de la competencia extienden la banda prohibida del color de marca (±25° cada uno). *(Cap. 2, Cap. 3, Cap. 9)*
 
 ---
 
@@ -171,6 +172,24 @@ En vez de seguir preguntando en abstracto, se le muestran al cliente cuatro chip
 
 Los chips no se muestran como muestras de color sueltas: se muestran aplicados sobre una pieza de ejemplo (título, fondo, acento), porque en modo optimizado los amarillos, verdes y turquesas quedan con L25 y, vistos como chip aislado, se perciben mucho más oscuros de lo que después rinden dentro de una pieza real. Si el cliente ya tiene un color previo, junto a la pieza en modo optimizado se muestra también la versión en modo heredado, para que la comparación sea directa. *(v1.1)*
 
+### Referencias del cliente y caminos *(v1.1, E5)*
+
+En el paso de personalidad el diagnóstico acepta dos referencias opcionales:
+
+- **Moodboard.** El cliente sube imágenes y de cada una se extraen sus colores; se guardan solo los colores con su peso, nunca las imágenes.
+- **Competencia.** Colores de marcas competidoras que conviene evitar. Extienden la banda prohibida del color de marca (capítulo 3, paso 2).
+
+En el paso de color, "Ver caminos" propone hasta 3 caminos deterministas (el mismo diagnóstico da siempre los mismos). Cada uno trae ejes, color, par tipográfico y una forma propia paramétrica:
+
+| Camino | Cómo se arma |
+|---|---|
+| Fiel a lo que contaste | Los ejes tal cual; toma el color previo del cliente o el chip del medio del rango |
+| Más expresivo | Sobrio ↔ expresivo +35, serio ↔ lúdico +30, cálido ↔ frío −20 |
+| Más sobrio y clásico | Sobrio ↔ expresivo −35, serio ↔ lúdico −30, clásico ↔ moderno −25, cálido ↔ frío +20 |
+| Inspirado en tus referencias | Solo con moodboard: parte del matiz dominante (el color más presente con S ≥ 20 y L entre 15 y 90) y ocupa el segundo lugar |
+
+Todos respetan la banda prohibida y la competencia, y difieren entre sí: el matiz está a 20° o más, o la familia tipográfica es otra. Si dos salen parecidos, se empujan los ejes del segundo hasta que se separen. Cada tarjeta muestra la forma, el nombre, una descripción sin jerga, las familias y muestras en Modo A y B. "Elegir este camino" lleva sus ejes, su color, su par y su forma al resultado. Cambiar después los ejes, el color o el chip descarta el camino.
+
 ### Paso 4 — Confirmar insumos existentes
 
 **Logo.** No se registra como dato binario sino como un set de versiones. Se le piden al cliente tres:
@@ -195,7 +214,7 @@ Si el cliente solo tiene la versión color, se genera el par monocromo a partir 
 
 *(v1.1)* El diagnóstico es **editable** después de guardado (se reabre desde los datos de la marca): conserva id, historial y gráficos, y vuelve a aplicar los colores ajustados a mano. Los pasos se recorren sin orden fijo, con el nombre cargado; el resultado pide un color elegido.
 
-Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa. El esquema exacto está en el anexo A.2.
+Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa, y, opcionales, el moodboard (colores) y los colores de la competencia. El esquema exacto está en el anexo A.2.
 
 ---
 
@@ -224,7 +243,7 @@ Como se describe en el capítulo 2, paso 3, los chips no se muestran como muestr
 
 ### Paso 2 — Bandas prohibidas
 
-Si el cliente excluyó un color, se registra como una banda de 50°: el matiz mencionado, más y menos 25°. Esta banda se valida sobre el acento en el paso 5.
+Si el cliente excluyó un color, se registra como una banda de 50°: el matiz mencionado, más y menos 25°. Esta banda se valida sobre el acento en el paso 5. *(v1.1, E5)* Cada color de la competencia suma otra banda igual (±25°) que el color de marca también evita: los chips y los caminos quedan fuera de todas. El acento todavía evita solo el matiz excluido por el cliente.
 
 ### Paso 3 — Luminosidad del color de marca según banda de matiz
 
@@ -1003,6 +1022,8 @@ marca: {
           calido_frio, accesible_premium, serio_ludico },  // (E12) 0-100 cada uno
   rubro_secundario: "servicios | gastronomia | belleza | tech" | null,  // (E12) mezcla
   rubro_libre: string | null,                          // (E12) rubro escrito por el cliente; la base es `rubro`
+  moodboard?: [{ color: HSL, peso }],                  // (v1.1, E5) solo colores extraídos de las imágenes, no las imágenes
+  competencia?: [HSL],                                 // (v1.1, E5) colores a evitar: banda de ±25° cada uno; migración los completa vacíos
   contenido: { oferta: [hasta 4], mensaje, apoyo, cta },  // (E12) contenido real para las vistas previas
   identidad: {                                         // (E1) todo lo visual; Publicaciones lee solo de acá
     color: {

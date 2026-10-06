@@ -16,6 +16,8 @@ import {
   type Diagnostico,
   type Marca,
 } from "@/engine/diagnostico";
+import { aplicarCamino, diagnosticoDeCamino, generarCaminos, type Camino } from "@/engine/caminos";
+import { extraerColores } from "@/engine/laboratorio";
 import { EJES, ejesSemilla, familiaDeEjes, rangoMatiz, tonoDeEjes, valorDeEjes, type Ejes } from "@/engine/ejes";
 import { dataUrlASvg, recolorearSvg, svgADataUrl } from "@/engine/logo";
 import { PRESETS, RUBROS, type Rubro } from "@/engine/presets";
@@ -25,7 +27,7 @@ import { IdentidadMarca } from "@/components/IdentidadMarca";
 import { CampoHex } from "@/components/CampoHex";
 import { descargarJson, elegirMarcaActiva, guardarMarca, useMarcas } from "@/lib/marcas";
 import { fontFamily } from "@/lib/fuentes";
-import { recortarTransparencia } from "@/lib/imagen";
+import { pixelesDeImagen, recortarTransparencia } from "@/lib/imagen";
 
 const PASOS = ["Marca", "Personalidad", "Color", "Insumos", "Resultado"] as const;
 
@@ -59,6 +61,10 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
   const [marca, setMarca] = useState<Marca | null>(null);
   const [guardada, setGuardada] = useState<boolean | null>(null);
   const [excluidoHex, setExcluidoHex] = useState<string | null>(null);
+  const [competenciaHex, setCompetenciaHex] = useState<string[]>([]);
+  // Camino elegido (E5): trae su par tipográfico y su forma propia, que el chip solo no alcanza a guardar.
+  const [camino, setCamino] = useState<Camino | null>(null);
+  const [verCaminos, setVerCaminos] = useState(false);
 
   // Al editar, el diagnóstico guardado se carga una sola vez, cuando llega la marca (después del primer render). Se
   // ajusta el estado durante el render, que es el patrón de React para derivar estado de una entrada que cambia.
@@ -66,12 +72,15 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
     setCargada(anterior.id);
     setD(diagnosticoDeMarca(anterior));
     setExcluidoHex(anterior.diagnostico.excluido_H != null ? hslToHex({ H: anterior.diagnostico.excluido_H, S: 80, L: 50 }) : null);
+    setCompetenciaHex((anterior.diagnostico.competencia ?? []).map(hslToHex));
     setChipId(null);
+    setCamino(null);
     setPaso(1);
   }
 
   const chips = useMemo(() => generarChips(d), [d]);
-  const chip: Chip | undefined = chips.find((c) => c.id === chipId);
+  const chip: Chip | undefined = camino && camino.chip.id === chipId ? camino.chip : chips.find((c) => c.id === chipId);
+  const caminos = useMemo(() => (verCaminos ? generarCaminos(d, 3) : []), [verCaminos, d]);
   const tipografia = resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa, familiaDeEjes(d.ejes));
   const rango = rangoMatiz(d.ejes, d.rubro, d.rubro_secundario);
   const franjaMatiz = [0, 1, 2, 3, 4].map((i) => hslToHex({ H: normalizarH(rango[0] + ((rango[1] - rango[0]) * i) / 4), S: 70, L: 50 }));
@@ -80,23 +89,29 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
     : `los valores de ${PRESETS[d.rubro].nombre}`;
   const textos = textosPara(d.rubro, d.contenido);
 
+  /** Cambió algo que decide el color: se pierde el chip y el camino elegidos. */
+  const invalidar = () => {
+    setChipId(null);
+    setCamino(null);
+  };
   const set = (p: Partial<Diagnostico>) => setD((x) => ({ ...x, ...p }));
   const setContenido = (c: Partial<ContenidoCliente>) => setD((x) => ({ ...x, contenido: { ...x.contenido, ...c } }));
   const setEjes = (ejes: Ejes) => {
     setD((x) => conEjes(x, ejes));
-    setChipId(null);
+    invalidar();
   };
   /** Cambiar de rubro (o de mezcla) vuelve los ejes a la nueva semilla. */
   const elegirRubro = (rubro: Rubro, secundario: Rubro | null) => {
     setD((x) => conEjes({ ...x, rubro, rubro_secundario: secundario }, ejesSemilla(rubro, secundario)));
-    setChipId(null);
+    invalidar();
   };
   const puedeSeguir = [d.nombre.trim().length > 0, true, chip?.resultado.estado === "ok", true, true][paso];
 
   /** Arma la marca del resultado; al editar, conserva lo fijado a mano (E12). */
   function armar(): boolean {
     if (!chip || chip.resultado.estado !== "ok") return false;
-    setMarca(anterior ? reconstruirMarca(anterior, d, chip) : construirMarca(d, chip));
+    const m = anterior ? reconstruirMarca(anterior, d, chip) : construirMarca(d, chip);
+    setMarca(camino && camino.chip.id === chip.id ? aplicarCamino(m, camino) : m);
     setGuardada(null);
     return true;
   }
@@ -111,6 +126,38 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
     if (paso === 3 && !armar()) return;
     setPaso((p) => Math.min(p + 1, PASOS.length - 1));
   }
+
+  /** Elegir un camino fija sus ejes, su chip, su tipografía y su forma en el diagnóstico (E5). */
+  function elegirCamino(c: Camino) {
+    setD((x) => diagnosticoDeCamino(x, c));
+    setCamino(c);
+    setChipId(c.chip.id);
+  }
+
+  /** Moodboard (E5): de cada imagen se guardan solo sus colores, nunca la imagen. */
+  async function cargarMoodboard(files: FileList | null) {
+    if (!files?.length) return;
+    const nuevos: { color: { H: number; S: number; L: number }; peso: number }[] = [];
+    for (const f of Array.from(files)) {
+      const url = URL.createObjectURL(f);
+      try {
+        const colores = extraerColores(await pixelesDeImagen(url), 4);
+        nuevos.push(...colores.map((c) => ({ color: c.color, peso: c.peso / files.length })));
+      } catch {
+        // Una imagen que no se puede leer se ignora; el resto sigue.
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+    setD((x) => ({ ...x, moodboard: [...(x.moodboard ?? []), ...nuevos].slice(-16) }));
+    invalidar();
+  }
+
+  const setCompetencia = (hexes: string[]) => {
+    setCompetenciaHex(hexes);
+    set({ competencia: hexes.map((h) => hexToHsl(h)!) });
+    invalidar();
+  };
 
   async function cargarLogo(k: "color" | "mono_claro" | "mono_oscuro", file: File | undefined) {
     if (!file) return;
@@ -323,7 +370,7 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
               <ColorOpcional
                 etiqueta="Color corporativo actual"
                 valor={d.color_previo_hex}
-                onChange={(hex) => { set({ color_previo_hex: hex }); setChipId(null); }}
+                onChange={(hex) => { set({ color_previo_hex: hex }); invalidar(); }}
               />
               <ColorOpcional
                 etiqueta="Color que no quiere (banda ±25°)"
@@ -332,9 +379,41 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
                 onChange={(hex) => {
                   setExcluidoHex(hex);
                   set({ excluido_H: hex ? hexToHsl(hex)!.H : null });
-                  setChipId(null);
+                  invalidar();
                 }}
               />
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-1 font-medium">3. Referencias del cliente</h2>
+            <p className="mb-3 text-sm text-neutral-600">
+              Sirven para proponer caminos distintos en el paso Color. De las imágenes se guardan solo los colores.
+            </p>
+            <div className="flex flex-wrap gap-10 text-sm">
+              <div className="flex flex-col gap-2">
+                <span className="font-medium">Moodboard: imágenes que le gustan</span>
+                <input type="file" accept="image/*" multiple onChange={(e) => { cargarMoodboard(e.target.files); e.target.value = ""; }} className="text-xs" />
+                {(d.moodboard ?? []).length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1">
+                    {(d.moodboard ?? []).map((m, i) => (
+                      <span key={i} title={hslToHex(m.color)} className="h-6 w-6 rounded border border-neutral-300" style={{ background: hslToHex(m.color) }} />
+                    ))}
+                    <button type="button" onClick={() => { set({ moodboard: [] }); invalidar(); }} className="ml-2 text-xs underline">Quitar</button>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="font-medium">Colores de la competencia (a evitar, ±25°)</span>
+                {competenciaHex.map((h, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <CampoHex valor={h} onChange={(hex) => setCompetencia(competenciaHex.map((x, j) => (j === i ? hex : x)))} />
+                    <button type="button" onClick={() => setCompetencia(competenciaHex.filter((_, j) => j !== i))} className="text-xs underline">Quitar</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setCompetencia([...competenciaHex, "#e30613"])} className="self-start rounded-md border border-neutral-300 px-3 py-1 text-xs">
+                  Agregar color de la competencia
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -342,6 +421,39 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
 
       {paso === 2 && (
         <section className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => setVerCaminos((v) => !v)} className="rounded-md border border-neutral-900 px-4 py-2 text-sm font-medium">
+              {verCaminos ? "Ocultar caminos" : "Ver caminos"}
+            </button>
+            <span className="text-sm text-neutral-600">Tres propuestas completas (color, letra y forma propia) para elegir una.</span>
+          </div>
+          {verCaminos && (
+            <div className="grid gap-4 lg:grid-cols-3">
+              {caminos.map((c) => (
+                <div key={c.id} className={`flex flex-col gap-3 rounded-xl border-2 bg-white p-3 ${camino?.id === c.id && camino.chip.id === chipId ? "border-neutral-900" : "border-neutral-200"}`}>
+                  <div className="flex items-center gap-3">
+                    <svg viewBox="0 0 100 100" className="h-10 w-10 shrink-0" aria-hidden>
+                      <path d={c.forma.d} fill={hslToHex(c.chip.resultado.paleta!.color_marca)} />
+                    </svg>
+                    <div>
+                      <div className="font-medium">{c.nombre}</div>
+                      <div className="text-xs text-neutral-500">
+                        {c.tipografia.familia_variable}{c.tipografia.familia_texto ? ` + ${c.tipografia.familia_texto}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-neutral-600">{c.descripcion}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <PiezaMuestra paleta={c.chip.resultado.paleta!} tipografia={c.tipografia} rubro={d.rubro} modo="A" nombre={d.nombre} logo={d.logo} textos={textos} />
+                    <PiezaMuestra paleta={c.chip.resultado.paleta!} tipografia={c.tipografia} rubro={d.rubro} modo="B" nombre={d.nombre} logo={d.logo} textos={textos} />
+                  </div>
+                  <button type="button" onClick={() => elegirCamino(c)} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
+                    Elegir este camino
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <h2 className="font-medium">¿Cuál sentís más cercana a tu marca?</h2>
           <p className="text-sm text-neutral-600">
             Cada opción ya está aplicada a una pieza real (Modo A y Modo B). {d.color_previo_hex && "Incluye tu color actual, optimizado y tal cual."}
@@ -351,7 +463,7 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
               <button
                 type="button"
                 key={c.id}
-                onClick={() => setChipId(c.id)}
+                onClick={() => { setChipId(c.id); setCamino(null); }}
                 disabled={!c.resultado.paleta}
                 className={`flex flex-col gap-3 rounded-xl border-2 bg-white p-3 text-left transition ${
                   chipId === c.id ? "border-neutral-900" : "border-transparent hover:border-neutral-300"
@@ -435,7 +547,7 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
               Tipografía previa asociada a la marca
               <select
                 value={d.tipografia_previa ?? ""}
-                onChange={(e) => set({ tipografia_previa: e.target.value || null })}
+                onChange={(e) => { set({ tipografia_previa: e.target.value || null }); setCamino(null); if (!chips.some((c) => c.id === chipId)) setChipId(null); }}
                 className="rounded-md border border-neutral-300 px-3 py-2"
               >
                 <option value="">No tiene / no es variable → usar la del sistema</option>

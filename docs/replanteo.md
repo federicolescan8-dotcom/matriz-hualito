@@ -195,7 +195,8 @@ manuales.
 - **Relación con E5:** en una marca existente, la exploración de caminos pasa a ser la elección del grado de cambio.
   E5 queda para marcas nuevas.
 
-### E5 · Exploración de caminos · [ ] pendiente · depende de E12, E2, E3 y E4
+### E5 · Exploración de caminos · [x] hecha · depende de E12, E2, E3 y E4
+> Quedó: `engine/caminos.ts` y, en el diagnóstico, "Referencias del cliente" (moodboard por colores extraídos y competencia, que extiende la banda prohibida del color de marca) y "Ver caminos": 3 caminos deterministas (fiel, más expresivo, más sobrio y, con moodboard, uno desde su matiz dominante) con ejes, color, par tipográfico y forma propia, que difieren en matiz o familia; el elegido pasa a ser la identidad. No se hizo: la pieza de ejemplo completa por camino ni su presentación con el modo sesión de E13 (hoy son tarjetas con muestras A y B), subir referencias por opciones sin imagen, y que el acento evite la competencia.
 - **Alcance:**
   - moodboard: el cliente sube referencias o elige entre opciones;
   - competencia: colores y estilos a evitar, que extienden la banda prohibida.

@@ -48,6 +48,10 @@ export interface Diagnostico {
   };
   tiene_fotos_propias: boolean;
   tipografia_previa: string | null;
+  /** Moodboard del cliente (E5): solo los colores que salen de sus imágenes, nunca las imágenes (no inflan lo guardado). */
+  moodboard?: { color: HSL; peso: number }[];
+  /** Colores de marcas competidoras a evitar (E5): extienden la banda prohibida (±25°) del color de marca. */
+  competencia?: HSL[];
 }
 
 export interface ContenidoCliente {
@@ -127,16 +131,37 @@ export function diagnosticoVacio(): Diagnostico {
     logo: { color: null, mono_claro: null, mono_oscuro: null, formato: null, deuda_vectorizar: false, png_lado_mayor: null },
     tiene_fotos_propias: false,
     tipografia_previa: null,
+    moodboard: [],
+    competencia: [],
   };
 }
 
-/** Matiz permitido más cercano a h, fuera de la banda prohibida. */
-function fueraDeBanda(h: number, excluido: number | null): number {
-  if (!enBandaProhibida(h, excluido)) return h;
+/**
+ * Matices prohibidos como color de marca: el que el cliente no quiere y los de la competencia (E5). Cada uno prohíbe
+ * ±25° a su alrededor.
+ */
+export function bandasProhibidas(d: Pick<Diagnostico, "excluido_H" | "competencia">): number[] {
+  const todas = [d.excluido_H, ...(d.competencia ?? []).map((c) => c.H)];
+  return todas.filter((h): h is number => h != null);
+}
+
+export function enAlgunaBanda(h: number, bandas: number[]): boolean {
+  return bandas.some((b) => enBandaProhibida(h, b));
+}
+
+/** Matiz permitido más cercano a h, fuera de todas las bandas prohibidas. */
+export function fueraDeBandas(h: number, bandas: number[]): number {
+  if (!enAlgunaBanda(h, bandas)) return h;
   for (let d = 1; d <= 180; d++) {
-    for (const c of [h + d, h - d]) if (!enBandaProhibida(c, excluido)) return normalizarH(c);
+    for (const c of [h + d, h - d]) if (!enAlgunaBanda(c, bandas)) return normalizarH(c);
   }
   return h;
+}
+
+/** Chip optimizado para un matiz cualquiera (lo usan los caminos, E5). */
+export function chipDeMatiz(d: Diagnostico, H: number, id: string, etiqueta: string): Chip {
+  const base = { rubro: d.rubro, valor: valorDiagnostico(d), excluido_H: d.excluido_H };
+  return { id, etiqueta, H, modo: "optimizado", resultado: derivarPaleta({ ...base, modo: "optimizado", H }) };
 }
 
 /** Valor de marca para la fórmula: el elegido, o el que sale de los ejes (E12). */
@@ -151,7 +176,8 @@ export function valorDiagnostico(d: Pick<Diagnostico, "personalidad" | "ejes">):
 export function generarChips(d: Diagnostico): Chip[] {
   const [a, b] = rangoMatiz(d.ejes, d.rubro, d.rubro_secundario);
   const base = { rubro: d.rubro, valor: valorDiagnostico(d), excluido_H: d.excluido_H };
-  const hues = [0, 1, 2, 3].map((i) => fueraDeBanda(normalizarH(Math.round(a + ((b - a) * i) / 3)), d.excluido_H));
+  const bandas = bandasProhibidas(d);
+  const hues = [0, 1, 2, 3].map((i) => fueraDeBandas(normalizarH(Math.round(a + ((b - a) * i) / 3)), bandas));
   const chips: Chip[] = [...new Set(hues)].map((H, i) => ({
     id: `rango-${i}`,
     etiqueta: `Opción ${i + 1}`,

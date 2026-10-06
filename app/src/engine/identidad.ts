@@ -69,7 +69,12 @@ type DiagnosticoV1 = Omit<Marca["diagnostico"], "ejes" | "rubro_secundario" | "r
 
 function migrarDiagnostico(m: Marca): Marca {
   const d = m.diagnostico as DiagnosticoV1;
-  if (d.ejes && d.contenido && d.rubro_secundario !== undefined && d.rubro_libre !== undefined) return m;
+  const d5 = m.diagnostico;
+  if (d.ejes && d.contenido && d.rubro_secundario !== undefined && d.rubro_libre !== undefined) {
+    // E5: moodboard y competencia son opcionales; si faltan, quedan vacíos.
+    if (d5.moodboard && d5.competencia) return m;
+    return { ...m, diagnostico: { ...d5, moodboard: d5.moodboard ?? [], competencia: d5.competencia ?? [] } };
+  }
   return {
     ...m,
     diagnostico: {
@@ -78,6 +83,8 @@ function migrarDiagnostico(m: Marca): Marca {
       rubro_secundario: d.rubro_secundario ?? null,
       rubro_libre: d.rubro_libre ?? null,
       contenido: d.contenido ?? contenidoVacio(),
+      moodboard: d.moodboard ?? [],
+      competencia: d.competencia ?? [],
     },
   };
 }
