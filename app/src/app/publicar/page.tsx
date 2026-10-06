@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Guias } from "@/components/Guias";
 import { Pieza } from "@/components/Pieza";
-import { TEXTOS_EJEMPLO } from "@/components/PiezaMuestra";
+import { textosPara } from "@/components/PiezaMuestra";
 import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
@@ -45,7 +45,7 @@ function nombreArchivo(marca: Marca, p: TPieza): string {
 }
 
 function piezaInicial(marca: Marca): TPieza {
-  const t = TEXTOS_EJEMPLO[marca.rubro];
+  const t = textosPara(marca.rubro, marca.diagnostico.contenido);
   return { ...piezaNueva(marca), contenido: { h1: t.h1, body: t.body, cta: t.cta } };
 }
 

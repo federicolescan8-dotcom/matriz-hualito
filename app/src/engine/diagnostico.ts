@@ -2,15 +2,25 @@
 
 import { hexToHsl, normalizarH, type HSL } from "./color";
 import { ajustarRol, derivarPaleta, type CtaModoB, enBandaProhibida, type Paleta, type ResultadoPaleta, type RolPaleta } from "./palette";
-import { PRESETS, type Rubro, type Tono, type ValorMarca } from "./presets";
+import { type Rubro, type Tono, type ValorMarca } from "./presets";
 import { resolverTipografia } from "./typography";
 import { BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Identidad } from "./identidad";
+import { ejesSemilla, familiaDeEjes, rangoMatiz, valorDeEjes, type Ejes } from "./ejes";
 
 export interface Diagnostico {
   nombre: string;
   rubro: Rubro;
+  /** Segundo rubro para mezclar (E12): los ejes semilla y el rango de matiz salen del promedio de los dos. */
+  rubro_secundario: Rubro | null;
+  /** Rubro escrito por el cliente cuando ninguno encaja ("otro"): la base es `rubro`, el nombre es este. */
+  rubro_libre: string | null;
+  /** Personalidad en ejes continuos (E12). Deciden la familia, el rango de matiz y el acento. */
+  ejes: Ejes;
+  /** Tono y valor derivados de los ejes (se guardan por compatibilidad con la fórmula de paleta y las marcas viejas). */
   personalidad: { tono: Tono | null; valor: ValorMarca | null };
+  /** Contenido real del cliente (E12): las vistas previas lo usan en lugar de los textos de ejemplo. */
+  contenido: ContenidoCliente;
   /** Pregunta 3: color que el cliente asocia con su marca (HEX) y color que no quiere (matiz). */
   color_previo_hex: string | null;
   excluido_H: number | null;
@@ -27,6 +37,20 @@ export interface Diagnostico {
   };
   tiene_fotos_propias: boolean;
   tipografia_previa: string | null;
+}
+
+export interface ContenidoCliente {
+  /** Productos o servicios, hasta 4 (sirven para el catálogo). */
+  oferta: string[];
+  /** Mensaje principal para las vistas previas. */
+  mensaje: string;
+  /** Texto de apoyo. */
+  apoyo: string;
+  cta: string;
+}
+
+export function contenidoVacio(): ContenidoCliente {
+  return { oferta: [], mensaje: "", apoyo: "", cta: "" };
 }
 
 export interface Chip {
@@ -74,7 +98,11 @@ export function diagnosticoVacio(): Diagnostico {
   return {
     nombre: "",
     rubro: "servicios",
+    rubro_secundario: null,
+    rubro_libre: null,
+    ejes: ejesSemilla("servicios"),
     personalidad: { tono: null, valor: null },
+    contenido: contenidoVacio(),
     color_previo_hex: null,
     excluido_H: null,
     matiz_elegido: null,
@@ -94,11 +122,19 @@ function fueraDeBanda(h: number, excluido: number | null): number {
   return h;
 }
 
-/** Paso 3: cuatro chips repartidos en el rango de matiz del rubro, más las opciones del color previo si existe. */
+/** Valor de marca para la fórmula: el elegido, o el que sale de los ejes (E12). */
+export function valorDiagnostico(d: Pick<Diagnostico, "personalidad" | "ejes">): ValorMarca {
+  return d.personalidad.valor ?? valorDeEjes(d.ejes);
+}
+
+/**
+ * Paso 3: cuatro chips repartidos en el rango de matiz que sale de los ejes (E12; antes, el rango fijo del rubro), más
+ * las opciones del color previo si existe.
+ */
 export function generarChips(d: Diagnostico): Chip[] {
-  const [a, b] = PRESETS[d.rubro].H_rango;
-  const base = { rubro: d.rubro, valor: d.personalidad.valor, excluido_H: d.excluido_H };
-  const hues = [0, 1, 2, 3].map((i) => fueraDeBanda(Math.round(a + ((b - a) * i) / 3), d.excluido_H));
+  const [a, b] = rangoMatiz(d.ejes, d.rubro, d.rubro_secundario);
+  const base = { rubro: d.rubro, valor: valorDiagnostico(d), excluido_H: d.excluido_H };
+  const hues = [0, 1, 2, 3].map((i) => fueraDeBanda(normalizarH(Math.round(a + ((b - a) * i) / 3)), d.excluido_H));
   const chips: Chip[] = [...new Set(hues)].map((H, i) => ({
     id: `rango-${i}`,
     etiqueta: `Opción ${i + 1}`,
@@ -161,7 +197,7 @@ export function construirMarca(d: Diagnostico, chip: Chip, organizacion_id = "hu
         ...(chip.funcional === false ? { solo_heredado: true } : {}),
       },
       paleta,
-      tipografia: resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa),
+      tipografia: resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa, familiaDeEjes(d.ejes)),
       logo: d.logo,
       graficos: { estilo_iconos: BIBLIOTECA_RUBRO[d.rubro].estiloIconos },
       fotos_habilitadas: d.tiene_fotos_propias,
@@ -169,6 +205,32 @@ export function construirMarca(d: Diagnostico, chip: Chip, organizacion_id = "hu
     version_manual: "1.1",
     creada: new Date().toISOString(),
   };
+}
+
+/**
+ * Diagnóstico editado después (E12): se vuelve a armar la marca con el chip elegido y se respeta lo fijado a mano. Se
+ * conservan el id, la organización, la fecha, el historial y los gráficos, y los colores ajustados a mano se vuelven a
+ * aplicar sobre la paleta nueva.
+ */
+export function reconstruirMarca(anterior: Marca, d: Diagnostico, chip: Chip): Marca {
+  let m = construirMarca(d, chip, anterior.organizacion_id);
+  m = {
+    ...m,
+    id: anterior.id,
+    creada: anterior.creada,
+    historial: anterior.historial,
+    identidad: { ...m.identidad, graficos: anterior.identidad.graficos },
+  };
+  for (const rol of anterior.identidad.ajustes_manuales ?? []) {
+    const color = anterior.identidad.paleta[rol];
+    if (color) m = ajustarColorMarca(m, rol, color);
+  }
+  return m;
+}
+
+/** Diagnóstico completo de una marca guardada, para volver a editarlo (el logo vive en la identidad). */
+export function diagnosticoDeMarca(m: Marca): Diagnostico {
+  return { ...m.diagnostico, logo: m.identidad.logo };
 }
 
 function sinLogo(d: Diagnostico): Omit<Diagnostico, "logo"> {
@@ -244,7 +306,7 @@ export function paletaHeredada(m: Marca, funcional: boolean): ResultadoPaleta {
     rubro: m.rubro,
     modo: "heredado",
     heredado: colorHeredado(m),
-    valor: m.diagnostico.personalidad.valor,
+    valor: valorDiagnostico(m.diagnostico),
     excluido_H: m.diagnostico.excluido_H,
     funcional,
   });

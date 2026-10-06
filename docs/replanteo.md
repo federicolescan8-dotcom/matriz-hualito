@@ -58,7 +58,8 @@ manuales.
   - cada control del checklist tiene su nivel;
   - la pieza aceptada se exporta y la justificación aparece en el checklist y en el historial.
 
-### E12 · Diagnóstico abierto · [ ] pendiente · depende de E9
+### E12 · Diagnóstico abierto · [x] hecha · depende de E9
+> Quedó: 6 ejes continuos (`engine/ejes.ts`) que deciden familia, rango de matiz y acento; rubro como semilla con mezcla y rubro libre; contenido real en las vistas previas; migración de marcas anteriores; diagnóstico editable (`/?editar=<id>`) con navegación libre. Falta: las fotos del cliente en las vistas previas (E6).
 - **Por qué:** hoy el diagnóstico es un menú cerrado (4 rubros, 2 tonos, 4 valores) y el rubro decide casi todo. Dos
   marcas del mismo rubro arrancan iguales.
 - **Alcance:**

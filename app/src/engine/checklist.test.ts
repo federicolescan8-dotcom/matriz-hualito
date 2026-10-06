@@ -62,10 +62,17 @@ describe("checklist de pieza", () => {
   });
 
   it("un color ajustado a mano que no cumple se acepta con aviso y no bloquea", () => {
-    // Gris claro: el body queda entre 3:1 y 4,5:1 (aviso). Por debajo de 3:1 sería bloqueante (E9).
-    const gris = { H: 0, S: 0, L: 80 };
-    const r0 = evaluarPieza({ ...marca, identidad: { ...marca.identidad, paleta: { ...marca.identidad.paleta, fondo_neutro: gris } } }, pieza(), medicion());
-    expect(r0.estado).toBe("rechazado");
+    // El gris más claro que rompe algún contraste solo como aviso (entre 3:1 y 4,5:1); por debajo de 3:1 sería
+    // bloqueante (E9).
+    const sinAjuste = (L: number) =>
+      evaluarPieza({ ...marca, identidad: { ...marca.identidad, paleta: { ...marca.identidad.paleta, fondo_neutro: { H: 0, S: 0, L } } } }, pieza(), medicion());
+    const L = [90, 88, 86, 84, 82, 80, 78, 76, 74].find((l) => {
+      const r = sinAjuste(l);
+      return r.estado === "rechazado" && r.controles.every((c) => c.ok || c.nivel === "aviso");
+    })!;
+    expect(L).toBeDefined();
+    const gris = { H: 0, S: 0, L };
+    expect(sinAjuste(L).estado).toBe("rechazado");
     const ajustada = ajustarColorMarca(marca, "fondo_neutro", gris);
     const r = evaluarPieza(ajustada, pieza(), medicion());
     expect(r.estado).toBe("ok");

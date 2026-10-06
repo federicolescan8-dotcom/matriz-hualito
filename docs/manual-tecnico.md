@@ -29,15 +29,17 @@ supabase/       schema.sql (tablas, RLS, semilla)
 La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos numerados: **1 Marca → 2 Identidad → 3 Publicaciones**.
 
 1. **Marca** (activa en `/` y `/marcas`): el diagnóstico y los datos.
-   - **Diagnóstico** (`/`, `app/diagnostico/Diagnostico.tsx`): un asistente de 5 pasos:
-     - rubro;
-     - personalidad;
+   - **Diagnóstico** (`/`, `app/diagnostico/Diagnostico.tsx`): un asistente de 5 pasos, con navegación libre entre ellos (con el nombre cargado; el resultado pide un color elegido):
+     - marca: nombre, rubro como punto de partida, mezcla con otro rubro, rubro libre y contenido del cliente (oferta, mensaje, apoyo, CTA);
+     - personalidad: 6 sliders (ejes), "Volver al punto de partida" y un panel en vivo con la tipografía (el nombre en esa familia), la franja del rango de color y el tipo de acento; además, la pregunta del color previo y excluido. Cambiar de rubro vuelve los ejes a la semilla;
      - color, con chips aplicados a piezas reales; si el color previo del cliente no alcanza como texto, ofrece la opción con o sin versión funcional;
      - logo;
      - resultado, que muestra `IdentidadMarca`.
 
      Arma el objeto `Marca` (`engine/diagnostico.ts › construirMarca`). Al guardar, la marca pasa a ser la *marca activa* y se ofrece seguir con su identidad (`/identidad/[id]`).
-   - **Datos** (`/marcas`): la lista de marcas (un clic la vuelve la marca activa) y, para la activa, los datos del diagnóstico: rubro, personalidad, color previo, matiz excluido, decisión de color, tipografía previa, fotos propias del diagnóstico y fecha. Botones: Ver identidad, Publicar con esta marca, Exportar JSON y Borrar. Ya no edita la paleta.
+     - **Edición:** `/?editar=<id>` (la página `/` lee `searchParams`) abre el asistente con `diagnosticoDeMarca(marca)`. Al guardar, `reconstruirMarca(anterior, d, chip)` conserva id, organización, fecha, historial y gráficos, y vuelve a aplicar los colores ajustados a mano.
+     - **Contenido real:** `textosPara(rubro, contenido)` (`components/PiezaMuestra.tsx`) usa el contenido del cliente y completa con el ejemplo del rubro; lo usan los chips del diagnóstico, la prueba de la identidad y la pieza inicial de Publicaciones. `piezaNueva` nombra los ítems del catálogo con la oferta.
+   - **Datos** (`/marcas`): la lista de marcas (un clic la vuelve la marca activa) y, para la activa, los datos del diagnóstico: rubro, mezcla, rubro libre, ejes, contenido, personalidad, color previo, matiz excluido, decisión de color, tipografía previa, fotos propias del diagnóstico y fecha. Botones: Editar diagnóstico, Ver identidad, Publicar con esta marca, Exportar JSON y Borrar. Ya no edita la paleta.
 2. **Identidad** (`/identidad/[marca]`: `app/identidad/[marca]/page.tsx`, server con `await params`, y `VistaIdentidad.tsx`, cliente): la vista del sistema visual de la marca (`components/IdentidadMarca.tsx`). Abrirla vuelve a esa marca la marca activa. `/identidad` (`app/identidad/page.tsx`) redirige a la identidad de la marca activa o pide hacer un diagnóstico. Tiene un índice de secciones con ancla (`SECCIONES_IDENTIDAD`):
    - prueba Modo A / Modo B con texto de ejemplo, arriba;
    - **Color**: paleta con ajuste manual por HEX y sugerencias de color válido, opción con o sin versión funcional, CTA en Modo B, secuencia de modo;
@@ -57,8 +59,9 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `color.ts` | HSL ↔ RGB ↔ HEX (exacto), contraste WCAG, mezcla con alfa, ΔE en CIELAB, OKLCH |
 | `presets.ts` | Rubros: rango de matiz, secuencia de modos, familias, alineaciones, variantes prioritarias. Tipos `Variante`, `Modo`, `Rubro` |
 | `palette.ts` | Fórmula de paleta (`derivarPaleta`, cap. 3): modo optimizado y heredado (con o sin versión funcional), acento y su texto, CTA en Modo A, Modo B y sobre cualquier fondo, `controlesPaleta`/`fallasPaleta`, sugerencias (`colorValidoCercano`) |
-| `typography.ts` | Familias, peso del H1 según el largo, escala, compensación óptica, jerarquía (`JERARQUIA_H1`, `CTA_MIN`) |
-| `diagnostico.ts` | `Diagnostico` → `Marca`: chips, ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad`. También `registrarEnHistorial` (suma una `EntradaHistorial` a `marca.historial`) |
+| `ejes.ts` | Ejes continuos de personalidad (E12), 6 de 0 a 100. `EJES_RUBRO` (semilla por rubro), `ejesSemilla(rubro, secundario)` (promedio si hay mezcla), `ejesDesdePersonalidad(rubro, tono, valor)` (migración), `familiaDeEjes` con `FAMILIAS_EN_EJES`, `rangoMatiz(ejes, rubro, secundario)`, `valorDeEjes`, `tonoDeEjes` |
+| `typography.ts` | Familias (`resolverTipografia` con prioridad: previa del cliente > sugerida por los ejes > preset del rubro según tono), peso del H1 según el largo, escala, compensación óptica, jerarquía (`JERARQUIA_H1`, `CTA_MIN`) |
+| `diagnostico.ts` | `Diagnostico` (suma `ejes`, `rubro_secundario`, `rubro_libre` y `contenido: ContenidoCliente`) → `Marca`: chips (`generarChips` usa el rango de `rangoMatiz`, no el H_rango fijo del rubro), `valorDiagnostico(d)` (valor guardado o el de los ejes), `diagnosticoDeMarca` y `reconstruirMarca` (edición), ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad`. También `registrarEnHistorial` (suma una `EntradaHistorial` a `marca.historial`) |
 | `identidad.ts` | Tipo `Identidad` (todo lo visual de la marca) y migración de marcas guardadas antes de E1: `migrarMarca`, `esMarcaV1`, tipo `MarcaV1` |
 | `biblioteca.ts` | Formas, patrones, íconos y contenedores por rubro; opacidades y overlay |
 | `decoraciones.ts` | Decoraciones de plantilla (arco lateral, esquinas en diagonal) como geometría de círculos |
@@ -98,6 +101,9 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
   - `lib/marcas.ts › marcasDelNavegador`: migra y reescribe `localStorage` una sola vez, sin emitir evento;
   - `cargarRemotas` (Supabase): migra al leer; la fila queda en el formato nuevo en el próximo guardado;
   - `/api/render`: un JSON viejo se migra antes de renderizar.
+
+  `migrarMarca` también migra el diagnóstico anterior a E12 (sin `ejes`): ejes con `ejesDesdePersonalidad(rubro, tono, valor)` (la semilla corrida por cada respuesta), `rubro_secundario` y `rubro_libre` en null, contenido vacío. La identidad guardada no cambia.
+- `Diagnostico.ejes`, `rubro_secundario`, `rubro_libre` y `contenido` (`oferta` hasta 4, `mensaje`, `apoyo`, `cta`) se guardan en `marca.diagnostico`; `personalidad` (tono y valor) sigue guardándose, derivada de los ejes.
 - Almacenamiento (`lib/marcas.ts`):
   - **con Supabase:** tablas `organizaciones`, `miembros` y `marcas`, con RLS por `mi_organizacion()`;
   - **sin Supabase:** la clave `hualito.marcas.v1` en `localStorage`;

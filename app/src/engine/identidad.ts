@@ -2,7 +2,8 @@
 // (nombre, rubro, diagnóstico) y la identidad con el sistema visual. Publicar lee solo de acá.
 
 import type { HSL } from "./color";
-import type { Diagnostico, Marca } from "./diagnostico";
+import { contenidoVacio, type Diagnostico, type Marca } from "./diagnostico";
+import { ejesDesdePersonalidad } from "./ejes";
 import type { EstiloIconos } from "./biblioteca";
 import { BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Paleta, RolPaleta } from "./palette";
@@ -43,10 +44,36 @@ const CAMPOS_VISUALES = ["color", "paleta", "paleta_calculada", "ajustes_manuale
 export type MarcaV1 = Omit<Marca, "identidad"> & Omit<Identidad, "graficos"> & { graficos?: Identidad["graficos"] };
 
 /**
- * Lleva una marca guardada al formato actual. Las anteriores a E1 tienen lo visual en la raíz: se mueve a `identidad`
- * sin perder ningún dato. Las ya migradas pasan igual (misma referencia), así se puede llamar en cada lectura.
+ * Lleva una marca guardada al formato actual sin perder datos. Las ya migradas pasan igual (misma referencia), así se
+ * puede llamar en cada lectura:
+ * - anteriores a E1: lo visual estaba en la raíz y se mueve a `identidad`;
+ * - anteriores a E12: el diagnóstico gana ejes equivalentes a su tono y valor, sin cambiar la identidad guardada.
  */
 export function migrarMarca(guardada: Marca | MarcaV1): Marca {
+  const m = migrarIdentidad(guardada);
+  return migrarDiagnostico(m);
+}
+
+/** Diagnóstico guardado antes de E12: sin ejes, sin mezcla de rubros y sin contenido del cliente. */
+type DiagnosticoV1 = Omit<Marca["diagnostico"], "ejes" | "rubro_secundario" | "rubro_libre" | "contenido"> &
+  Partial<Pick<Marca["diagnostico"], "ejes" | "rubro_secundario" | "rubro_libre" | "contenido">>;
+
+function migrarDiagnostico(m: Marca): Marca {
+  const d = m.diagnostico as DiagnosticoV1;
+  if (d.ejes && d.contenido && d.rubro_secundario !== undefined && d.rubro_libre !== undefined) return m;
+  return {
+    ...m,
+    diagnostico: {
+      ...d,
+      ejes: d.ejes ?? ejesDesdePersonalidad(m.rubro, d.personalidad.tono, d.personalidad.valor),
+      rubro_secundario: d.rubro_secundario ?? null,
+      rubro_libre: d.rubro_libre ?? null,
+      contenido: d.contenido ?? contenidoVacio(),
+    },
+  };
+}
+
+function migrarIdentidad(guardada: Marca | MarcaV1): Marca {
   if ("identidad" in guardada && guardada.identidad) {
     if (guardada.identidad.graficos) return guardada;
     return { ...guardada, identidad: { ...guardada.identidad, graficos: graficosPorDefecto(guardada) } };

@@ -32,7 +32,7 @@ import {
 import { PRESETS } from "@/engine/presets";
 import { escala, pesoH1, PESOS } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
-import { PiezaMuestra, TEXTOS_EJEMPLO, type TextosPieza } from "./PiezaMuestra";
+import { PiezaMuestra, textosPara, type TextosPieza } from "./PiezaMuestra";
 import { CampoHex } from "./CampoHex";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 import { BIBLIOTECA_RUBRO, formasDelRubro, ICONOS, OPACIDAD_PATRON, PATRONES } from "@/engine/biblioteca";
@@ -238,7 +238,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
   const B = coloresModo(p, "B");
   const familia = fontFamily(marca.identidad.tipografia.familia_variable);
   const pendientes = pendientesMarca(marca.identidad.logo);
-  const [textos, setTextos] = useState<TextosPieza>(TEXTOS_EJEMPLO[marca.rubro]);
+  const [textos, setTextos] = useState<TextosPieza>(() => textosPara(marca.rubro, marca.diagnostico.contenido));
   const ajustes = marca.identidad.ajustes_manuales ?? [];
   const soloHeredado = marca.identidad.color.solo_heredado === true;
   // La sugerencia nunca va sobre el color de marca: es una elección del cliente. Sí sobre los colores ajustados a mano
@@ -307,7 +307,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
           ))}
           <button
             type="button"
-            onClick={() => setTextos(TEXTOS_EJEMPLO[marca.rubro])}
+            onClick={() => setTextos(textosPara(marca.rubro, marca.diagnostico.contenido))}
             className="self-start text-xs underline"
           >
             Volver al texto de ejemplo

@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { rangoMatiz } from "./ejes";
 import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips, restaurarColorMarca } from "./diagnostico";
 import { hexToHsl } from "./color";
 import { enBandaProhibida } from "./palette";
 
 describe("chips del diagnóstico", () => {
-  it("genera 4 chips dentro del rango del rubro", () => {
+  it("genera 4 chips dentro del rango de matiz que sale de los ejes (E12)", () => {
     const d = { ...diagnosticoVacio(), rubro: "servicios" as const };
+    const [a, b] = rangoMatiz(d.ejes, d.rubro);
     const chips = generarChips(d);
     expect(chips).toHaveLength(4);
     for (const c of chips) {
-      expect(c.H).toBeGreaterThanOrEqual(200);
-      expect(c.H).toBeLessThanOrEqual(230);
+      expect(c.H).toBeGreaterThanOrEqual(a);
+      expect(c.H).toBeLessThanOrEqual(b);
       expect(c.resultado.estado).toBe("ok");
     }
   });

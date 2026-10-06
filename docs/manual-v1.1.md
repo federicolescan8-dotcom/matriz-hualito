@@ -66,6 +66,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 30. **Carrusel 4:5 y Facebook en vertical**: se suma el carrusel (2 a 10 slides) con portada, contenido y cierre, la variante P (Punto) para el contenido, el ritmo de modos y el control de la serie. El feed orgánico de Facebook pasa al 4:5 y al 1:1, y el 1200×630 queda como vista previa de links y anuncios. *(Cap. 1, Cap. 6, Cap. 8)*
 31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
 32. **Niveles de regla y aceptación con justificación**: cada control del checklist tiene un nivel: *bloqueante* (legibilidad crítica, nunca se acepta), *aviso* (se puede aceptar con justificación) o *sugerencia* (lo que fija el rubro, no frena). Un aviso aceptado queda registrado con motivo, autor y fecha, viaja con la pieza (la exportación lo respeta) y se guarda en el historial de decisiones de la marca. La alineación del mensaje y la itálica pasan a ser sugerencias: ya no rechazan la pieza. La excepción de los ajustes manuales de color (cambio 19) no alcanza a los bloqueantes: un texto bajo 3:1 ya no se acepta por esa vía. *(Cap. 8, Cap. 3 paso 9, Cap. 9)*
+33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
 
 ---
 
@@ -137,9 +138,20 @@ Antes de cualquier pregunta de gusto o personalidad, se clasifica al cliente en 
 
 Esta clasificación predetermina rangos de color, criterio de dependencia de imagen y estilo de layout, que se usan como punto de partida (capítulo 7). El diagnóstico posterior ajusta dentro de ese marco, no lo reemplaza.
 
+*(v1.1)* El rubro es una **semilla**, no una jaula: precarga los ejes de personalidad del paso 2. Se puede **mezclar con un segundo rubro** (los ejes de partida son el promedio de los dos) y el cliente puede escribir su **rubro libre** (la base sigue siendo uno de los cuatro). Cambiar de rubro vuelve los ejes a la semilla. En este paso también se carga el **contenido real**: nombre, oferta (hasta 4 productos o servicios), mensaje, dato de apoyo y CTA. Todas las vistas previas lo usan y completan con el ejemplo del rubro lo que falte.
+
 ### Paso 2 — Preguntas de personalidad de marca
 
-Máximo tres preguntas, sin excepción. Cada una alimenta directamente una variable del sistema, no queda como dato descriptivo suelto: *(v1.1)*
+*(v1.1)* La personalidad se define con **seis ejes continuos de 0 a 100**, que el cliente mueve con sliders partiendo de la semilla del rubro: clásico ↔ moderno, sobrio ↔ expresivo, artesanal ↔ tecnológico, cálido ↔ frío, accesible ↔ premium, serio ↔ lúdico. De los ejes salen:
+
+- **Familia tipográfica**: la más cercana en el espacio clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico (capítulo 4, paso 1).
+- **Rango de matiz** de los chips (capítulo 3, paso 1): parte del centro del rango del rubro (promedio circular si hay mezcla) y se corre hacia 30° (cálido) o 210° (frío) según cuánto se movió el eje cálido↔frío respecto de la semilla (×1,5, hasta 1). El ancho va de 25° (sobrio) a 80° (expresivo).
+- **Tipo de acento** (valor): innovación si tecnológico ≥70 y moderno ≥65; energía si expresivo ≥60 o lúdico ≥65; calma si sobrio ≤35 y cálido ≤50; si no, confianza. Innovación y energía eligen complementario; confianza y calma, análogo (capítulo 3, paso 4).
+- **Tono** (seria o cercana): cercana si lúdico ≥50 o accesible ≤35.
+
+Tono y valor se siguen guardando en `personalidad`, derivados de los ejes, por compatibilidad. Las tres preguntas siguientes quedan como la forma corta equivalente: *(v1.1)*
+
+Máximo tres preguntas, sin excepción. Cada una alimenta directamente una variable del sistema, no queda como dato descriptivo suelto:
 
 1. **¿Si tu marca fuera una persona, es más seria o más cercana?** Define, junto con el rubro, cuál de las dos familias tipográficas del par asignado se usa (capítulo 4, paso 1). *(v1.1)*
 2. **¿Querés transmitir confianza, energía, calma o innovación?** Define el tipo de acento: energía o innovación eligen complementario; confianza o calma eligen análogo (capítulo 3, paso 4). *(v1.1)*
@@ -173,7 +185,9 @@ Si el cliente solo tiene la versión color, se genera el par monocromo a partir 
 
 ### Salida del diagnóstico
 
-Al terminar los cuatro pasos deben quedar registrados: rubro, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa. El esquema exacto está en el anexo A.2.
+*(v1.1)* El diagnóstico es **editable** después de guardado (se reabre desde los datos de la marca): conserva id, historial y gráficos, y vuelve a aplicar los colores ajustados a mano. Los pasos se recorren sin orden fijo, con el nombre cargado; el resultado pide un color elegido.
+
+Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa. El esquema exacto está en el anexo A.2.
 
 ---
 
@@ -194,7 +208,7 @@ Generar, a partir de una sola elección del cliente, una paleta completa de cuat
 
 ### Paso 1 — Matiz base
 
-Se le muestran al cliente los cuatro chips anclados al rango de matiz de su personalidad de marca, según la tabla del capítulo 7. El matiz elegido (H) es la única variable libre del sistema.
+Se le muestran al cliente los cuatro chips anclados al rango de matiz de su personalidad de marca. *(v1.1)* Ese rango ya no es el fijo del rubro (tabla del capítulo 7) sino el que resulta de los ejes de personalidad (capítulo 2, paso 2); con los ejes en la semilla del rubro, coincide con el de la tabla. El matiz elegido (H) es la única variable libre del sistema.
 
 Si el cliente ya tiene un color corporativo, el procedimiento es el mismo: primero se le presentan los chips optimizados, mostrándole la versión de su matiz ya ajustada por el sistema. El modo por defecto es siempre el chip optimizado, porque garantiza legibilidad y rendimiento en pantalla sin trabajo adicional. El modo heredado (paso 8) se activa solo si, después de ver la propuesta optimizada, el cliente decide expresamente conservar su color tal cual.
 
@@ -372,6 +386,8 @@ Cada rubro tiene un par de familias variables. Cuál de las dos se usa lo decide
 | Tech / digital | Sora Variable | Space Grotesk Variable | geométrico, moderno |
 
 Si el cliente tiene tipografía previa y existe en versión variable, se prioriza esa sobre la tabla.
+
+*(v1.1)* Con los ejes de personalidad (capítulo 2, paso 2), la tabla es el valor por defecto: la familia sugerida es la más cercana a la posición de la marca en clásico↔moderno, sobrio↔expresivo y artesanal↔tecnológico, entre las seis familias, cada una ubicada en ese espacio. Prioridad: tipografía previa del cliente, luego la sugerida por los ejes, luego la tabla según el tono.
 
 ### Paso 2 — Jerarquía y pesos
 
@@ -701,6 +717,8 @@ Reunir en una ficha por rubro los valores por defecto de los capítulos 3 a 6. E
 
 ### Fichas por rubro
 
+*(v1.1)* Las fichas son la **semilla**: el rango de H, la familia y el tipo de acento de la tabla son los valores por defecto del rubro y la sugerencia de partida. Cada rubro tiene además una posición inicial en los seis ejes de personalidad (capítulo 2, paso 2); cuando el cliente los mueve o mezcla dos rubros, la familia, el rango de matiz y el acento salen de los ejes.
+
 | Token | Servicios / B2B | Gastronomía / retail | Belleza / lifestyle | Tech / digital |
 |---|---|---|---|---|
 | Personalidad y rango de H | confiable, 200-230 | cálido, 15-40 | premium, 260-300 | innovador, 160-190 |
@@ -890,7 +908,12 @@ La separación es lo que permite que el motor no cambie nunca: un cliente nuevo 
 marca: {
   id, nombre,
   rubro: "servicios | gastronomia | belleza | tech",
-  personalidad: { tono: "seria | cercana", valor: "confianza | energia | calma | innovacion" },  // (v1.1)
+  personalidad: { tono: "seria | cercana", valor: "confianza | energia | calma | innovacion" },  // (v1.1) derivados de los ejes
+  ejes: { clasico_moderno, sobrio_expresivo, artesanal_tecnologico,
+          calido_frio, accesible_premium, serio_ludico },  // (E12) 0-100 cada uno
+  rubro_secundario: "servicios | gastronomia | belleza | tech" | null,  // (E12) mezcla
+  rubro_libre: string | null,                          // (E12) rubro escrito por el cliente; la base es `rubro`
+  contenido: { oferta: [hasta 4], mensaje, apoyo, cta },  // (E12) contenido real para las vistas previas
   identidad: {                                         // (E1) todo lo visual; Publicaciones lee solo de acá
     color: {
       modo: "optimizado | heredado",

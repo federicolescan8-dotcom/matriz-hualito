@@ -3,14 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { PRESETS } from "@/engine/presets";
+import { EJES } from "@/engine/ejes";
 import { hslCss } from "@/engine/color";
 import type { Marca } from "@/engine/diagnostico";
 import { borrarMarca, descargarJson, elegirMarcaActiva, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { usaSupabase } from "@/lib/supabase";
 
 // Paso 1 del proceso (replanteo, E1): la marca y sus datos. El sistema visual se edita en Identidad.
-
-const VALORES: Record<string, string> = { confianza: "Confianza", energia: "Energía", calma: "Calma", innovacion: "Innovación" };
 
 export default function MarcasPage() {
   const marcas = useMarcas();
@@ -73,6 +72,9 @@ export default function MarcasPage() {
         <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{actual.nombre}</h2>
+            <Link href={`/?editar=${actual.id}`} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
+              Editar diagnóstico
+            </Link>
             <Link href={`/identidad/${actual.id}`} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
               Ver identidad
             </Link>
@@ -102,8 +104,25 @@ export default function MarcasPage() {
 function DatosMarca({ marca }: { marca: Marca }) {
   const d = marca.diagnostico;
   const filas: [string, React.ReactNode][] = [
-    ["Rubro", PRESETS[marca.rubro].nombre],
-    ["Personalidad", [d.personalidad.tono, d.personalidad.valor && VALORES[d.personalidad.valor]].filter(Boolean).join(" · ") || "—"],
+    [
+      "Rubro",
+      [d.rubro_libre, PRESETS[marca.rubro].nombre + (d.rubro_secundario ? ` + ${PRESETS[d.rubro_secundario].nombre}` : "")].filter(Boolean).join(" · base: "),
+    ],
+    [
+      "Personalidad",
+      <span key="ejes" className="flex flex-col gap-0.5">
+        {EJES.map((e) => (
+          <span key={e.id} className="flex items-center gap-2 text-xs">
+            <span className="w-20 text-right text-neutral-500">{e.izquierda}</span>
+            <span className="relative h-1.5 w-32 rounded bg-neutral-200">
+              <span className="absolute -top-0.5 h-2.5 w-1 rounded bg-neutral-900" style={{ left: `${d.ejes[e.id]}%` }} />
+            </span>
+            <span className="text-neutral-500">{e.derecha}</span>
+          </span>
+        ))}
+      </span>,
+    ],
+    ["Contenido del cliente", [d.contenido.mensaje, d.contenido.oferta.filter(Boolean).join(", ")].filter(Boolean).join(" · ") || "Sin cargar"],
     [
       "Color previo del cliente",
       d.color_previo_hex ? (

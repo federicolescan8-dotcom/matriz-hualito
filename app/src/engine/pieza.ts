@@ -317,6 +317,7 @@ export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
 
 export function piezaNueva(marca: Marca): Pieza {
   const variante = varianteSugerida(marca.rubro);
+  const oferta = (marca.diagnostico.contenido?.oferta ?? []).map((o) => o.trim()).filter(Boolean);
   return {
     id: crypto.randomUUID(),
     marca_id: marca.id,
@@ -335,10 +336,11 @@ export function piezaNueva(marca: Marca): Pieza {
       { tipo: "instagram", valor: "@" + marca.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "") },
       { tipo: "direccion", valor: "Av. Siempre Viva 742" },
     ],
+    // La oferta real del cliente (E12) nombra los ítems del catálogo.
     items: [
-      { texto: "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
-      { texto: "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
-      { texto: "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
+      { texto: oferta[0] ?? "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
+      { texto: oferta[1] ?? "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
+      { texto: oferta[2] ?? "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
     ],
   };
 }

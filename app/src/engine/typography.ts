@@ -22,10 +22,14 @@ export interface Tipografia {
 }
 
 /** Paso 1: familia por rubro según pregunta 1 (seria/cercana); la tipografía previa variable tiene prioridad. */
-export function resolverTipografia(rubro: Rubro, tono: Tono | null, previa?: string | null): Tipografia {
+/**
+ * Familia de la marca: la previa del cliente si es variable; si no, la sugerida por los ejes (E12) o, sin ejes, la del
+ * rubro según el tono.
+ */
+export function resolverTipografia(rubro: Rubro, tono: Tono | null, previa?: string | null, sugerida?: string | null): Tipografia {
   const preset = PRESETS[rubro];
   const previaValida = previa && FAMILIAS[previa] ? previa : null;
-  const familia = previaValida ?? preset.familia[tono ?? "seria"];
+  const familia = previaValida ?? (sugerida && FAMILIAS[sugerida] ? sugerida : preset.familia[tono ?? "seria"]);
   return {
     familia_variable: familia,
     // v1.1: itálica solo si el rubro la permite Y la familia la tiene.
