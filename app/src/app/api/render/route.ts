@@ -4,7 +4,8 @@ import type { Marca } from "@/engine/diagnostico";
 import type { Pieza } from "@/engine/pieza";
 import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 
-// Render a PNG con el navegador instalado en la máquina (Edge, o Chrome como alternativa), sin descargar uno propio.
+// Render a PNG con el navegador instalado en la máquina (Edge, o Chrome como alternativa). Donde no hay ninguno (Linux,
+// sesiones en la nube) usa el Chromium de Playwright: `npx playwright-core install chromium`.
 // Abre /render con la marca y la pieza, espera a que el texto se ajuste y el checklist corra, y solo devuelve el PNG
 // si la pieza aprueba: el automatizador nunca publica con una advertencia pendiente (cap. 8).
 
@@ -17,6 +18,7 @@ function abrirNavegador(): Promise<Browser> {
     navegador = chromium
       .launch({ channel: "msedge" })
       .catch(() => chromium.launch({ channel: "chrome" }))
+      .catch(() => chromium.launch())
       .catch((e) => {
         navegador = null;
         throw e;
