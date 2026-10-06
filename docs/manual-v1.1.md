@@ -69,6 +69,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
 34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par se resolvió en E3b (cambio 35). *(Cap. 3, Cap. 6, Cap. 9)*
 35. **Tipografía en par, catálogo ampliado y fuente propia (E3b)**: el catálogo suma 6 familias variables (Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque) y cada familia tiene una clase (serif, geométrica, grotesca, humanista). La marca puede usar una familia display (H1 y H2) y otra de texto (body, CTA, datos de contacto e ítems del catálogo), con una regla de combinación que se muestra en vivo y sugiere sin bloquear. La itálica y la compensación óptica del body salen de la familia de texto. Se puede subir una fuente propia (WOFF2, WOFF, TTF u OTF) con su clase. Con esto el principio de una sola familia pasa a ser el caso por defecto, no una obligación. *(Cap. 4, Cap. 9, A.4)*
+36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
 
 ---
 
@@ -1000,9 +1001,14 @@ marca: {
                   propia?: { nombre, archivo, clase } }, // (v1.1, E3b) fuente subida; archivo = data URL; clase: serif | geométrica | grotesca | humanista
     graficos: { estilo_iconos },
     fotos_habilitadas: bool
-  }
+  },
+  versiones?: [{ id, nombre, autor, fecha, identidad, favorita?, comentarios?, aprobacion? }],  // (v1.1, E13)
+  version_aprobada?: id,                                // (v1.1, E13) la que usa Publicaciones
+  estado?: "en_diagnostico | en_identidad | aprobada | en_produccion"  // (v1.1, E13) si no se fija, es "aprobada" con versión aprobada y "en_identidad" si no
 }
 ```
+
+**Versiones y aprobación** *(v1.1, E13)*. Una versión es una instantánea de `identidad`. Restaurarla la deja en el borrador y la versión sigue guardada. Aprobar registra autor, fecha y comentario, fija `version_aprobada` y el estado "aprobada". Si hay versión aprobada, el render y Publicaciones usan su identidad en lugar de la actual; si la identidad actual difiere de la aprobada, se avisa de los cambios sin aprobar. La presentación al cliente (`/presentacion/[marca]`) muestra una versión o la identidad actual en 8 diapositivas: portada, colores, tipografía, feed (9 piezas: variantes prioritarias del rubro primero, con la secuencia de modos), story 9:16, tarjeta (frente y dorso), cartel y aprobación.
 
 ### Paleta derivada (calculada, no ingresada)
 

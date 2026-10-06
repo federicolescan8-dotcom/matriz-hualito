@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { PRESETS } from "@/engine/presets";
 import { EJES } from "@/engine/ejes";
+import { ESTADOS_MARCA, estadoMarca, type EstadoMarca } from "@/engine/versiones";
 import { hslCss } from "@/engine/color";
 import type { Marca } from "@/engine/diagnostico";
-import { borrarMarca, descargarJson, elegirMarcaActiva, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcaActiva, useMarcas } from "@/lib/marcas";
+import { borrarMarca, descargarJson, elegirMarcaActiva, guardarMarca, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { usaSupabase } from "@/lib/supabase";
 
 // Paso 1 del proceso (replanteo, E1): la marca y sus datos. El sistema visual se edita en Identidad.
@@ -63,6 +64,9 @@ export default function MarcasPage() {
               <span className="flex flex-col">
                 <span className="font-medium">{m.nombre}</span>
                 <span className="text-xs text-neutral-500">{PRESETS[m.rubro].nombre} · {m.identidad.tipografia.familia_variable}</span>
+                <span className="mt-1 self-start rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-700">
+                  {ESTADOS_MARCA.find((e) => e.id === estadoMarca(m))!.nombre}
+                </span>
               </span>
             </button>
           </li>
@@ -72,6 +76,18 @@ export default function MarcasPage() {
         <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{actual.nombre}</h2>
+            <label className="flex items-center gap-2 text-sm">
+              Estado
+              <select
+                value={estadoMarca(actual)}
+                onChange={(e) => void guardarMarca({ ...actual, estado: e.target.value as EstadoMarca })}
+                className="rounded-md border border-neutral-300 px-2 py-1.5"
+              >
+                {ESTADOS_MARCA.map((e) => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+            </label>
             <Link href={`/?editar=${actual.id}`} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
               Editar diagnóstico
             </Link>

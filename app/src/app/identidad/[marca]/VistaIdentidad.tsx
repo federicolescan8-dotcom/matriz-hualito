@@ -5,16 +5,40 @@ import Link from "next/link";
 import type { Marca } from "@/engine/diagnostico";
 import { PRESETS } from "@/engine/presets";
 import { IdentidadMarca, SECCIONES_IDENTIDAD } from "@/components/IdentidadMarca";
+import { PanelVersiones } from "@/components/PanelVersiones";
+import { deshacer, deshacerNuevo, registrarPaso, rehacer, type Deshacer } from "@/engine/versiones";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
+import { useSesion } from "@/lib/sesion";
 
 export function VistaIdentidad({ id }: { id: string }) {
   const marcas = useMarcas();
   const activa = useMarcaActiva();
   const guardada = marcas.find((m) => m.id === id);
-  // Cambios sin confirmar de la identidad: no llegan a Publicaciones hasta confirmarlos.
-  const [borrador, setBorrador] = useState<Marca | null>(null);
+  const sesion = useSesion();
+  const autor = sesion.estado === "conectado" ? sesion.email : "estudio (modo local)";
+  // Cambios sin confirmar de la identidad, con deshacer y rehacer (E13): no llegan a Publicaciones hasta confirmarlos.
+  const [historia, setHistoria] = useState<Deshacer<Marca> | null>(null);
+  const borrador = historia ? historia.pasos[historia.pos] : null;
   const actual = borrador && borrador.id === id ? borrador : guardada;
   const sinGuardar = actual != null && actual !== guardada;
+  const cambiar = (m: Marca) => setHistoria((h) => registrarPaso(h ?? deshacerNuevo(guardada ?? m), m));
+  const puedeDeshacer = !!historia && historia.pos > 0;
+  const puedeRehacer = !!historia && historia.pos < historia.pasos.length - 1;
+  const guardar = async (m: Marca) => {
+    if (await guardarMarca(m)) setHistoria(null);
+  };
+
+  // Ctrl+Z / Ctrl+Shift+Z (o Cmd en Mac), salvo mientras se escribe en un campo.
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+      setHistoria((h) => (h ? (e.shiftKey ? rehacer(h) : deshacer(h)) : h));
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
 
   // Abrir la identidad de una marca la vuelve la marca activa, igual que abrirla en Marcas.
   useEffect(() => {
@@ -41,15 +65,23 @@ export function VistaIdentidad({ id }: { id: string }) {
               {PRESETS[actual.rubro].nombre} · <Link href="/marcas" className="underline">datos de la marca</Link>
             </span>
           </div>
+          {historia && (
+            <span className="flex overflow-hidden rounded-md border border-neutral-300 text-sm">
+              <button type="button" disabled={!puedeDeshacer} onClick={() => setHistoria(deshacer(historia))} title="Deshacer (Ctrl+Z)" className="px-3 py-1.5 disabled:opacity-30">
+                ↶
+              </button>
+              <button type="button" disabled={!puedeRehacer} onClick={() => setHistoria(rehacer(historia))} title="Rehacer (Ctrl+Shift+Z)" className="border-l border-neutral-300 px-3 py-1.5 disabled:opacity-30">
+                ↷
+              </button>
+            </span>
+          )}
           {sinGuardar && (
             <>
               <span className="text-sm text-amber-800">Cambios sin confirmar · se aplican en Publicaciones al confirmar</span>
-              <button type="button" onClick={() => setBorrador(null)} className="text-sm underline">Descartar</button>
+              <button type="button" onClick={() => setHistoria(null)} className="text-sm underline">Descartar</button>
               <button
                 type="button"
-                onClick={async () => {
-                  if (await guardarMarca(actual)) setBorrador(null);
-                }}
+                onClick={() => void guardar(actual)}
                 className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
               >
                 Confirmar cambios
@@ -72,7 +104,8 @@ export function VistaIdentidad({ id }: { id: string }) {
           ))}
         </nav>
       </div>
-      <IdentidadMarca key={actual.id} marca={actual} onChange={setBorrador} />
+      <PanelVersiones marca={actual} autor={autor} sinGuardar={sinGuardar} onGuardar={(m) => void guardar(m)} onRestaurar={cambiar} />
+      <IdentidadMarca key={actual.id} marca={actual} onChange={cambiar} />
     </div>
   );
 }

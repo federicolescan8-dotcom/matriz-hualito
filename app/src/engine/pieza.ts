@@ -407,3 +407,31 @@ export function geometria2BLImagen(formato: Formato): {
     logoAbajo: Math.min(zonaAbajo, arriba + diametro),
   };
 }
+
+/**
+ * Piezas para la grilla del feed en la presentación (E13): la variante va rotando (primero las prioritarias del rubro)
+ * y el modo sigue la secuencia de la marca (cap. 7), así el cliente ve el ritmo real del perfil.
+ */
+export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
+  const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
+  const variantes = [...prioritarias, ...VARIANTES_HABILITADAS.filter((v) => !prioritarias.includes(v))];
+  const secuencia = secuenciaModo(marca);
+  const base = piezaNueva(marca);
+  return Array.from({ length: n }, (_, i) => {
+    const variante = variantes[i % variantes.length];
+    return {
+      ...base,
+      id: `${base.id}-${i}`,
+      canal: "feed_ig",
+      formato: "4:5",
+      variante,
+      modo: secuencia[i % secuencia.length],
+      alineacion: "izquierda",
+      contenido: {
+        h1: contenido.h1,
+        body: PLANTILLAS[variante]?.orden.includes("body") ? contenido.body : null,
+        cta: PLANTILLAS[variante]?.tieneCta ? contenido.cta : null,
+      },
+    };
+  });
+}

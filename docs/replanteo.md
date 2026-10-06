@@ -102,7 +102,8 @@ manuales.
   - el par tipográfico respeta la jerarquía del H1;
   - el manual de diseño suma las reglas.
 
-### E13 · Modo sesión con el cliente y versiones · [ ] pendiente · depende de E3
+### E13 · Modo sesión con el cliente y versiones · [x] hecha · depende de E3
+> Quedó: versiones con nombre, favorita, comparación de 2 o 3 con lista de diferencias, deshacer/rehacer del borrador (`engine/versiones.ts`, `PanelVersiones`); modo presentación `/presentacion/[marca]` con portada, colores, tipografía, feed de 9, story, tarjeta, cartel y aprobación (autor, fecha, comentario); estado de la marca; Publicaciones usa la versión aprobada. Falta: el link para que el cliente vea la presentación desde su casa, que necesita acceso sin login (hoy se presenta en la computadora del estudio o con la sesión del equipo en Supabase). "Otra variación" la da el laboratorio de color (E3a, "Otras opciones").
 - **Por qué:** la herramienta se usa con el cliente al lado. Hoy sirve para que el diseñador arme, no para decidir
   juntos.
 - **Alcance:**

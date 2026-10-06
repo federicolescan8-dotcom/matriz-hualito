@@ -7,6 +7,7 @@ import { type Rubro, type Tono, type ValorMarca } from "./presets";
 import { resolverTipografia } from "./typography";
 import { BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Identidad } from "./identidad";
+import type { EstadoMarca, VersionIdentidad } from "./versiones";
 import { ejesSemilla, familiaDeEjes, rangoMatiz, valorDeEjes, type Ejes } from "./ejes";
 
 export interface Diagnostico {
@@ -75,6 +76,12 @@ export interface Marca {
   identidad: Identidad;
   /** Decisiones registradas sobre la marca, de la más vieja a la más nueva (E9: avisos aceptados con justificación). */
   historial?: EntradaHistorial[];
+  /** Versiones guardadas de la identidad (E13). */
+  versiones?: VersionIdentidad[];
+  /** Id de la versión aprobada: es la que usa Publicaciones (E13). */
+  version_aprobada?: string;
+  /** Estado de trabajo de la marca (E13). Si falta, se deduce (`estadoMarca`). */
+  estado?: EstadoMarca;
   version_manual: "1.1";
   creada: string;
 }
@@ -220,6 +227,9 @@ export function reconstruirMarca(anterior: Marca, d: Diagnostico, chip: Chip): M
     id: anterior.id,
     creada: anterior.creada,
     historial: anterior.historial,
+    versiones: anterior.versiones,
+    version_aprobada: anterior.version_aprobada,
+    estado: anterior.estado,
     identidad: { ...m.identidad, graficos: anterior.identidad.graficos },
   };
   for (const rol of anterior.identidad.ajustes_manuales ?? []) {

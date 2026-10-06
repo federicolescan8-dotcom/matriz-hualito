@@ -49,7 +49,11 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
    - **Fotografía**: el check de fotos propias.
 
    Los cambios quedan en borrador hasta **Confirmar cambios** (o **Descartar**). El botón **Publicar con esta identidad** se deshabilita mientras haya cambios sin confirmar.
-3. **Publicaciones** (`/publicar`, antes Publicar): bajo el título dice "Usa la identidad confirmada de {marca} · ajustar la identidad", con un link a `/identidad/[id]`. Lee solo de `marca.identidad`. Tiene dos modos.
+
+   **Versiones (E13).** El borrador tiene deshacer y rehacer (botones ↶ ↷ y Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z fuera de campos de texto) con la pila pura de `versiones.ts`. Arriba de la identidad, `components/PanelVersiones.tsx`: guardar versión con nombre (confirma los cambios), lista con favorita (★), "Volver a esta" (queda en el borrador), "Aprobar", tildar 2 o 3 para compararlas lado a lado (Modo A y B) con `diferencias`, aviso de versión aprobada o cambios sin aprobar (`cambiosSinAprobar`) y el botón "Presentar al cliente".
+   - **Presentación** (`/presentacion/[marca]`: `page.tsx`, server con `await params`, y `Presentacion.tsx`, cliente): sin la navegación de la app, pantalla completa (⛶) y flechas del teclado. `?version=<id>` muestra una versión; sin parámetro, la identidad actual. Diapositivas: Portada, Colores (nombres simples y HEX, sin ratios), Tipografía, Feed (9 piezas con `piezasDeGrilla`), Story (9:16 en un marco de teléfono), Tarjeta (frente y dorso), Cartel y Aprobación. Las piezas son el componente real `Pieza` escalado.
+   - **Aprobación:** en la última diapositiva se escribe quién aprueba y un comentario. Aprobar la versión mostrada llama a `aprobarVersion`; si se muestra la identidad actual, antes se guarda como versión "Presentada el…". También se pueden dejar comentarios en la versión (`comentarVersion`). Pendiente: el link para el cliente desde su casa necesita acceso sin login; hoy se presenta en la computadora del estudio o con la sesión del equipo.
+3. **Publicaciones** (`/publicar`, antes Publicar): bajo el título dice "Usa la identidad confirmada de {marca} · ajustar la identidad", con un link a `/identidad/[id]`; si hay versión aprobada dice "Usa la versión aprobada". Lee de `marca.identidad`, salvo que haya una versión aprobada: `marcaParaPublicar(marca)` (E13) reemplaza la identidad por la aprobada y se memoriza con `useMemo` (una referencia nueva en cada render recrearía la pieza inicial sin fin). Para guardar el historial se usa la marca guardada, no la de publicar, porque si no se pisaría la identidad actual con la aprobada. Tiene dos modos.
    - **Publicación simple:** canal, formato, variante, modo, alineación, textos y elementos gráficos. Muestra vista previa, guías, todos los formatos y la hoja de contactos. Exporta un PNG o un ZIP con los 4 formatos.
    - **Carrusel 4:5** (`components/PublicarCarrusel.tsx`): portada, puntos y cierre, con el control de la serie. Exporta un ZIP con un PNG por slide.
 
@@ -67,9 +71,10 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `biblioteca.ts` | Formas, patrones, íconos y contenedores por rubro; opacidades y overlay |
 | `decoraciones.ts` | Decoraciones de plantilla (arco lateral, esquinas en diagonal) como geometría de círculos |
 | `formatos.ts` | Formatos (4:5, 1:1, 9:16, 1200×630) con márgenes, zonas de interfaz y recorte de grilla, y canales (IG feed y stories, WA estados, FB feed, link) |
-| `pieza.ts` | Objeto `Pieza` (con `aceptaciones?: Aceptacion[]`, `aceptarControl`, `quitarAceptacion`), plantillas por variante (1, 2, 2B-L, 2B-S, 3, 4, P) y ajustes por formato, capa decorativa efectiva, geometría del 2B-L |
+| `pieza.ts` | Objeto `Pieza` (con `aceptaciones?: Aceptacion[]`, `aceptarControl`, `quitarAceptacion`), plantillas por variante (1, 2, 2B-L, 2B-S, 3, 4, P) y ajustes por formato, capa decorativa efectiva, geometría del 2B-L. `piezasDeGrilla` (E13) arma las 9 piezas del feed de la presentación: rota variantes empezando por las prioritarias del rubro y sigue la secuencia de modos |
 | `carrusel.ts` | `Carrusel`/`Slide`, `piezaDeSlide` (cada slide pasa a ser una pieza simple), modos por rol, `evaluarCarrusel` |
 | `checklist.ts` | `evaluarPieza(marca, pieza, medicion)`: controles de color, tipografía, composición, zonas seguras y contenido. Estado `ok`, `rechazado` o `revision_manual`, con controles *aceptados* (decisión del cliente) y *avisos*. Cada `Control` lleva un `nivel` (`NivelRegla`: `bloqueante`, `aviso` o `sugerencia`; `add` usa `aviso` por defecto). `estadoDe` da `ok` si cada control cumple, está aceptado o es sugerencia. `aplicarAceptaciones` marca `aceptado` + `justificacion` solo en avisos que fallan; la excepción v1.1 de color acepta los controles de color que fallan salvo los bloqueantes (`nivelTexto(valor)`: bajo `MIN_GRAFICO` es bloqueante, si no aviso) |
+| `versiones.ts` | Versiones y aprobación (E13, cap. 9). Tipos `VersionIdentidad` y `EstadoMarca` (en_diagnostico, en_identidad, aprobada, en_produccion); `estadoMarca(m)` (deduce "aprobada" o "en_identidad" si no se fijó). `guardarVersion`, `restaurarVersion` (la versión sigue guardada), `marcarFavorita`, `comentarVersion`, `aprobarVersion` (autor, fecha y comentario; fija `version_aprobada` y estado), `marcaParaPublicar`, `cambiosSinAprobar`, `diferencias(a, b)` (lista legible: colores por rol en HEX, tipografías, íconos, fotos, paleta extendida, logo). Deshacer puro: `deshacerNuevo`, `registrarPaso` (descarta lo deshecho, hasta 50 pasos), `deshacer`, `rehacer` |
 | `logo.ts` | Recoloreo de SVG para las versiones monocromas |
 
 ## 5. Del dato al PNG
@@ -99,6 +104,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 
   Los lectores (`Pieza.tsx`, `EditoresPieza.tsx`, `checklist.ts`, `pieza.ts` y Publicaciones) leen de `marca.identidad.*`.
 - `Pieza.color_decoracion?: number | null` (`engine/pieza.ts`): índice del secundario de `paleta_extendida` con el que se dibuja la decoración de plantilla; `null` o ausente es el tono de apoyo. `Pieza.tsx` lo usa con la misma `opacidadSegura` de Modo A; el editor de decoración de Publicaciones lo muestra solo si la marca tiene paleta extendida.
+- `Marca.versiones?: VersionIdentidad[]` (`{ id, nombre, autor, fecha, identidad, favorita?, comentarios?, aprobacion? }`), `Marca.version_aprobada?` y `Marca.estado?: EstadoMarca` (E13, `engine/versiones.ts`). `/marcas` muestra la etiqueta de estado en cada tarjeta y un selector de estado en los datos. `reconstruirMarca` (edición del diagnóstico) conserva versiones, versión aprobada y estado.
 - `Marca.historial?: EntradaHistorial[]`: decisiones de la marca, `{ tipo: "aceptacion", control, motivo, autor, fecha, pieza }`. Al aceptar un aviso en Publicaciones (`app/publicar/page.tsx`) se guarda la marca con la entrada; `/marcas` la muestra en "Historial de decisiones". La aceptación misma vive en `Pieza.aceptaciones` y viaja a `/api/render`, por eso el render del servidor la respeta y exporta.
 - `components/Checklist.tsx` muestra una etiqueta de nivel en cada control que falla. En los avisos, si recibe `onAceptar`, ofrece "Aceptar con justificación" (campo de motivo); los aceptados muestran autor, fecha y motivo con "Quitar", y los bloqueantes avisan que no se pueden aceptar. Publicaciones conecta `onAceptar`/`onQuitar` (autor: email de la sesión o "estudio (modo local)"); el carrusel todavía no lo conecta.
 - **Migración** (`engine/identidad.ts › migrarMarca`): lleva una marca guardada antes de E1 (`MarcaV1`, con lo visual en la raíz) al formato nuevo sin perder datos. Si no tenía `graficos`, fija el estilo de íconos del rubro, que era lo que valía por defecto. Las marcas ya migradas pasan tal cual (misma referencia); `esMarcaV1` detecta el formato viejo. Se aplica en:
@@ -115,7 +121,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 - Configuración de Supabase: `docs/configurar-supabase.md`. Las claves van en `app/.env.local`, nunca en el repo.
 
 ## 7. Tests y verificación
-- `npm test`: más de 120 tests (128 con E3b) del motor, entre ellos:
+- `npm test`: más de 120 tests (134 con E13) del motor, entre ellos:
   - toda la rueda de matices por rubro;
   - grillas de colores heredados;
   - el checklist con mediciones sintéticas;

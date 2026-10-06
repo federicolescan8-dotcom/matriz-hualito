@@ -10,6 +10,7 @@ import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
 import { descargar, renderizar, slug } from "@/lib/exportar";
 import { registrarEnHistorial, type Marca } from "@/engine/diagnostico";
+import { marcaParaPublicar, versionAprobada } from "@/engine/versiones";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
   aceptarControl,
@@ -54,7 +55,10 @@ export default function PublicarPage() {
   // La marca activa es compartida con Marca e Identidad: la última abierta o elegida. Todo lo visual sale de
   // `marca.identidad` (E1).
   const marcaId = useMarcaActiva();
-  const marca = marcas.find((m) => m.id === marcaId) ?? marcas[0] ?? null;
+  const guardada = marcas.find((m) => m.id === marcaId) ?? marcas[0] ?? null;
+  // Publicaciones usa la versión aprobada de la identidad, si hay una (E13). Memorizada: una referencia nueva en cada
+  // render recrearía la pieza inicial sin fin.
+  const marca = useMemo(() => (guardada ? marcaParaPublicar(guardada) : null), [guardada]);
   const [pieza, setPieza] = useState<TPieza | null>(null);
   // La pieza por defecto se crea una sola vez por marca: si se recreara en cada render cambiaría su id y la vista
   // previa se recalcularía sin fin.
@@ -138,7 +142,8 @@ export default function PublicarPage() {
       <div className="mr-auto flex flex-col">
         <h1 className="text-2xl font-semibold">Nueva publicación</h1>
         <span className="text-xs text-neutral-500">
-          Usa la identidad confirmada de {marca.nombre} · <Link href={`/identidad/${marca.id}`} className="underline">ajustar la identidad</Link>
+          {guardada && versionAprobada(guardada) ? `Usa la versión aprobada "${versionAprobada(guardada)!.nombre}" de ${marca.nombre}` : `Usa la identidad confirmada de ${marca.nombre}`} ·{" "}
+          <Link href={`/identidad/${marca.id}`} className="underline">ajustar la identidad</Link>
         </span>
       </div>
       <div className="flex overflow-hidden rounded-md border border-neutral-300 text-sm">
@@ -362,7 +367,7 @@ export default function PublicarPage() {
           const a = aceptada.aceptaciones!.at(-1)!;
           set({ aceptaciones: aceptada.aceptaciones });
           void guardarMarca(
-            registrarEnHistorial(marca, {
+            registrarEnHistorial(guardada!, {
               tipo: "aceptacion",
               ...a,
               pieza: `${CANALES[actual.canal].nombre} · ${actual.formato} · variante ${actual.variante} · modo ${actual.modo}`,
