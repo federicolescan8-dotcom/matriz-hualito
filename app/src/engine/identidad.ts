@@ -10,6 +10,7 @@ import type { Paleta, RolPaleta } from "./palette";
 import type { Tipografia } from "./typography";
 import type { PaletaExtendida } from "./laboratorio";
 import type { RecursosPropios } from "./recursos";
+import type { Fotografia } from "./fotografia";
 import type { Rescate } from "./rescate";
 
 export interface Identidad {
@@ -44,6 +45,8 @@ export interface Identidad {
   rescate?: Rescate;
   /** Fotografía: la marca tiene fotos propias (habilita la foto como capa decorativa y en el catálogo). */
   fotos_habilitadas: boolean;
+  /** Tratamiento propio de las fotos (E6). Sin él, las fotos van naturales. */
+  fotografia?: Fotografia;
 }
 
 /** Campos visuales que antes de E1 vivían en la raíz de la marca. */

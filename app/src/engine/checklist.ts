@@ -76,6 +76,11 @@ export interface Medicion {
   items?: { visual: Rect; tieneVisual: boolean; texto: MedidaTexto }[];
   /** Fotos que no están recortadas por una forma de contención. */
   fotosSinForma?: number;
+  /**
+   * Variante F con foto (E6): peor contraste real del texto contra los píxeles de la imagen que hay detrás (con su
+   * tratamiento y su protección). El texto del CTA va sobre su propio botón, que ya controla el CTA.
+   */
+  contrasteSobreFoto?: { h1: number; body?: number };
 }
 
 export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido";
@@ -280,6 +285,13 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const cS = Math.min(...soportes.map((k) => contraste(k.soporte!.icono, k.soporte!.fondo)));
     add("Color y contraste", "Íconos sobre su soporte", cS >= MIN_GRAFICO, `${r(cS)} (mín. 3:1)`, "corregir colores del soporte");
   }
+  // Texto sobre foto (E6): el contraste se midió sobre la imagen real, no sobre el color de fondo.
+  const sf = m.contrasteSobreFoto;
+  if (sf) {
+    const arreglo = "cambiar la protección (degradado o placa), mover el texto al otro lado o elegir otra foto";
+    add("Color y contraste", "H1 grande sobre la foto", sf.h1 >= MIN_GRAFICO, `${r(sf.h1)} medido sobre la imagen (mín. 3:1)`, arreglo, nivelTexto(sf.h1));
+    if (sf.body != null) add("Color y contraste", "Body sobre la foto", sf.body >= MIN_TEXTO, `${r(sf.body)} medido sobre la imagen (mín. 4,5:1)`, arreglo, nivelTexto(sf.body));
+  }
   add("Color y contraste", "Tono de apoyo no usado en texto ni íconos", true, "el texto usa marca, funcional o neutro", "reasignar a color de marca");
 
   // ── Bloque 2: tipografía ──
@@ -391,7 +403,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     }
   }
   // Decoración de plantilla (v1.1): sus figuras nunca pasan por debajo de un texto ni del logo.
-  const decoracion = decoracionEfectiva(pieza);
+  const decoracion = pieza.variante === "F" ? null : decoracionEfectiva(pieza);
   if (decoracion) {
     const g = decoracion.geometria(pieza.formato);
     const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => tocaDecoracion(k, g)));
@@ -501,7 +513,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     add("Contenido", "Variante sin CTA", !m.cta, m.cta ? "la variante no lleva CTA" : "", "quitar el CTA");
   }
   const fotoPedida = pieza.deco?.relleno === "foto";
-  const usaFoto = m.deco?.tipo === "foto" || items.some((k) => k.tieneVisual) && (pieza.items ?? []).some((i) => i.foto);
+  const usaFoto = m.contrasteSobreFoto != null || m.deco?.tipo === "foto" || items.some((k) => k.tieneVisual) && (pieza.items ?? []).some((i) => i.foto);
   add(
     "Contenido",
     "Funciona sin foto",

@@ -14,6 +14,7 @@ import type { RecursosPropios } from "./recursos";
 import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
+import type { Foco, LadoTexto, Proteccion } from "./fotografia";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -41,6 +42,14 @@ export interface Pieza {
   contacto?: DatoContacto[];
   /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
   items?: ItemCatalogo[];
+  /** Variante F (texto sobre foto, E6): foto a sangre de fondo, como data URL. */
+  foto_fondo?: string | null;
+  /** Punto focal de la foto (0-1): el encuadre lo deja cerca del centro de su caja (E6). */
+  foto_foco?: Foco;
+  /** Variante F: cómo se protege el contraste del texto sobre la foto. Por defecto, degradado. */
+  proteccion?: Proteccion;
+  /** Variante F: de qué lado va el bloque de texto (en formatos verticales). Por defecto, abajo. */
+  foto_texto?: LadoTexto;
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
   /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
@@ -185,6 +194,16 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     logoPx: 80,
     bloque: "catalogo",
   },
+  F: {
+    nombre: "F · Texto sobre foto",
+    descripcion: "Foto a sangre con el mensaje encima, protegido con degradado, placa o zona limpia. Pide fotos propias.",
+    orden: ["logo", "H1", "body", "cta"],
+    tieneCta: true,
+    h1: { min: 56, max: 104, altoMax: 0.3 },
+    body: { min: 26, max: 34 },
+    cta: 34,
+    logoPx: 90,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -209,6 +228,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { max: 96, altoMax: 0.3, maxLineas: 2 }, logoPx: 76 },
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
+    F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -218,6 +238,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { altoMax: 0.3 } },
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
+    F: { h1: { altoMax: 0.3 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -226,6 +247,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
     "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
+    F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
   },
 };
 
@@ -253,6 +275,11 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
+
+/** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
+export function variantesDisponibles(marca: Marca): Variante[] {
+  return VARIANTES_HABILITADAS.filter((v) => v !== "F" || marca.identidad.fotos_habilitadas);
+}
 
 /**
  * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2 y 3 se permite centrado
@@ -426,7 +453,7 @@ export function geometria2BLImagen(formato: Formato): {
  */
 export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
   const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
-  const variantes = [...prioritarias, ...VARIANTES_HABILITADAS.filter((v) => !prioritarias.includes(v))];
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
   const secuencia = secuenciaModo(marca);
   const base = piezaNueva(marca);
   return Array.from({ length: n }, (_, i) => {

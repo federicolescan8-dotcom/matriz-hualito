@@ -205,7 +205,8 @@ manuales.
   de ejemplo, presentados con el modo sesión de E13. El cliente elige uno.
 - **Aceptación:** los caminos difieren de forma visible y el elegido se guarda como la identidad de la marca.
 
-### E6 · Fotografía de marca · [ ] pendiente · depende de E1
+### E6 · Fotografía de marca · [x] hecha · depende de E1
+> Quedó: `engine/fotografia.ts` (tratamiento natural, gradación y duotono generado de la paleta con `feColorMatrix`, igual en pieza, PNG y medición; encuadre con punto focal; protección degradado, placa o zona limpia; dirección de arte). Variante F "Texto sobre foto" (solo con fotos habilitadas) y contraste medido sobre la imagen real (`medirContrasteSobreFoto`, percentil 5%) con los controles "H1 grande sobre la foto" (3:1) y "Body sobre la foto" (4,5:1). En Identidad › Fotografía, selector con vista previa, intensidad y guía. No se hizo: quitar el fondo de las fotos ni detectar automáticamente la zona limpia (se elige a mano).
 - **Alcance:**
   - **tratamiento propio:** gradación de color de la marca, duotono y recorte de fondo;
   - **recorte inteligente:** con punto focal;

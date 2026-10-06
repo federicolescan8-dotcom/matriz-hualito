@@ -32,6 +32,7 @@ import {
 import { PRESETS } from "@/engine/presets";
 import { escala, familiaTexto, pesoH1, PESOS } from "@/engine/typography";
 import { ParTipografico } from "./ParTipografico";
+import { TratamientoFoto } from "./TratamientoFoto";
 import { RasgosPropios } from "./RasgosPropios";
 import { SistemaLogo } from "./SistemaLogo";
 import { fontFamily } from "@/lib/fuentes";
@@ -487,8 +488,10 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
         </label>
         <p className="text-xs text-neutral-500">
           Habilita la foto como capa decorativa y en el catálogo. Sin fotos propias, las piezas usan formas, patrones e
-          íconos (cap. 5): toda pieza tiene que funcionar completa sin foto.
+          íconos (cap. 5): toda pieza tiene que funcionar completa sin foto. Con fotos propias se suma la variante F, texto
+          sobre foto.
         </p>
+        <TratamientoFoto marca={marca} onChange={onChange} />
       </Seccion>
 
       {onChange && (

@@ -331,4 +331,39 @@ describe("niveles de regla y aceptación con justificación (E9)", () => {
     expect(bloqueantes.every((c) => !c.aceptado)).toBe(true);
     expect(r.estado).toBe("rechazado");
   });
+  describe("texto sobre foto (E6)", () => {
+    const f = pieza({ variante: "F", foto_fondo: "data:image/jpeg;base64,xx" });
+    const ctl = (sf: Medicion["contrasteSobreFoto"], nombre: string) =>
+      evaluarPieza(marca, f, medicion({ contrasteSobreFoto: sf })).controles.find((c) => c.control === nombre)!;
+
+    it("sin medida sobre foto (pieza sin foto) no hay controles de foto", () => {
+      const r = evaluarPieza(marca, pieza({ variante: "F" }), medicion());
+      expect(r.controles.some((c) => /sobre la foto|contra la foto/.test(c.control))).toBe(false);
+    });
+
+    it("H1 sobre la foto: ok desde 3:1, bloqueante por debajo", () => {
+      expect(ctl({ h1: 3.4 }, "H1 grande sobre la foto").ok).toBe(true);
+      const c = ctl({ h1: 2.4 }, "H1 grande sobre la foto");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("bloqueante");
+    });
+
+    it("body sobre la foto: ok desde 4,5:1, aviso entre 3 y 4,5, bloqueante bajo 3", () => {
+      expect(ctl({ h1: 7, body: 5.2 }, "Body sobre la foto").ok).toBe(true);
+      const aviso = ctl({ h1: 7, body: 3.8 }, "Body sobre la foto");
+      expect([aviso.ok, aviso.nivel]).toEqual([false, "aviso"]);
+      expect(aviso.detalle).toContain("3.8:1");
+      const bloq = ctl({ h1: 7, body: 2.1 }, "Body sobre la foto");
+      expect([bloq.ok, bloq.nivel]).toEqual([false, "bloqueante"]);
+    });
+
+    it("un bloqueante sobre la foto rechaza la pieza y un aviso se puede aceptar", () => {
+      expect(evaluarPieza(marca, f, medicion({ contrasteSobreFoto: { h1: 2.4 } })).estado).toBe("rechazado");
+      const conAviso = medicion({ contrasteSobreFoto: { h1: 7, body: 3.8 } });
+      expect(evaluarPieza(marca, f, conAviso).estado).toBe("rechazado");
+      const aceptada = aceptarControl(f, "Body sobre la foto", "foto de archivo del cliente", "estudio");
+      expect(evaluarPieza(marca, aceptada, conAviso).estado).toBe("ok");
+      expect(evaluarPieza(marca, f, medicion({ contrasteSobreFoto: { h1: 7, body: 5.2 } })).estado).toBe("ok");
+    });
+  });
 });

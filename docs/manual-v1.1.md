@@ -74,6 +74,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 38. **Logo como sistema (E4)**: el diseñador entrega el logo en versiones (horizontal, vertical, solo símbolo y monograma, además de la principal y sus monocromos) y cada pieza elige la que se ve más grande en el lugar del logo; si empatan, la más completa. Sobre foto el logo va en mono, sobre una placa o con sombra, a elección de la marca. El espacio entre bloques del mensaje nunca es menor que el área de seguridad del logo más 12 px. El checklist suma tres avisos, solo con un logo cargado: tamaño mínimo, área de seguridad y contraste del logo con su fondo. La herramienta arma el brief para el diseñador y exporta la paleta en ASE, CSS y JSON. *(Cap. 2 paso 4, Cap. 6, Cap. 8, Cap. 9)*
 39. **Rescate de marca existente (E11)**: para clientes que ya tienen marca, se acuerda un grado de cambio (rescate, refresco o evolución) y se cargan varias referencias (logos, capturas, fotos de cartel). Los colores de todas se agrupan por ΔE < 10 y el informe dice, por ejemplo, "Tu verde aparece en 4 tonos". Cada grupo tiene un color canónico según el grado y se puede asignar a un rol de la paleta o a un secundario. La herramienta arma el brief para el diseñador (logo y tipografía no se vectorizan ni se detectan) y guarda "el antes" para compararlo con la identidad nueva y descargarlo como HTML. *(Cap. 9)*
 40. **Exploración de caminos (E5)**: para una marca nueva, el diagnóstico suma referencias del cliente (colores sacados de las imágenes de su moodboard y colores de la competencia) y propone 3 caminos visiblemente distintos: "Fiel a lo que contaste", "Más expresivo", "Más sobrio y clásico" y, con moodboard, uno inspirado en su color dominante. Cada camino trae ejes, color, par tipográfico y forma propia; difieren en matiz (20° o más) o en familia tipográfica, y el cliente elige uno. Los colores de la competencia extienden la banda prohibida del color de marca (±25° cada uno). *(Cap. 2, Cap. 3, Cap. 9)*
+41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 
 ---
 
@@ -581,10 +582,24 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 ### Reglas de fotografía
 
 - La dependencia de foto la define el rubro. La habilitación la define el cliente. Con fotos disponibles se puede usar foto en cualquier rubro, incluso en los de dependencia nula.
-- Toda foto va dentro de una forma de contención de la biblioteca.
+- Toda foto va dentro de una forma de contención de la biblioteca. *(v1.1)* Excepción: la foto de fondo de la variante F va a sangre.
 - En uso decorativo lleva overlay de color de marca al 60-70%.
 - En uso informativo va sin overlay, recortada en la forma del ítem.
 - Fallback: toda pieza se genera completa sin foto. La foto es siempre una capa opcional.
+
+**Tratamiento de la fotografía** *(v1.1, E6)*. Es un rasgo de la marca (`identidad.fotografia`) y se aplica igual a todas sus fotos, en la pieza, en el PNG y al medir el contraste. Se genera de la paleta y tiene intensidad de 0 a 1 (por defecto 0,6):
+
+| Tratamiento | Qué hace |
+|---|---|
+| Natural | La foto tal como es. Es lo que pasa si la marca no define `fotografia` |
+| Gradación | Las luces y sombras se mezclan hacia el color de marca (sombras al 35% de la marca, luces en la marca) |
+| Duotono | La luminancia de la foto recorre el degradado entre el color de marca oscuro (L ≤ 22) y el fondo neutro |
+
+**Punto focal** *(v1.1, E6)*. `foto_foco` (de 0 a 1 en cada eje) es el punto de la foto que el recorte mantiene lo más cerca posible del centro de su caja, sin dejar vacío. Se fija con un clic sobre la miniatura. Se usa en la variante F y en la capa decorativa; no en las fotos de los ítems del catálogo.
+
+**Dirección de arte** *(v1.1, E6)*. Guía de qué fotos sirven: luz natural y suave, con una dirección clara (no flash directo ni sombras duras); un sujeto claro con aire alrededor para el texto (no escenas recargadas ni sujetos pegados al borde); fondos simples y parejos, cerca de la paleta (no fondos con ruido ni carteles ajenos). Queda en la identidad como guía para el manual de marca.
+
+No se resuelve todavía el recorte de fondo de las fotos.
 
 ---
 
@@ -729,6 +744,8 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 
 ### Las seis variantes de layout
 
+Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla.
+
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
 | 1 · Base | logo → H1 → body → CTA | H1 hasta 50% del alto | pieza estándar |
@@ -739,6 +756,16 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 | 4 · Catálogo | logo + H1 → ítems → CTA | hasta 3-4 ítems en feed y story | varios productos o servicios |
 
 **Regla de cierre.** El CTA es el último elemento en las variantes 1 y 4. En las variantes 2B el logo cierra la pieza y el CTA va inmediatamente antes.
+
+**Variante F · Texto sobre foto** *(v1.1, E6)*. Solo está disponible si la marca tiene las fotos habilitadas y no entra en la grilla de la presentación. La foto (`foto_fondo`) va a sangre, con el tratamiento y el punto focal de la marca, y el bloque de logo, mensaje y CTA va arriba o abajo (`foto_texto`); en 1200×630 ocupa la columna izquierda. Sin foto, el fondo es el del modo. La protección del contraste (`proteccion`) es una de tres:
+
+| Protección | Qué dibuja |
+|---|---|
+| Degradado (por defecto) | Fondo del modo al 95% detrás del bloque, que se desvanece hacia el centro de la foto en un tramo del 40% del bloque |
+| Placa | Rectángulo con el fondo del modo al 95% detrás del texto, con 28 px de aire |
+| Zona limpia | Sin capa: el texto va en la zona elegida a mano (arriba o abajo). No hay detección automática de la zona más pareja |
+
+El bloque ocupa el 58% de la zona segura en los formatos verticales. El contraste se mide sobre la imagen real (cap. 8).
 
 ### Carrusel 4:5 *(v1.1)*
 
@@ -891,6 +918,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 |---|---|---|
 | Texto body y caption sobre su fondo | 4,5:1 | función de ajuste (cap. 3, paso 6) |
 | H1 y H2 grandes (≥36 px, bold) sobre su fondo | 3:1 | función de ajuste |
+| H1 grande sobre la foto *(v1.1, E6, variante F)* | 3:1, medido sobre la imagen real | cambiar la protección, mover el bloque o usar otra foto |
+| Body sobre la foto *(v1.1, E6, variante F)* | 4,5:1, medido sobre la imagen real | ídem |
 | Logo contrasta con su fondo *(v1.1, E4, aviso, solo con logo cargado y si se conocen el color del logo y su fondo)* | 3:1 | usar la versión monocromo o una placa detrás |
 | Acento como fondo de botón con su texto (blanco o color de marca) | 4,5:1 | ajustar L del acento (cap. 3, paso 4b) *(v1.1)* |
 | Acento sobre color de marca en Modo B | 3:1 | recalcular matiz (cap. 3, paso 5) |
@@ -898,6 +927,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Tono de apoyo no usado en texto ni íconos | — | reasignar a color de marca |
 | Patrón de fondo con opacidad 10-20% | — | corregir opacidad |
 | Color heredado: versión funcional en texto | — | generar versión funcional |
+
+**Contraste sobre la foto** *(v1.1, E6)*. En la variante F el contraste no se calcula contra un color plano: se dibuja la foto con su encuadre, su tratamiento y su protección en un lienzo a mitad de tamaño, y se muestrean los píxeles que quedan bajo cada línea del H1 y del body. Se toma el percentil 5% (el "peor" contraste, que ignora el 5% de píxeles más extremos), no el promedio, porque una sola zona clara ya vuelve ilegible una palabra. Por debajo de 3:1 es bloqueante; entre 3:1 y 4,5:1 es aviso (cap. 8, niveles).
 
 ### Bloque 2 — Tipografía
 
@@ -953,7 +984,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Un solo mensaje principal por pieza | 1 H1, 1 dato de apoyo, 1 CTA como máximo |
 | Fallback sin foto | la pieza se genera completa sin imagen |
 | Fallback sin capa decorativa | la pieza sigue siendo legible si se quita |
-| Foto dentro de forma de contención | sin excepción |
+| Foto dentro de forma de contención | sin excepción, salvo la foto de fondo de la variante F, que va a sangre *(v1.1, E6)* |
 | Foto decorativa | con overlay 60-70% de opacidad en color de marca |
 
 ### Bloque 6 — Coherencia de serie
@@ -1052,6 +1083,10 @@ marca: {
       detalle?: "subrayado" | "marco" | null
     },
     fotos_habilitadas: bool,
+    fotografia?: {                                      // (v1.1, E6) sin ella, las fotos van naturales
+      tratamiento: "natural | gradacion | duotono",
+      intensidad: 0-1                                   // por defecto 0,6
+    },
     rescate?: {                                         // (v1.1, E11) solo en marcas que ya existían
       grado: "rescate | refresco | evolucion",
       referencias: [{ nombre, colores: [{ color: HSL, peso }] }],
@@ -1098,7 +1133,7 @@ pieza: {
   marca_id,
   canal: "feed_ig | stories_ig | estados_wa | feed_fb",
   formato: "4:5 | 1:1 | 9:16 | 1200x630",
-  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4",
+  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | F",   // (v1.1, E6) F solo con fotos habilitadas
   contenido: {
     h1: string,
     body: string | null,
@@ -1107,7 +1142,11 @@ pieza: {
     contacto: [{ tipo, valor }] | null                 // variante 3
   },
   imagen: { id, uso: "decorativa | informativa" } | null,
-  color_decoracion?: number | null   // (v1.1, E3a) índice del secundario; null = tono de apoyo
+  color_decoracion?: number | null,  // (v1.1, E3a) índice del secundario; null = tono de apoyo
+  foto_foco?: { x, y },              // (v1.1, E6) punto focal, 0-1; por defecto el centro
+  foto_fondo?: string | null,        // (v1.1, E6) variante F: foto a sangre
+  foto_texto?: "arriba | abajo",     // (v1.1, E6) variante F: lugar del bloque de texto
+  proteccion?: "degradado | placa | zona"   // (v1.1, E6) variante F; por defecto degradado
 }
 ```
 

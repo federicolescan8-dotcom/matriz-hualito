@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { contraste, hexToHsl, hslCss, type HSL } from "@/engine/color";
 import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
@@ -21,9 +21,11 @@ import {
 } from "@/engine/pieza";
 import { compensacionOptica, FACTOR_STORY, familiaTexto, pesoH1 } from "@/engine/typography";
 import { asegurarFamilias, cargarFuentePropia, fontFamily } from "@/lib/fuentes";
-import { ajustarTexto, medirPieza } from "@/lib/medicion";
+import { ajustarTexto, medirContrasteSobreFoto, medirPieza } from "@/lib/medicion";
 import { decoracionEfectiva, SOMBRA_DECORACION, trazadoDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
-import { FormaRellena, FormaSvg, FotoEnForma, Icono } from "./Graficos";
+import { bloqueTexto, capaProteccion, filtroDeMarca, type Foco } from "@/engine/fotografia";
+import { dimensionesCacheadas, dimensionesImagen } from "@/lib/imagen";
+import { FiltroSvg, FormaRellena, FormaSvg, FotoEnForma, ImagenFoco, Icono } from "./Graficos";
 
 /**
  * Pieza a tamaño real de lienzo (p. ej. 1080×1350). La misma pieza se usa en la vista previa (escalada con CSS) y
@@ -78,7 +80,8 @@ export function Pieza({
   // La forma de fondo va solo cuando no hay capa decorativa ni ítems con su propia forma: nunca dos formas
   // protagonistas (cap. 6).
   // Decoración de plantilla (v1.1): reemplaza a la forma de fondo automática.
-  const decoracion = decoracionEfectiva(pieza);
+  const esFoto = pieza.variante === "F";
+  const decoracion = esFoto ? null : decoracionEfectiva(pieza);
   // Rasgos propios (E2): forma de fondo y detalle recurrente. El detalle va en el acento si se distingue del fondo; si
   // no, en el color del texto.
   const formaPropia = marca.identidad.recursos?.formas[0] ?? null;
@@ -88,9 +91,31 @@ export function Pieza({
   // se limita para que el texto que pase por encima siga cumpliendo.
   const colorDeco = (pieza.color_decoracion != null && marca.identidad.paleta_extendida?.secundarios[pieza.color_decoracion]?.color) || p.tono_apoyo;
   const geoDecoracion = decoracion?.geometria(pieza.formato) ?? null;
-  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion;
+  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion && !esFoto;
   const formaColor = pieza.modo === "A" ? c.apoyo : p.fondo_neutro;
   const formaOpacidad = opacidadSegura(c.fondo, formaColor, c.texto, pieza.modo === "A" ? 0.35 : 0.12);
+
+  // Texto sobre foto (E6): la foto a sangre, su tratamiento de marca y la protección de contraste detrás del bloque.
+  const uid = useId().replace(/:/g, "");
+  const filtro = filtroDeMarca(marca.identidad);
+  const fotoFondo = esFoto && marca.identidad.fotos_habilitadas ? (pieza.foto_fondo ?? null) : null;
+  const proteccion = pieza.proteccion ?? "degradado";
+  const ladoTexto = pieza.foto_texto ?? "abajo";
+  const bloqueFoto = esFoto ? bloqueTexto(f, ladoTexto) : null;
+  const capaFoto = fotoFondo && bloqueFoto ? capaProteccion(proteccion, bloqueFoto, f, ladoTexto) : null;
+  // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo.
+  const fotosConFoco = pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null].filter((s): s is string => !!s) : [];
+  const [dimensionesListas, setDimensionesListas] = useState(0);
+  const claveFotos = fotosConFoco.join("|");
+  useEffect(() => {
+    if (!fotosConFoco.length) return;
+    let vigente = true;
+    Promise.all(fotosConFoco.map(dimensionesImagen)).then(() => vigente && setDimensionesListas((n) => n + 1));
+    return () => {
+      vigente = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveFotos]);
 
   const onResultadoRef = useRef(onResultado);
   useLayoutEffect(() => {
@@ -98,23 +123,32 @@ export function Pieza({
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
     let vigente = true;
     root.dataset.listo = "false";
+    if (fotosConFoco.some((s) => !dimensionesCacheadas(s))) return;
+    // Las fotos SVG también se esperan: el PNG no se saca antes de que estén dibujadas.
     const imagenes = [...root.querySelectorAll("image, img")].map((el) =>
-      el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : Promise.resolve(),
+      el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : dimensionesImagen(el.getAttribute("href") ?? "").catch(() => undefined),
     );
     // La fuente propia de la marca (E3) se registra antes de medir.
     const fuentes = cargarFuentePropia(marca.identidad.tipografia.propia)
       .then(() => asegurarFamilias([marca.identidad.tipografia.familia_variable, familiaTexto(marca.identidad.tipografia)]))
       .then(() => document.fonts.ready);
-    Promise.all([fuentes, ...imagenes]).then(() => {
+    Promise.all([fuentes, ...imagenes]).then(async () => {
       if (!vigente) return;
       const desborde = ajustarTexto(root, plantilla, f.alto, escala, lateralVertical ? g.posiciones : undefined);
       const medicion = medirPieza(root, desborde);
+      // El contraste del texto sobre foto se mide sobre la imagen real, con su tratamiento y su protección.
+      if (fotoFondo) {
+        medicion.contrasteSobreFoto = await medirContrasteSobreFoto({
+          foto: fotoFondo, foco: pieza.foto_foco, filtro, capa: capaFoto, ancho: f.ancho, alto: f.alto, fondo: c.fondo, colorTexto: c.texto, medicion,
+        }).catch(() => undefined);
+        if (!vigente) return;
+      }
       const resultado = evaluarPieza(marca, pieza, medicion);
       root.dataset.listo = "true";
       onResultadoRef.current?.(resultado, medicion);
@@ -336,6 +370,7 @@ export function Pieza({
     >
       <CapaDecorativa
         deco={deco}
+        foco={pieza.foto_foco}
         marca={marca}
         modo={pieza.modo}
         estilo={estilo}
@@ -364,6 +399,7 @@ export function Pieza({
     >
       <CapaDecorativa
         deco={deco}
+        foco={pieza.foto_foco}
         marca={marca}
         modo={pieza.modo}
         estilo={estilo}
@@ -390,6 +426,7 @@ export function Pieza({
       >
         <CapaDecorativa
           deco={deco}
+          foco={pieza.foto_foco}
           marca={marca}
           modo={pieza.modo}
           estilo={estilo}
@@ -453,7 +490,16 @@ export function Pieza({
   };
 
   let contenidoPieza: React.ReactNode;
-  if (horizontal) {
+  if (esFoto && bloqueFoto) {
+    // Texto sobre foto (E6): logo, mensaje y CTA en un solo bloque pegado arriba o abajo, sobre su protección.
+    contenidoPieza = (
+      <div data-columna style={{ ...zonaBase, left: bloqueFoto.x, top: bloqueFoto.y, bottom: "auto", width: bloqueFoto.w, height: bloqueFoto.h }}>
+        {logoCon(c.logo, c.fondo, proteccion === "zona" && !!fotoFondo)}
+        {mensaje()}
+        {botonCta}
+      </div>
+    );
+  } else if (horizontal) {
     contenidoPieza = (
       <>
         <div data-columna style={colIzq}>
@@ -582,6 +628,33 @@ export function Pieza({
         ["--deco-izq" as string]: `${g.izquierda}px`,
       }}
     >
+      {fotoFondo && (
+        <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            <FiltroSvg id={`ff${uid}`} filtro={filtro} />
+            {capaFoto?.tipo === "degradado" && (
+              <linearGradient id={`pg${uid}`} x1={capaFoto.eje[0]} y1={capaFoto.eje[1]} x2={capaFoto.eje[2]} y2={capaFoto.eje[3]}>
+                {capaFoto.paradas.map(([o, a], i) => (
+                  <stop key={i} offset={o} stopColor={hslCss(c.fondo)} stopOpacity={a} />
+                ))}
+              </linearGradient>
+            )}
+          </defs>
+          <ImagenFoco fondo src={fotoFondo} foco={pieza.foto_foco} x={0} y={0} w={f.ancho} h={f.alto} filtroId={filtro ? `ff${uid}` : undefined} />
+          {capaFoto && (
+            <rect
+              data-slot="proteccion"
+              data-proteccion={capaFoto.tipo}
+              x={capaFoto.rect.x}
+              y={capaFoto.rect.y}
+              width={capaFoto.rect.w}
+              height={capaFoto.rect.h}
+              fill={capaFoto.tipo === "degradado" ? `url(#pg${uid})` : hslCss(c.fondo)}
+              fillOpacity={capaFoto.tipo === "placa" ? capaFoto.paradas[0][1] : 1}
+            />
+          )}
+        </svg>
+      )}
       {conFormaFondo && (
         <div
           data-slot="forma"
@@ -692,7 +765,9 @@ function CapaDecorativa({
   visible,
   zonaIcono,
   sinOverlay = false,
+  foco,
 }: {
+  foco?: Foco;
   deco: Deco;
   marca: Marca;
   modo: "A" | "B";
@@ -730,6 +805,8 @@ function CapaDecorativa({
         relleno={deco.relleno}
         fondo={p.tono_apoyo}
         foto={deco.foto}
+        filtro={filtroDeMarca(marca.identidad)}
+        foco={foco}
         overlay={sinOverlay ? undefined : { color: p.color_marca, opacidad: OVERLAY_FOTO.uso }}
         patron={deco.patron}
         colorPatron={p.color_marca}
@@ -785,7 +862,7 @@ function Catalogo({
         <div key={i} data-slot="item" style={{ width: lado, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
           <div data-slot="item-visual" style={{ width: lado, height: lado, position: "relative" }}>
             {it.foto ? (
-              <FotoEnForma foto={it.foto} formaId={contenedor} style={{ width: "100%", height: "100%" }} />
+              <FotoEnForma foto={it.foto} formaId={contenedor} filtro={filtroDeMarca(marca.identidad)} style={{ width: "100%", height: "100%" }} />
             ) : (
               <>
                 <FormaSvg id={contenedor} color={modo === "A" ? p.tono_apoyo : p.fondo_neutro} opacidad={modo === "A" ? 0.35 : 0.15} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />

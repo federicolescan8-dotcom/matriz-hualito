@@ -10,6 +10,8 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import { hslCss, type HSL } from "@/engine/color";
+import { encuadre, valoresSvg, type FiltroFoto, type Foco } from "@/engine/fotografia";
+import { dimensionesCacheadas } from "@/lib/imagen";
 import { resolverForma, type EstiloIconos, type Forma, type Patron } from "@/engine/biblioteca";
 
 // Componentes de la biblioteca gráfica (cap. 5). Todos reciben el color desde afuera: ninguno tiene color propio.
@@ -169,6 +171,8 @@ export function FotoEnForma({
   style,
   slot,
   formas,
+  filtro,
+  foco,
 }: {
   foto: string;
   formaId: string;
@@ -176,6 +180,9 @@ export function FotoEnForma({
   overlay?: { color: HSL; opacidad: number } | null;
   style?: React.CSSProperties;
   slot?: string;
+  /** Tratamiento de la marca (E6) y punto focal del encuadre. */
+  filtro?: FiltroFoto | null;
+  foco?: Foco;
 }) {
   const uid = useId().replace(/:/g, "");
   const f = resolverForma(formaId, formas) ?? resolverForma("circulo")!;
@@ -185,9 +192,10 @@ export function FotoEnForma({
         <clipPath id={`c${uid}`}>
           <path d={f.d} />
         </clipPath>
+        <FiltroSvg id={`f${uid}`} filtro={filtro} />
       </defs>
       <g clipPath={`url(#c${uid})`}>
-        <image href={foto} x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" />
+        <ImagenFoco src={foto} foco={foco} x={0} y={0} w={100} h={100} filtroId={filtro ? `f${uid}` : undefined} />
         {overlay && <rect x="0" y="0" width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
       </g>
     </svg>
@@ -216,7 +224,12 @@ export function FormaRellena({
   zonaIcono,
   tamanoPx,
   formas,
+  filtro,
+  foco,
 }: {
+  /** Tratamiento de la marca (E6) y punto focal del encuadre de la foto. */
+  filtro?: FiltroFoto | null;
+  foco?: Foco;
   formaId: string;
   /** Formas propias de la marca (E2): resuelven el id y la primera es la del patrón propio. */
   formas?: Forma[];
@@ -255,11 +268,12 @@ export function FormaRellena({
           <path d={f.d} />
         </clipPath>
         {pat?.defs}
+        <FiltroSvg id={`f${uid}`} filtro={filtro} />
       </defs>
       <g clipPath={`url(#c${uid})`}>
         {relleno === "foto" && foto ? (
           <>
-            <image href={foto} x={visible.x} y={visible.y} width={visible.w} height={visible.h} preserveAspectRatio="xMidYMid slice" />
+            <ImagenFoco src={foto} foco={foco} x={visible.x} y={visible.y} w={visible.w} h={visible.h} filtroId={filtro ? `f${uid}` : undefined} />
             {overlay && <rect width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
           </>
         ) : (
@@ -274,6 +288,53 @@ export function FormaRellena({
           </>
         )}
       </g>
+    </svg>
+  );
+}
+
+/** Filtro de color del tratamiento de la marca (E6): la misma matriz que se aplica al medir el contraste. */
+export function FiltroSvg({ id, filtro }: { id: string; filtro?: FiltroFoto | null }) {
+  if (!filtro) return null;
+  // sRGB: el mismo espacio en el que se calcula la matriz (el predeterminado, linearRGB, daría otro resultado).
+  return (
+    <filter id={id} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+      <feColorMatrix type="matrix" values={valoresSvg(filtro)} />
+    </filter>
+  );
+}
+
+/**
+ * Foto que llena una caja del SVG. Sin punto focal (o mientras no se conoce el tamaño de la foto) se centra, como
+ * `slice`; con foco, el encuadre lo deja cerca del centro de la caja (`encuadre`, E6).
+ */
+export function ImagenFoco({
+  src,
+  foco,
+  x,
+  y,
+  w,
+  h,
+  filtroId,
+  fondo,
+}: {
+  src: string;
+  foco?: Foco;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  filtroId?: string;
+  fondo?: boolean;
+}) {
+  const dim = foco ? dimensionesCacheadas(src) : undefined;
+  const filtro = filtroId ? `url(#${filtroId})` : undefined;
+  if (!foco || !dim) {
+    return <image data-foto-fondo={fondo ? "" : undefined} href={src} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid slice" filter={filtro} />;
+  }
+  const r = encuadre(foco, dim, { w, h });
+  return (
+    <svg x={x} y={y} width={w} height={h} viewBox={`0 0 ${w} ${h}`} overflow="hidden">
+      <image data-foto-fondo={fondo ? "" : undefined} href={src} x={r.x} y={r.y} width={r.w} height={r.h} preserveAspectRatio="none" filter={filtro} />
     </svg>
   );
 }

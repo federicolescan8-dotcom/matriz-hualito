@@ -2,12 +2,14 @@
 // Trabaja sobre el DOM real a tamaño de lienzo; si la pieza está escalada con CSS para la vista previa, las medidas
 // se normalizan a px del lienzo.
 
-import type { HSL } from "@/engine/color";
+import { hslToRgb, type HSL } from "@/engine/color";
 import type { Medicion, MedidaTexto, Rect } from "@/engine/checklist";
 import type { TipoDeco } from "@/engine/biblioteca";
 import { cajaVisible } from "@/engine/logo";
 import { h1Minimo, type PlantillaVariante } from "@/engine/pieza";
 import { tocaDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
+import { aplicarFiltro, encuadre, FOCO_CENTRO, peorContraste, type CapaProteccion, type FiltroFoto, type Foco } from "@/engine/fotografia";
+import { dimensionesImagen } from "@/lib/imagen";
 import { CTA_MIN, JERARQUIA_H1 } from "@/engine/typography";
 
 const q = (root: HTMLElement, slot: string) => root.querySelector<HTMLElement>(`[data-slot="${slot}"]`);
@@ -329,7 +331,7 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
         texto: medirTexto(root, q(it, "item-texto")!),
       };
     }),
-    fotosSinForma: [...root.querySelectorAll("image")].filter((img) => !img.closest("g[clip-path]")).length,
+    fotosSinForma: [...root.querySelectorAll("image:not([data-foto-fondo])")].filter((img) => !img.closest("g[clip-path]")).length,
     desborde,
   };
 }
@@ -370,5 +372,74 @@ function medirDeco(root: HTMLElement): Medicion["deco"] {
     protagonista: el.dataset.protagonista === "true",
     circulo: medirCirculo(root),
     contorno: medirContorno(root),
+  };
+}
+
+/**
+ * Contraste del texto sobre foto medido sobre la imagen real (E6): se dibuja en un lienzo del tamaño de la pieza (a la
+ * mitad, por velocidad) la foto con el mismo encuadre, el mismo filtro de color y la misma protección que dibuja la
+ * pieza, y se muestrean los píxeles que quedan debajo de cada línea del H1 y del body (el CTA lleva su propio botón de fondo). El resultado
+ * es el peor contraste (percentil bajo) del color del texto contra esos píxeles.
+ */
+export async function medirContrasteSobreFoto(o: {
+  foto: string;
+  foco?: Foco;
+  filtro: FiltroFoto | null;
+  capa: CapaProteccion | null;
+  ancho: number;
+  alto: number;
+  fondo: HSL;
+  colorTexto: HSL;
+  medicion: Medicion;
+}): Promise<NonNullable<Medicion["contrasteSobreFoto"]>> {
+  const dim = await dimensionesImagen(o.foto);
+  const img = new Image();
+  img.src = o.foto;
+  await img.decode();
+  const k = 0.5;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(o.ancho * k);
+  canvas.height = Math.round(o.alto * k);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  const e = encuadre(o.foco ?? FOCO_CENTRO, dim, { w: o.ancho, h: o.alto });
+  ctx.drawImage(img, e.x * k, e.y * k, e.w * k, e.h * k);
+  if (o.filtro) {
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    d.data.set(aplicarFiltro(d.data, o.filtro));
+    ctx.putImageData(d, 0, 0);
+  }
+  if (o.capa) {
+    const { rect, eje, paradas, tipo } = o.capa;
+    const [r, g, b] = hslToRgb(o.fondo);
+    if (tipo === "placa") ctx.fillStyle = `rgba(${r},${g},${b},${paradas[0][1]})`;
+    else {
+      const grad = ctx.createLinearGradient((rect.x + eje[0] * rect.w) * k, (rect.y + eje[1] * rect.h) * k, (rect.x + eje[2] * rect.w) * k, (rect.y + eje[3] * rect.h) * k);
+      for (const [off, a] of paradas) grad.addColorStop(off, `rgba(${r},${g},${b},${a})`);
+      ctx.fillStyle = grad;
+    }
+    ctx.fillRect(rect.x * k, rect.y * k, rect.w * k, rect.h * k);
+  }
+  /** Píxeles (RGBA) debajo de las cajas, recortados al lienzo. */
+  const debajo = (cajas: Rect[], color: HSL) => {
+    const trozos: Uint8ClampedArray[] = [];
+    for (const c of cajas) {
+      const x = Math.max(0, Math.floor(c.x * k));
+      const y = Math.max(0, Math.floor(c.y * k));
+      const w = Math.min(canvas.width, Math.ceil((c.x + c.w) * k)) - x;
+      const h = Math.min(canvas.height, Math.ceil((c.y + c.h) * k)) - y;
+      if (w > 0 && h > 0) trozos.push(ctx.getImageData(x, y, w, h).data);
+    }
+    const todo = new Uint8ClampedArray(trozos.reduce((n, t) => n + t.length, 0));
+    let i = 0;
+    for (const t of trozos) {
+      todo.set(t, i);
+      i += t.length;
+    }
+    return peorContraste(todo, color);
+  };
+  const m = o.medicion;
+  return {
+    h1: debajo(m.h1.lineas, o.colorTexto),
+    ...(m.body ? { body: debajo(m.body.lineas, o.colorTexto) } : {}),
   };
 }

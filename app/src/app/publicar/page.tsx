@@ -21,14 +21,14 @@ import {
   quitarAceptacion,
   secuenciaModo,
   varianteSugerida,
-  VARIANTES_HABILITADAS,
+  variantesDisponibles,
   type Pieza as TPieza,
 } from "@/engine/pieza";
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { useSesion } from "@/lib/sesion";
-import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion } from "@/components/EditoresPieza";
+import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion, EditorFotoFondo } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
 const VISTA_MAX = { ancho: 460, alto: 640 };
@@ -237,7 +237,7 @@ export default function PublicarPage() {
         <div className="flex flex-col gap-2">
           <span className="font-medium">Variante</span>
           <div className="grid grid-cols-2 gap-2">
-            {VARIANTES_HABILITADAS.map((v: Variante) => (
+            {variantesDisponibles(marca).map((v: Variante) => (
               <button
                 key={v}
                 type="button"
@@ -303,8 +303,9 @@ export default function PublicarPage() {
             <input value={actual.contenido.cta ?? ""} onChange={(e) => setContenido({ cta: e.target.value || null })} className="rounded-md border border-neutral-300 px-3 py-2" />
           </label>
         )}
+        {actual.variante === "F" && <EditorFotoFondo pieza={actual} onChange={set} />}
         {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
-        <EditorDecoracion marca={marca} pieza={actual} onChange={set} />
+        {actual.variante !== "F" && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
         {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
         {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>

@@ -150,3 +150,33 @@ export async function leerArchivoLogo(file: File): Promise<{ src: string; aspect
       });
   return { src, aspecto: await aspectoDeImagen(src), formato: esSvg ? "svg" : "png" };
 }
+
+// ── Dimensiones de las fotos de la pieza (E6) ──
+// El encuadre con punto focal necesita el tamaño de la foto al dibujar. Se carga una vez por foto y se guarda: el
+// dibujo lo lee de forma síncrona y la pieza espera a que esté antes de medir y marcarse lista.
+const dimensiones = new Map<string, { w: number; h: number }>();
+const cargando = new Map<string, Promise<{ w: number; h: number }>>();
+
+export const dimensionesCacheadas = (src: string) => dimensiones.get(src);
+
+export function dimensionesImagen(src: string): Promise<{ w: number; h: number }> {
+  const listo = dimensiones.get(src);
+  if (listo) return Promise.resolve(listo);
+  let promesa = cargando.get(src);
+  if (!promesa) {
+    promesa = cargar(src).then((img) => {
+      const d = { w: img.naturalWidth || 1, h: img.naturalHeight || 1 };
+      dimensiones.set(src, d);
+      return d;
+    });
+    cargando.set(src, promesa);
+  }
+  return promesa;
+}
+
+/** Foto de ejemplo generada (un SVG con zonas claras, medias y oscuras) para ver el tratamiento sin ninguna foto cargada. */
+export const MUESTRA_GENERADA =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="240" viewBox="0 0 360 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4d9a6"/><stop offset=".45" stop-color="#6fa3b8"/><stop offset="1" stop-color="#1d2a3a"/></linearGradient></defs><rect width="360" height="240" fill="url(#g)"/><circle cx="260" cy="72" r="38" fill="#fff" fill-opacity=".85"/><rect y="172" width="360" height="68" fill="#14181e" fill-opacity=".75"/></svg>',
+  );
