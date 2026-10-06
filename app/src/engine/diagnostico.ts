@@ -2,6 +2,7 @@
 
 import { distanciaColor, hexToHsl, normalizarH, type HSL } from "./color";
 import { revalidarExtendida, type Alternativa } from "./laboratorio";
+import type { ArchivoLogo, VersionLogo } from "./logo";
 import { ajustarRol, derivarPaleta, type CtaModoB, enBandaProhibida, type Paleta, type ResultadoPaleta, type RolPaleta } from "./palette";
 import { type Rubro, type Tono, type ValorMarca } from "./presets";
 import { resolverTipografia } from "./typography";
@@ -36,6 +37,14 @@ export interface Diagnostico {
     deuda_vectorizar: boolean;
     /** Solo PNG: lado mayor del archivo original (el manual pide 1000 px mínimo). */
     png_lado_mayor: number | null;
+    /** Proporción (ancho / alto) del logo color, medida al cargarlo (E4). */
+    aspecto?: number;
+    /** Versiones que entrega el diseñador (E4). Cada pieza elige la que mejor entra en su lugar. */
+    versiones?: Partial<Record<VersionLogo, ArchivoLogo>>;
+    /** Color dominante del logo color, para controlar su contraste con el fondo (E4). */
+    color_dominante?: HSL | null;
+    /** Cómo va el logo sobre una foto: monocromo (por defecto), sobre una placa o con sombra (E4). */
+    sobre_foto?: "mono" | "placa" | "sombra";
   };
   tiene_fotos_propias: boolean;
   tipografia_previa: string | null;
