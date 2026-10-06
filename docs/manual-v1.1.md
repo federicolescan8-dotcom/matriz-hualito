@@ -72,6 +72,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 37. **Rasgos propios de la marca (E2)**: la marca puede tener formas propias (SVG del diseñador o paramétricas derivadas de los ejes), un patrón propio y un detalle recurrente (subrayado o marco). La capa decorativa 2B, el patrón y la forma de fondo usan primero lo propio, y el checklist mide su contorno real igual que el de las formas de la biblioteca. Dos marcas del mismo rubro con recursos propios distintos dan piezas distintas. *(Cap. 5, Cap. 6, Cap. 9)*
 36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
 38. **Logo como sistema (E4)**: el diseñador entrega el logo en versiones (horizontal, vertical, solo símbolo y monograma, además de la principal y sus monocromos) y cada pieza elige la que se ve más grande en el lugar del logo; si empatan, la más completa. Sobre foto el logo va en mono, sobre una placa o con sombra, a elección de la marca. El espacio entre bloques del mensaje nunca es menor que el área de seguridad del logo más 12 px. El checklist suma tres avisos, solo con un logo cargado: tamaño mínimo, área de seguridad y contraste del logo con su fondo. La herramienta arma el brief para el diseñador y exporta la paleta en ASE, CSS y JSON. *(Cap. 2 paso 4, Cap. 6, Cap. 8, Cap. 9)*
+39. **Rescate de marca existente (E11)**: para clientes que ya tienen marca, se acuerda un grado de cambio (rescate, refresco o evolución) y se cargan varias referencias (logos, capturas, fotos de cartel). Los colores de todas se agrupan por ΔE < 10 y el informe dice, por ejemplo, "Tu verde aparece en 4 tonos". Cada grupo tiene un color canónico según el grado y se puede asignar a un rol de la paleta o a un secundario. La herramienta arma el brief para el diseñador (logo y tipografía no se vectorizan ni se detectan) y guarda "el antes" para compararlo con la identidad nueva y descargarlo como HTML. *(Cap. 9)*
 
 ---
 
@@ -1029,7 +1030,13 @@ marca: {
       patron_propio?: bool,                              // repite la primera forma al 60% de la celda
       detalle?: "subrayado" | "marco" | null
     },
-    fotos_habilitadas: bool
+    fotos_habilitadas: bool,
+    rescate?: {                                         // (v1.1, E11) solo en marcas que ya existían
+      grado: "rescate | refresco | evolucion",
+      referencias: [{ nombre, colores: [{ color: HSL, peso }] }],
+      grupos?: [{ tonos: [{ color, peso }], peso, fuentes: [nombre] }],  // última auditoría
+      antes?: Identidad                                 // la identidad al iniciar el rescate
+    }
   },
   versiones?: [{ id, nombre, autor, fecha, identidad, favorita?, comentarios?, aprobacion? }],  // (v1.1, E13)
   version_aprobada?: id,                                // (v1.1, E13) la que usa Publicaciones
@@ -1038,6 +1045,19 @@ marca: {
 ```
 
 **Versiones y aprobación** *(v1.1, E13)*. Una versión es una instantánea de `identidad`. Restaurarla la deja en el borrador y la versión sigue guardada. Aprobar registra autor, fecha y comentario, fija `version_aprobada` y el estado "aprobada". Si hay versión aprobada, el render y Publicaciones usan su identidad en lugar de la actual; si la identidad actual difiere de la aprobada, se avisa de los cambios sin aprobar. La presentación al cliente (`/presentacion/[marca]`) muestra una versión o la identidad actual en 8 diapositivas: portada, colores, tipografía, feed (9 piezas: variantes prioritarias del rubro primero, con la secuencia de modos), story 9:16, tarjeta (frente y dorso), cartel y aprobación.
+
+**Rescate de marca existente** *(v1.1, E11)*. No se crea una identidad nueva: se audita, se normaliza y se evoluciona la que el cliente ya tiene. El grado de cambio se acuerda con el cliente y limita cuánto se mueve la fórmula:
+
+| Grado | Qué hace con el color canónico de cada grupo |
+|---|---|
+| Rescate | El tono más usado, tal cual. Lo que no cumple los controles queda como ajuste manual con aviso (cambio 19) |
+| Refresco | El color válido más próximo al más usado (`colorValidoCercano`); si no hay ninguno válido, el más usado |
+| Evolución | Propone lo mismo que el refresco; el cliente puede elegir otro, siempre comparado contra lo actual |
+
+- **Auditoría de color.** Los colores muestreados de todas las referencias se agrupan: los tonos a menos de ΔE 10 se toman como el mismo color que se fue corriendo. El informe tiene una frase por grupo ("Tu verde aparece en 4 tonos").
+- **Aplicar canónicos.** Cada grupo se asigna a un rol de paleta (marca, apoyo, acento), que pasa por el ajuste manual, o a uno de los dos secundarios de la paleta extendida (se crea si falta).
+- **Brief del diseñador.** Es el brief del logo (E4) más el grado acordado, las referencias, los canónicos con los tonos que circulan y la regla del refresco: puestos lado a lado, el logo nuevo y el viejo tienen que leerse como el mismo, pero más prolijo. El logo y la tipografía los resuelve el diseñador; la herramienta no los vectoriza ni los detecta, ni recomienda tipografía.
+- **Antes y después.** "Guardar el antes" copia la identidad a `rescate.antes`. La comparación muestra la paleta y los títulos de antes y de ahora con la lista de diferencias, y se descarga como HTML autocontenido.
 
 ### Paleta derivada (calculada, no ingresada)
 

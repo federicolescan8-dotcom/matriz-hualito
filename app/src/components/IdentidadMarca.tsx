@@ -42,6 +42,7 @@ import { BIBLIOTECA_RUBRO, formasDelRubro, ICONOS, OPACIDAD_PATRON, PATRONES } f
 import { estiloIconos } from "@/engine/pieza";
 import { MATRICES_DALTONISMO, type Daltonismo } from "@/engine/laboratorio";
 import { LaboratorioColor } from "./LaboratorioColor";
+import { RescateMarca } from "./RescateMarca";
 
 /** Filtros SVG para ver la identidad como la ve una persona con daltonismo (E3). Mismas matrices que el motor. */
 function FiltrosDaltonismo() {
@@ -231,6 +232,7 @@ export const SECCIONES_IDENTIDAD = [
   { id: "logo", titulo: "Logo" },
   { id: "recursos", titulo: "Recursos gráficos" },
   { id: "fotografia", titulo: "Fotografía" },
+  { id: "rescate", titulo: "Rescate" },
 ] as const;
 
 type IdSeccion = (typeof SECCIONES_IDENTIDAD)[number]["id"];
@@ -488,6 +490,12 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
           íconos (cap. 5): toda pieza tiene que funcionar completa sin foto.
         </p>
       </Seccion>
+
+      {onChange && (
+        <Seccion id="rescate">
+          <RescateMarca marca={marca} onChange={onChange} />
+        </Seccion>
+      )}
     </div>
   );
 }

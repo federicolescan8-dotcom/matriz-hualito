@@ -149,7 +149,8 @@ manuales.
 - **Aceptación:** cada pieza elige la versión cargada que corresponde según el espacio y el fondo, y el checklist lo
   verifica.
 
-### E11 · Rescate de marca existente · [ ] pendiente · depende de E3 y E4
+### E11 · Rescate de marca existente · [x] hecha · depende de E3 y E4
+> Quedó: `engine/rescate.ts` y `components/RescateMarca.tsx` (sección "Rescate" de la identidad): grado de cambio, carga múltiple de referencias, agrupación por ΔE < 10, informe, canónicos por grado aplicados a roles o secundarios, brief del diseñador y antes y después (guardar el antes, comparación A/B, HTML descargable). No se hizo: vectorizar el logo ni detectar la tipografía (los resuelve el diseñador con el brief), ni la recomendación automática de tipografía.
 - **Por qué:** la mayoría de los clientes ya tiene logo y colores, pero mal resueltos. Aparecen:
   - logos en baja resolución, distintos en cada red o hechos con IA con detalles que no escalan;
   - el "mismo" color en varios tonos (Instagram, cartel, Canva, imprenta);

@@ -10,6 +10,7 @@ import type { Paleta, RolPaleta } from "./palette";
 import type { Tipografia } from "./typography";
 import type { PaletaExtendida } from "./laboratorio";
 import type { RecursosPropios } from "./recursos";
+import type { Rescate } from "./rescate";
 
 export interface Identidad {
   /** Color: cómo se eligió el color de marca y la paleta que sale de él (cap. 3). */
@@ -39,6 +40,8 @@ export interface Identidad {
   graficos: { estilo_iconos: EstiloIconos };
   /** Rasgos propios (E2): forma, patrón y detalle recurrente. Van primero en la capa decorativa. */
   recursos?: RecursosPropios;
+  /** Rescate de marca existente (E11): grado de cambio, referencias auditadas y el antes. Opcional. */
+  rescate?: Rescate;
   /** Fotografía: la marca tiene fotos propias (habilita la foto como capa decorativa y en el catálogo). */
   fotos_habilitadas: boolean;
 }
