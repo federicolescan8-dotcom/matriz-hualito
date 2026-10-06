@@ -51,3 +51,19 @@ describe("escala", () => {
     expect(s / f).toBeLessThanOrEqual(1.2);
   });
 });
+
+describe("compensación óptica del texto secundario", () => {
+  it("agranda solo las familias de x baja, con tope del 20%", async () => {
+    const { compensacionOptica } = await import("./typography");
+    expect(compensacionOptica("Newsreader")).toBe(1.2);
+    expect(compensacionOptica("Fraunces")).toBe(1.15);
+    for (const f of ["Inter", "Manrope", "Sora", "Space Grotesk", "Desconocida"]) expect(compensacionOptica(f)).toBe(1);
+  });
+
+  it("la plantilla escala el rango del body según la familia", async () => {
+    const { plantillaPara } = await import("./pieza");
+    expect(plantillaPara("1", "4:5", "Newsreader").body).toEqual({ min: 31, max: 43 });
+    expect(plantillaPara("1", "4:5", "Inter").body).toEqual(plantillaPara("1", "4:5").body);
+  });
+});
+

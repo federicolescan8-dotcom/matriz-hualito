@@ -244,6 +244,11 @@ export function DiagnosticoWizard() {
                     Requiere revisión manual: {c.resultado.motivos.join("; ")}
                   </div>
                 )}
+                {c.resultado.paleta && (c.resultado.avisos?.length ?? 0) > 0 && (
+                  <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+                    No cumple la fórmula (se acepta con aviso): {c.resultado.avisos!.join("; ")}.
+                  </div>
+                )}
               </button>
             ))}
           </div>

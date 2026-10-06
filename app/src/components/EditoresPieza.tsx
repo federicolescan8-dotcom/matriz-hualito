@@ -10,8 +10,11 @@ import {
   type RellenoDeco,
   type TipoContacto,
 } from "@/engine/biblioteca";
+import { decoracionesPara, trazadoDecoracion } from "@/engine/decoraciones";
 import type { Marca } from "@/engine/diagnostico";
-import { decoEfectiva, MAX_CONTACTO, maxItems, estiloIconos, type Deco, type Pieza } from "@/engine/pieza";
+import { FORMATOS } from "@/engine/formatos";
+import { hslCss } from "@/engine/color";
+import { decoEfectiva, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
 import { reducirFoto } from "@/lib/imagen";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
@@ -21,8 +24,9 @@ const NOMBRE_RELLENO: Record<RellenoDeco, string> = { foto: "Foto", patron: "Pat
 const CAJA = "flex h-11 w-11 items-center justify-center rounded border";
 
 /**
- * Capa decorativa 2B (v1.1): se elige la forma que se sangra contra el borde y su relleno. La foto toma la silueta de
- * la forma; sin foto, un patrón o un ícono adentro le dan el valor decorativo.
+ * Capa decorativa 2B (v1.1), dos opciones:
+ *   - Imagen o ícono: un círculo con una foto (con overlay de marca) o un ícono grande adentro.
+ *   - Figura y patrón: una forma geométrica de la biblioteca rellena con un patrón.
  */
 export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
   const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
@@ -33,28 +37,64 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
   const set = (d: Partial<Deco>) => onChange({ deco: { ...efectiva, ...pieza.deco, ...d } });
   // El relleno pedido (puede ser foto aunque todavía no haya foto cargada).
   const pedido = pieza.deco?.relleno ?? efectiva.relleno;
+  const modo = modoDeco(pedido);
+  const imagenes = disponibles.filter((t) => t !== "patron");
+  // En el 2B-L con imagen o ícono la forma es siempre el círculo; en el 2B-S se sigue eligiendo.
+  const eligeForma = modo === "figura" || pieza.variante !== "2B-L";
 
   return (
     <div className="flex flex-col gap-2">
       <span className="font-medium">Capa decorativa</span>
-      <div className="flex flex-wrap gap-1">
-        {lib.formasDeco.map((id) => (
-          <button key={id} type="button" title="Forma" onClick={() => set({ forma: id })} className={`${CAJA} overflow-hidden ${efectiva.forma === id ? "border-neutral-900" : "border-neutral-200"}`}>
-            {/* Vista de la forma sangrada: solo la mitad visible, como en la pieza. */}
-            <div style={{ width: 36, height: 36, transform: "translateX(18px)" }}>
-              <FormaSvg id={id} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
-            </div>
-          </button>
-        ))}
-      </div>
       <div className="flex overflow-hidden rounded-md border border-neutral-300">
-        {disponibles.map((t) => (
-          <button key={t} type="button" onClick={() => set({ relleno: t })} className={`flex-1 py-1.5 text-xs ${pedido === t ? "bg-neutral-900 text-white" : "bg-white"}`}>
-            {NOMBRE_RELLENO[t]}
-          </button>
-        ))}
+        {([
+          ["imagen", "Imagen o ícono"],
+          ["figura", "Figura y patrón"],
+        ] as const).map(([m, etiqueta]) => {
+          const posible = m === "figura" ? disponibles.includes("patron") : imagenes.length > 0 || lib.rellenos.includes("foto");
+          return (
+            <button
+              key={m}
+              type="button"
+              disabled={!posible}
+              onClick={() => set({ relleno: m === "figura" ? "patron" : (imagenes[0] ?? "foto") })}
+              className={`flex-1 py-1.5 text-xs ${modo === m ? "bg-neutral-900 text-white" : "bg-white"} disabled:opacity-40`}
+            >
+              {etiqueta}
+            </button>
+          );
+        })}
       </div>
-      {!marca.fotos_habilitadas && (
+      {eligeForma && (
+        <div className="flex flex-wrap gap-1">
+          {lib.formasDeco.map((id) => (
+            <button key={id} type="button" title="Forma" onClick={() => set({ forma: id })} className={`${CAJA} overflow-hidden ${efectiva.forma === id ? "border-neutral-900" : "border-neutral-200"}`}>
+              {/* Vista de la forma sangrada: solo la mitad visible, como en la pieza. */}
+              <div style={{ width: 36, height: 36, transform: "translateX(18px)" }}>
+                <FormaSvg id={id} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {modo === "imagen" && (
+        <>
+          {pieza.variante === "2B-L" && <p className="text-xs text-neutral-500">Círculo del 80% del ancho, desde el centro hacia la derecha.</p>}
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {(["foto", "icono"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                disabled={t === "icono" ? !disponibles.includes("icono") : !lib.rellenos.includes("foto")}
+                onClick={() => set({ relleno: t })}
+                className={`flex-1 py-1.5 text-xs ${pedido === t ? "bg-neutral-900 text-white" : "bg-white"} disabled:opacity-40`}
+              >
+                {NOMBRE_RELLENO[t]}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {modo === "imagen" && !marca.fotos_habilitadas && (
         <p className="text-xs text-neutral-500">Foto: la marca no tiene fotos propias habilitadas (se activa en la ficha de marca).</p>
       )}
 
@@ -93,6 +133,50 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
   );
 }
 
+/**
+ * Decoración de plantilla (v1.1): figuras propias del diseño, opcionales. "Automática" deja la forma de fondo de
+ * siempre; elegir una decoración la reemplaza.
+ */
+export function EditorDecoracion({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
+  const opciones = decoracionesPara(pieza.variante);
+  if (!opciones.length) return null;
+  const f = FORMATOS["4:5"];
+  const p = marca.paleta;
+  const elegida = opciones.find((d) => d.id === pieza.decoracion)?.id ?? null;
+  const miniatura = (id: string | null) => {
+    const d = opciones.find((o) => o.id === id);
+    const t = d ? trazadoDecoracion(d.geometria("4:5"), f.ancho, f.alto) : null;
+    return (
+      <svg viewBox={`0 0 ${f.ancho} ${f.alto}`} className="h-12 w-[38px] rounded-sm" style={{ background: hslCss(p.color_marca) }}>
+        {t ? (
+          <path d={t.d} fill={hslCss(p.tono_apoyo)} />
+        ) : (
+          <circle cx={f.ancho * 0.9} cy={f.alto * 0.95} r={f.ancho * 0.36} fill={hslCss(p.fondo_neutro)} opacity={0.2} />
+        )}
+      </svg>
+    );
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="font-medium">Decoración</span>
+      <div className="flex flex-wrap gap-2">
+        {[{ id: null, nombre: "Automática", descripcion: "Forma de fondo automática." }, ...opciones].map((o) => (
+          <button
+            key={o.id ?? "auto"}
+            type="button"
+            title={o.descripcion}
+            onClick={() => onChange({ decoracion: o.id })}
+            className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-left text-xs ${elegida === o.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 bg-white"}`}
+          >
+            {miniatura(o.id)}
+            {o.nombre}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function EditorContacto({ pieza, onChange }: { pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
   const lista = pieza.contacto ?? [];
   const set = (i: number, d: Partial<{ tipo: TipoContacto; valor: string }>) =>
@@ -100,6 +184,10 @@ export function EditorContacto({ pieza, onChange }: { pieza: Pieza; onChange: (p
   return (
     <div className="flex flex-col gap-2">
       <span className="font-medium">Datos de contacto (hasta {MAX_CONTACTO})</span>
+      <label className="flex items-center gap-2 text-xs">
+        <input type="checkbox" checked={!!pieza.soporte_iconos} onChange={(e) => onChange({ soporte_iconos: e.target.checked })} />
+        Íconos sobre un soporte (cuadrado redondeado)
+      </label>
       {lista.map((d, i) => (
         <div key={i} className="flex gap-2">
           <select value={d.tipo} onChange={(e) => set(i, { tipo: e.target.value as TipoContacto })} className="w-28 rounded-md border border-neutral-300 px-2 py-1.5 text-xs">

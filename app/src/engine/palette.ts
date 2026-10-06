@@ -1,6 +1,6 @@
 // Fórmula de paleta (manual cap. 3 / A.3, v1.1).
 
-import { BLANCO, contraste, distanciaH, mezclar, normalizarH, type HSL } from "./color";
+import { BLANCO, contraste, desdeOklch, distanciaColor, distanciaH, mezclar, normalizarH, oklch, type HSL } from "./color";
 import { L_tabla, PRESETS, type Rubro, type TipoAcento, type ValorMarca } from "./presets";
 
 export const MIN_TEXTO = 4.5;
@@ -16,6 +16,11 @@ export interface EntradaPaleta {
   valor?: ValorMarca | null;
   /** Matiz del color excluido; la banda prohibida es ±25°. */
   excluido_H?: number | null;
+  /**
+   * Modo heredado: si el color del cliente no alcanza 4,5:1 como texto, usar versión funcional (por defecto) o
+   * respetar solo el color heredado (false, decisión del cliente, v1.1). Sin funcional, lo que no cumpla queda como aviso.
+   */
+  funcional?: boolean;
 }
 
 /**
@@ -59,6 +64,10 @@ export interface ResultadoPaleta {
   paleta: Paleta | null;
   estado: "ok" | "revision_manual";
   motivos: string[];
+  /** Controles que no cumplen y se aceptan por decisión del cliente (heredado sin versión funcional). */
+  avisos?: string[];
+  /** Modo heredado: el color del cliente no alcanza como texto y hay que elegir si se usa versión funcional. */
+  requiere_funcional?: boolean;
   /** Registro legible de cada decisión y ajuste, para mostrar en la reunión. */
   log: string[];
 }
@@ -238,12 +247,15 @@ export function derivarPaleta(e: EntradaPaleta): ResultadoPaleta {
     }
   }
 
+  const requiere_funcional = contraste(orig, fondo) < MIN_TEXTO;
+  if (requiere_funcional && e.funcional === false) return heredadoSinFuncional(orig, tipo, banda, e.excluido_H, log);
+
   // Cascada 2: versión funcional para texto, íconos y elementos finos.
   let funcional: HSL | null = null;
   if (contraste(orig, fondo) < MIN_TEXTO) {
     funcional = ajustarContraste({ H, S: orig.S, L: L_tabla(H) }, fondo);
     if (!funcional) {
-      return { paleta: null, estado: "revision_manual", motivos: ["Versión funcional sin contraste (L < 15)"], log };
+      return { paleta: null, estado: "revision_manual", motivos: ["Versión funcional sin contraste (L < 15)"], log, requiere_funcional };
     }
     log.push(`Versión funcional generada: H${H} S${orig.S} L${funcional.L} (texto e íconos).`);
   }
@@ -272,6 +284,7 @@ export function derivarPaleta(e: EntradaPaleta): ResultadoPaleta {
       estado: "revision_manual",
       motivos: ["El color heredado no funciona ni como texto ni como fondo"],
       log,
+      requiere_funcional,
     };
   }
 
@@ -297,7 +310,63 @@ export function derivarPaleta(e: EntradaPaleta): ResultadoPaleta {
     estado: acento ? "ok" : "revision_manual",
     motivos,
     log,
+    requiere_funcional,
   };
+}
+
+/**
+ * Modo heredado sin versión funcional (v1.1, decisión del cliente): el color heredado es el color de marca y también el
+ * texto. El resto de la paleta se genera desde él lo más apegado posible a la fórmula; lo que no alcance los mínimos no
+ * se fuerza cambiando el color de marca: queda como aviso, y la ficha sugiere el tono de apoyo, el fondo neutro o el
+ * acento más próximos que cumplen.
+ */
+function heredadoSinFuncional(
+  orig: HSL,
+  tipo: TipoAcento,
+  banda: [number, number] | null,
+  excluido: number | null | undefined,
+  log: string[],
+): ResultadoPaleta {
+  const H = orig.H;
+  log.push("Sin versión funcional por decisión del cliente: el color heredado se usa también como texto.");
+  // Fondo neutro: el de la fórmula (S30) con la L de 85 a 100 que más contraste con el heredado.
+  const fondo = rango(85, 100, 1)
+    .map((L) => ({ H, S: 30, L }))
+    .reduce((a, b) => (contraste(orig, b) > contraste(orig, a) ? b : a));
+  log.push(`Fondo neutro en L${fondo.L}: el de mayor contraste con el heredado (${contraste(orig, fondo).toFixed(1)}:1).`);
+  const acento = resolverAcento(H, tipo, excluido, orig, orig, log) ?? acentoMasCercano(H, tipo, excluido, orig);
+  const paleta: Paleta = {
+    color_marca: orig,
+    version_funcional: null,
+    tono_apoyo: tonoApoyo(H, orig.L, fondo.L, Math.min(55, Math.max(orig.S, 20))),
+    fondo_neutro: fondo,
+    acento,
+    tipo_acento: tipo,
+    banda_prohibida: banda,
+    invertir_modo: orig.L > 70,
+  };
+  const avisos = fallasPaleta(paleta).map((c) => `${c.control}: ${c.valor.toFixed(1)}:1 (mín. ${c.minimo})`);
+  return { paleta, estado: "ok", motivos: [], avisos, log, requiere_funcional: true };
+}
+
+/** Acento que más se acerca a los mínimos (4,5:1 con su texto y 3:1 sobre la marca) cuando ninguno los cumple. */
+function acentoMasCercano(H: number, tipo: TipoAcento, excluido: number | null | undefined, marca: HSL): Acento {
+  let mejor: Acento = { H: normalizarH(H + 180), S: 85, L: 50, texto: "blanco" };
+  let puntaje = -Infinity;
+  for (const h of candidatosAcento(H, tipo).filter((x) => !enBandaProhibida(x, excluido))) {
+    for (const L of rango(10, 90, 2)) {
+      for (const texto of ["blanco", "color_marca", "tinta_marca"] as const) {
+        const a = { H: h, S: 85, L };
+        const t = texto === "blanco" ? BLANCO : texto === "tinta_marca" ? tintaMarca(marca) : marca;
+        const p = Math.min(contraste(a, t) / MIN_TEXTO, contraste(a, marca) / MIN_GRAFICO);
+        if (p > puntaje) {
+          puntaje = p;
+          mejor = { ...a, texto };
+        }
+      }
+    }
+  }
+  return mejor;
 }
 
 /** Color que va como texto sobre el fondo neutro (marca o su versión funcional). */
@@ -491,7 +560,11 @@ export function estiloCtaSobre(p: Paleta, fondo: HSL): EstiloCta {
   if (contraste(anillo, fondo) >= MIN_GRAFICO && contraste(p.acento, anillo) >= MIN_GRAFICO && contraste(p.acento, texto) >= MIN_TEXTO) {
     return { tratamiento: "contorno", fondo: p.acento, texto, anillo: { color: anillo, px: 8 } };
   }
-  const [textoInv] = [p.acento, colorTexto(p), tintaMarca(colorTexto(p))].sort((a, b) => contraste(b, anillo) - contraste(a, anillo));
+  // Invertido: botón del color que más contrasta con el fondo; el texto va en acento si se lee, si no en el color de la
+  // paleta que más contraste con el botón.
+  const [textoInv] = [p.acento, colorTexto(p), tintaMarca(colorTexto(p)), p.fondo_neutro, BLANCO].sort(
+    (a, b) => (contraste(b, anillo) >= MIN_TEXTO && b === p.acento ? 1 : 0) - (contraste(a, anillo) >= MIN_TEXTO && a === p.acento ? 1 : 0) || contraste(b, anillo) - contraste(a, anillo),
+  );
   return { tratamiento: "invertido", fondo: anillo, texto: textoInv, anillo: null };
 }
 
@@ -510,4 +583,106 @@ export function controlesCtaSobre(p: Paleta, fondo: HSL): ControlContraste[] {
 /** Fondo sobre el que se apoyan el CTA y el logo en la cúpula del 2B-S. Con foto, el overlay de marca domina. */
 export function fondoCapaDecorativa(p: Paleta, relleno: "foto" | "patron" | "icono"): HSL {
   return relleno === "foto" ? p.color_marca : p.tono_apoyo;
+}
+
+/**
+ * Controles de la paleta completa (v1.1, ajuste manual). Cada control indica qué roles intervienen: sirven para marcar
+ * en la ficha qué color ajustado a mano rompe la fórmula y para buscar el color válido más próximo.
+ */
+export interface ControlPaleta extends ControlContraste {
+  roles: RolPaleta[];
+}
+
+export function controlesPaleta(p: Paleta): ControlPaleta[] {
+  const rolTexto: RolPaleta = p.version_funcional ? "version_funcional" : "color_marca";
+  const B = coloresModo(p, "B");
+  const lista: ControlPaleta[] = [
+    { control: "texto de marca sobre el fondo neutro", valor: contraste(colorTexto(p), p.fondo_neutro), minimo: MIN_TEXTO, roles: [rolTexto, "fondo_neutro"] },
+    { control: "texto sobre la marca (Modo B)", valor: contraste(B.texto, p.color_marca), minimo: MIN_GRAFICO, roles: ["color_marca", "fondo_neutro", rolTexto] },
+    { control: "texto sobre el acento", valor: contraste(p.acento, colorTextoAcento(p)), minimo: MIN_TEXTO, roles: ["acento", rolTexto] },
+  ];
+  if (p.version_funcional) {
+    lista.push({ control: "versión funcional sobre la marca", valor: contraste(p.version_funcional, p.color_marca), minimo: MIN_GRAFICO, roles: ["version_funcional", "color_marca"] });
+  }
+  // CTA: vale el mejor tratamiento disponible en cada modo (el peor control de ese tratamiento).
+  const peor = (cs: ControlContraste[]) => cs.reduce((a, b) => (b.valor / b.minimo < a.valor / a.minimo ? b : a));
+  const mejorB = peor(controlesCtaModoB(p, ctaModoBAuto(p)));
+  lista.push({ control: `CTA en Modo B: ${mejorB.control}`, valor: mejorB.valor, minimo: mejorB.minimo, roles: ["acento", "color_marca", "fondo_neutro"] });
+  const mejorA = peor(controlesCtaModoA(p, ctaModoA(p)));
+  lista.push({ control: `CTA en Modo A: ${mejorA.control}`, valor: mejorA.valor, minimo: mejorA.minimo, roles: ["acento", "fondo_neutro", rolTexto] });
+  const cupula = peor(controlesCtaSobre(p, p.tono_apoyo));
+  lista.push({ control: `CTA sobre el tono de apoyo: ${cupula.control}`, valor: cupula.valor, minimo: cupula.minimo, roles: ["tono_apoyo", "acento"] });
+  return lista;
+}
+
+/** Controles de la paleta que no cumplen y en los que interviene `rol` (o todos, si no se indica). */
+export function fallasPaleta(p: Paleta, rol?: RolPaleta): ControlPaleta[] {
+  return controlesPaleta(p).filter((c) => c.valor < c.minimo && (!rol || c.roles.includes(rol)));
+}
+
+/**
+ * Lo que comparten las dos sugerencias del ajuste manual: la banda prohibida (solo para marca y acento), los controles
+ * que tiene que cumplir el rol y la luminosidad HSL que le da la fórmula (el fondo neutro es claro y el tono de apoyo no
+ * pasa de L67).
+ */
+function restriccionesRol(p: Paleta, rol: RolPaleta) {
+  const excluido = p.banda_prohibida ? normalizarH(p.banda_prohibida[0] + BANDA_PROHIBIDA_RADIO) : null;
+  const vigilaBanda = rol === "color_marca" || rol === "acento";
+  const [Lmin, Lmax] = rol === "fondo_neutro" ? [85, 100] : rol === "tono_apoyo" ? [0, 67] : [0, 100];
+  return {
+    enBanda: (H: number) => vigilaBanda && enBandaProhibida(H, excluido),
+    valido: (c: HSL) => fallasPaleta(ajustarRol(p, rol, c), rol).length === 0,
+    Lmin,
+    Lmax,
+  };
+}
+
+/**
+ * Color más próximo a `deseado` (ΔE en CIELAB) que, puesto en `rol` con el resto de la paleta como está, cumple todos
+ * los controles en los que interviene ese rol y queda fuera de la banda prohibida. Prioriza conservar el matiz: se
+ * recorre primero la luminosidad y la saturación, y el matiz se aleja a lo sumo 40°. Null si no hay ninguno.
+ */
+export function colorValidoCercano(p: Paleta, rol: RolPaleta, deseado: HSL): HSL | null {
+  const { enBanda, valido, Lmin, Lmax } = restriccionesRol(p, rol);
+  // El primero que cumple entre los candidatos, del más próximo al más lejano.
+  const buscar = (Hs: number[], Ss: number[], Ls: number[]) => {
+    const candidatos: { c: HSL; d: number }[] = [];
+    for (const h of Hs) {
+      const H = normalizarH(Math.round(h));
+      if (enBanda(H)) continue;
+      for (const S of Ss) for (const L of Ls) candidatos.push({ c: { H, S, L }, d: distanciaColor({ H, S, L }, deseado) });
+    }
+    candidatos.sort((a, b) => a.d - b.d);
+    return candidatos.find(({ c }) => valido(c))?.c ?? null;
+  };
+  const pasos = (desde: number, hasta: number, paso: number) =>
+    Array.from({ length: Math.floor((hasta - desde) / paso) + 1 }, (_, i) => desde + i * paso);
+  const dentro = (v: number) => Math.min(100, Math.max(0, v));
+  // Grilla gruesa y después un refinamiento alrededor del resultado.
+  const grueso = buscar(pasos(deseado.H - 40, deseado.H + 40, 5), pasos(0, 100, 5), pasos(Lmin, Lmax, rol === "fondo_neutro" ? 1 : 2));
+  if (!grueso) return null;
+  const fino = buscar(
+    pasos(grueso.H - 4, grueso.H + 4, 1),
+    pasos(dentro(grueso.S - 5), dentro(grueso.S + 5), 1),
+    pasos(Math.max(Lmin, grueso.L - 3), Math.min(Lmax, grueso.L + 3), 1),
+  );
+  return fino ?? grueso;
+}
+
+/**
+ * Variante por contraste de la sugerencia (paso 9, técnica de Adobe Leonardo): conserva el matiz y el croma percibidos
+ * de `deseado` (OKLCH) y mueve solo la luminosidad, del cambio más chico al más grande, hasta cumplir los mismos
+ * controles que `colorValidoCercano`. A diferencia de esa, nunca cambia el matiz: el resultado es el mismo color, más
+ * claro o más oscuro. Si el croma no entra en sRGB a esa luminosidad, se baja. Null si ninguna luminosidad cumple.
+ */
+export function colorPorContraste(p: Paleta, rol: RolPaleta, deseado: HSL): HSL | null {
+  const { enBanda, valido, Lmin, Lmax } = restriccionesRol(p, rol);
+  const [L0, C, h] = oklch(deseado);
+  const Ls = [L0, ...Array.from({ length: 201 }, (_, i) => i / 200)].sort((a, b) => Math.abs(a - L0) - Math.abs(b - L0));
+  for (const L of Ls) {
+    const c = desdeOklch(L, C, h);
+    if (c.L < Lmin || c.L > Lmax || enBanda(c.H)) continue;
+    if (valido(c)) return c;
+  }
+  return null;
 }

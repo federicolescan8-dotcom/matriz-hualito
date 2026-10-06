@@ -106,3 +106,72 @@ export function mezclar(abajo: HSL, arriba: HSL, alfa: number): HSL {
   const b = hslToRgb(arriba);
   return rgbToHsl(a.map((v, i) => Math.round(v * (1 - alfa) + b[i] * alfa)) as RGB, true);
 }
+
+function lab(c: HSL): [number, number, number] {
+  const [r, g, b] = hslToRgb(c).map(canal);
+  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const x = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047);
+  const y = f(0.2126 * r + 0.7152 * g + 0.0722 * b);
+  const z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+}
+
+/** Diferencia perceptual entre dos colores (ΔE 1976 en CIELAB): ~2 apenas se nota, >10 es otro color. */
+export function distanciaColor(a: HSL, b: HSL): number {
+  const [l1, a1, b1] = lab(a);
+  const [l2, a2, b2] = lab(b);
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
+}
+
+// OKLCH (Björn Ottosson): L 0-1, C ~0-0,37, h en grados. A igual L, los colores se perciben igual de claros, cosa que
+// no pasa con la L de HSL; por eso sirve para mover solo la luminosidad conservando el matiz (técnica de Leonardo).
+
+/** OKLCH de un color: [L, C, h]. */
+export function oklch(c: HSL): [number, number, number] {
+  const [r, g, b] = hslToRgb(c).map(canal);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return [L, Math.hypot(A, B), normalizarH((Math.atan2(B, A) * 180) / Math.PI)];
+}
+
+/** sRGB lineal (0-1, sin recortar) de un OKLCH. */
+function linealDesdeOklch(L: number, C: number, h: number): [number, number, number] {
+  const A = C * Math.cos((h * Math.PI) / 180);
+  const B = C * Math.sin((h * Math.PI) / 180);
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
+  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
+  const s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+}
+
+const dentroDeGamut = (rgb: number[]) => rgb.every((v) => v >= -1e-4 && v <= 1 + 1e-4);
+
+/**
+ * Color HSL de un OKLCH. Si no entra en sRGB se baja el croma hasta que entre (como el gamut mapping de CSS Color 4),
+ * sin tocar L ni h. Se redondea a RGB para que el color validado sea el mismo que se usa.
+ */
+export function desdeOklch(L: number, C: number, h: number): HSL {
+  let lineal = linealDesdeOklch(L, C, h);
+  if (!dentroDeGamut(lineal)) {
+    let [lo, hi] = [0, C];
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2;
+      if (dentroDeGamut(linealDesdeOklch(L, mid, h))) lo = mid;
+      else hi = mid;
+    }
+    lineal = linealDesdeOklch(L, lo, h);
+  }
+  const gamma = (v: number) => {
+    const c = Math.min(1, Math.max(0, v));
+    return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055));
+  };
+  return rgbToHsl(lineal.map(gamma) as RGB, true);
+}

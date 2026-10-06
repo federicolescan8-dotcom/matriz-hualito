@@ -64,3 +64,21 @@ describe("ajustes manuales de paleta", () => {
     expect(r2.ajustes_manuales).toEqual([]);
   });
 });
+
+describe("versión funcional como opción (v1.1)", () => {
+  it("un color heredado claro ofrece dos chips y la marca sin funcional publica con avisos", async () => {
+    const { construirMarca, diagnosticoVacio, generarChips, elegirVersionFuncional, puedeElegirFuncional } = await import("./diagnostico");
+    const d = { ...diagnosticoVacio(), nombre: "X", color_previo_hex: "#0B9EBF" };
+    const chips = generarChips(d);
+    const solo = chips.find((c) => c.id === "previo-heredado-solo")!;
+    expect(chips.find((c) => c.id === "previo-heredado")!.etiqueta).toContain("versión funcional");
+    const m = construirMarca(d, solo);
+    expect(m.color.solo_heredado).toBe(true);
+    expect(m.paleta.version_funcional).toBeNull();
+    expect(puedeElegirFuncional(m)).toBe(true);
+    const con = elegirVersionFuncional(m, true);
+    expect(con.paleta.version_funcional).not.toBeNull();
+    expect(con.color.solo_heredado).toBeUndefined();
+    expect(elegirVersionFuncional(con, false).paleta).toEqual(m.paleta);
+  });
+});

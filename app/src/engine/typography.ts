@@ -65,3 +65,37 @@ export function escala(nivel: Nivel, formato: "feed" | "story"): [number, number
   const f = formato === "story" ? FACTOR_STORY : 1;
   return [Math.round(a * f), Math.round(b * f)];
 }
+
+/**
+ * Jerarquía del H1 (v1.1): el H1 mide al menos el doble que el body y que el texto del CTA. Para lograrlo, el body y el
+ * CTA se achican junto con el H1 (el CTA hasta CTA_MIN px en escala feed), nunca al revés.
+ */
+export const JERARQUIA_H1 = 2;
+
+/**
+ * Altura de x de cada familia como fracción del cuerpo, medida en el navegador sobre la fuente real (canvas,
+ * `actualBoundingBoxAscent` de "x"). Las serif de belleza/lifestyle tienen la x baja: a igual px se ven más chicas.
+ */
+export const ALTURA_X: Record<string, number> = {
+  Inter: 0.55,
+  Manrope: 0.54,
+  Sora: 0.54,
+  "Space Grotesk": 0.49,
+  Fraunces: 0.47,
+  Newsreader: 0.44,
+};
+/** Altura de x de referencia (las sans del sistema) y umbral: por debajo, el texto secundario se compensa. */
+const X_REFERENCIA = 0.54;
+const X_UMBRAL = 0.48;
+const COMPENSACION_MAX = 1.2;
+
+/**
+ * Compensación óptica del texto secundario (body y datos de contacto): con una familia de x baja se agranda hasta
+ * igualar la altura de x de una sans, con un tope del 20%. Newsreader ×1,2 y Fraunces ×1,15; el resto ×1.
+ */
+export function compensacionOptica(familia: string): number {
+  const x = ALTURA_X[familia];
+  if (!x || x >= X_UMBRAL) return 1;
+  return Math.min(COMPENSACION_MAX, Math.round((X_REFERENCIA / x) * 100) / 100);
+}
+export const CTA_MIN = 24;

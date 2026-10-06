@@ -2,9 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Guias } from "@/components/Guias";
 import { Pieza } from "@/components/Pieza";
 import { TEXTOS_EJEMPLO } from "@/components/PiezaMuestra";
-import type { Bloque, ResultadoChecklist } from "@/engine/checklist";
+import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
+import { Checklist } from "@/components/Checklist";
+import { PublicarCarrusel } from "@/components/PublicarCarrusel";
+import { descargar, renderizar, slug } from "@/lib/exportar";
 import type { Marca } from "@/engine/diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
@@ -19,8 +23,8 @@ import {
 } from "@/engine/pieza";
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
-import { useMarcas } from "@/lib/marcas";
-import { EditorCatalogo, EditorContacto, EditorDeco } from "@/components/EditoresPieza";
+import { elegirMarcaActiva, useMarcaActiva, useMarcas } from "@/lib/marcas";
+import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
 const VISTA_MAX = { ancho: 460, alto: 640 };
@@ -30,36 +34,11 @@ const TODOS: { formato: Formato; canal: Canal }[] = [
   { formato: "4:5", canal: "feed_ig" },
   { formato: "1:1", canal: "feed_ig" },
   { formato: "9:16", canal: "stories_ig" },
-  { formato: "1200x630", canal: "feed_fb" },
+  { formato: "1200x630", canal: "link" },
 ];
-
-type Render = { png: Blob } | { resultado: ResultadoChecklist } | { error: string };
-
-async function renderizar(marca: Marca, pieza: TPieza): Promise<Render> {
-  const res = await fetch("/api/render", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ marca, pieza }),
-  });
-  if (res.status === 422) return { resultado: ((await res.json()) as { resultado: ResultadoChecklist }).resultado };
-  if (!res.ok) return { error: ((await res.json()) as { error: string }).error };
-  return { png: await res.blob() };
-}
-
-function slug(texto: string): string {
-  return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-");
-}
 
 function nombreArchivo(marca: Marca, p: TPieza): string {
   return `${slug(marca.nombre)}-${p.canal}-${p.formato.replace(":", "x")}-v${p.variante}-${p.modo}.png`;
-}
-
-function descargar(blob: Blob, nombre: string) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = nombre;
-  a.click();
-  URL.revokeObjectURL(a.href);
 }
 
 function piezaInicial(marca: Marca): TPieza {
@@ -69,7 +48,8 @@ function piezaInicial(marca: Marca): TPieza {
 
 export default function PublicarPage() {
   const marcas = useMarcas();
-  const [marcaId, setMarcaId] = useState<string | null>(null);
+  // La marca activa es compartida con la sección Marcas: la última abierta o elegida.
+  const marcaId = useMarcaActiva();
   const marca = marcas.find((m) => m.id === marcaId) ?? marcas[0] ?? null;
   const [pieza, setPieza] = useState<TPieza | null>(null);
   // La pieza por defecto se crea una sola vez por marca: si se recreara en cada render cambiaría su id y la vista
@@ -77,8 +57,12 @@ export default function PublicarPage() {
   const inicial = useMemo(() => (marca ? piezaInicial(marca) : null), [marca]);
   const actual = pieza && marca && pieza.marca_id === marca.id ? pieza : inicial;
   const [resultado, setResultado] = useState<ResultadoChecklist | null>(null);
+  const [medicion, setMedicion] = useState<Medicion | null>(null);
+  const [guias, setGuias] = useState(false);
+  const [hoja, setHoja] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [errorExport, setErrorExport] = useState<string | null>(null);
+  const [tipo, setTipo] = useState<"simple" | "carrusel">("simple");
 
   if (!marca || !actual) {
     return (
@@ -144,18 +128,51 @@ export default function PublicarPage() {
     }
   }
 
+  const barra = (
+    <div className="flex flex-wrap items-end gap-4">
+      <h1 className="mr-auto text-2xl font-semibold">Nueva publicación</h1>
+      <div className="flex overflow-hidden rounded-md border border-neutral-300 text-sm">
+        {([
+          ["simple", "Publicación simple"],
+          ["carrusel", "Carrusel 4:5"],
+        ] as const).map(([t, etiqueta]) => (
+          <button key={t} type="button" onClick={() => setTipo(t)} className={`px-4 py-2 ${tipo === t ? "bg-neutral-900 text-white" : "bg-white"}`}>
+            {etiqueta}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (tipo === "carrusel") {
+    return (
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8">
+        {barra}
+        <label className="flex max-w-xs flex-col gap-1 text-sm">
+          <span className="font-medium">Marca</span>
+          <select value={marca.id} onChange={(e) => elegirMarcaActiva(e.target.value)} className="rounded-md border border-neutral-300 px-3 py-2">
+            {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+          </select>
+        </label>
+        <PublicarCarrusel key={marca.id} marca={marca} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[20rem_auto_1fr]">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8">
+    {barra}
+    <div className="grid w-full gap-8 lg:grid-cols-[20rem_auto_1fr]">
       {/* Formulario */}
       <section className="flex flex-col gap-5 text-sm">
-        <h1 className="text-2xl font-semibold">Nueva publicación</h1>
         <label className="flex flex-col gap-1">
           <span className="font-medium">Marca</span>
           <select
             value={marca.id}
             onChange={(e) => {
-              setMarcaId(e.target.value);
+              elegirMarcaActiva(e.target.value);
               setPieza(null);
+              setResultado(null);
             }}
             className="rounded-md border border-neutral-300 px-3 py-2"
           >
@@ -272,20 +289,36 @@ export default function PublicarPage() {
           </label>
         )}
         {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
+        <EditorDecoracion marca={marca} pieza={actual} onChange={set} />
         {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
         {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>
 
       {/* Vista previa */}
       <section className="flex flex-col gap-3">
-        <div className="text-xs text-neutral-500">
-          {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.tipografia.familia_variable}
+        <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
+          <span>
+            {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.tipografia.familia_variable}
+          </span>
+          <label className="flex shrink-0 items-center gap-1.5 text-neutral-700">
+            <input type="checkbox" checked={guias} onChange={(e) => setGuias(e.target.checked)} />
+            Guías
+          </label>
         </div>
-        <div className="overflow-hidden rounded-md shadow-md" style={{ width: f.ancho * escala, height: f.alto * escala }}>
+        <div className="relative overflow-hidden rounded-md shadow-md" style={{ width: f.ancho * escala, height: f.alto * escala }}>
           <div style={{ transform: `scale(${escala})`, transformOrigin: "top left" }}>
-            <Pieza marca={marca} pieza={actual} onResultado={setResultado} />
+            <Pieza
+              marca={marca}
+              pieza={actual}
+              onResultado={(r, m) => {
+                setResultado(r);
+                setMedicion(m);
+              }}
+            />
+            {guias && <Guias formato={actual.formato} medicion={medicion} escala={escala} />}
           </div>
         </div>
+        {guias && <LeyendaGuias />}
         <button
           type="button"
           onClick={exportar}
@@ -304,64 +337,26 @@ export default function PublicarPage() {
         </button>
         {errorExport && <p className="max-w-[460px] text-sm text-red-700">{errorExport}</p>}
         <TodosLosFormatos marca={marca} piezaEn={piezaEn} actual={actual.formato} onElegir={(formato, canal) => set({ formato, canal })} />
+        <button type="button" onClick={() => setHoja(!hoja)} className="self-start text-xs underline underline-offset-2">
+          {hoja ? "Cerrar la hoja de contactos" : "Ver hoja de contactos (los 4 formatos grandes, con guías)"}
+        </button>
       </section>
 
       {/* Checklist */}
       <Checklist resultado={resultado} />
+
+      {hoja && (
+        <HojaContactos
+          marca={marca}
+          piezaEn={piezaEn}
+          onElegir={(formato, canal) => {
+            set({ formato, canal });
+            setHoja(false);
+          }}
+        />
+      )}
     </div>
-  );
-}
-
-const BLOQUES: Bloque[] = ["Color y contraste", "Tipografía", "Composición", "Zonas seguras", "Contenido"];
-
-function Checklist({ resultado }: { resultado: ResultadoChecklist | null }) {
-  const estados = useMemo(
-    () => ({
-      ok: { texto: "Aprobada", clase: "bg-emerald-100 text-emerald-900" },
-      rechazado: { texto: "Rechazada", clase: "bg-red-100 text-red-900" },
-      revision_manual: { texto: "Revisión manual", clase: "bg-amber-100 text-amber-900" },
-    }),
-    [],
-  );
-  if (!resultado) return <section className="text-sm text-neutral-500">Calculando…</section>;
-  const fallidos = resultado.controles.filter((c) => !c.ok).length;
-  return (
-    <section className="flex flex-col gap-4 text-sm">
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">Control de calidad</h2>
-        <span className={`rounded-full px-3 py-0.5 text-xs font-medium ${estados[resultado.estado].clase}`}>
-          {estados[resultado.estado].texto}
-        </span>
-      </div>
-      <p className="text-neutral-600">
-        {resultado.estado === "ok"
-          ? `Los ${resultado.controles.length} controles del manual pasan. La pieza se puede publicar.`
-          : resultado.estado === "revision_manual"
-            ? resultado.motivos_revision.join(" ")
-            : `${fallidos} control${fallidos === 1 ? "" : "es"} sin cumplir. Una pieza rechazada no se exporta.`}
-      </p>
-      {BLOQUES.map((b) => {
-        const lista = resultado.controles.filter((c) => c.bloque === b);
-        if (!lista.length) return null;
-        return (
-          <div key={b}>
-            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{b}</h3>
-            <ul className="flex flex-col gap-1">
-              {lista.map((c) => (
-                <li key={c.control} className={`flex gap-2 ${c.ok ? "text-neutral-700" : "text-red-800"}`}>
-                  <span className="w-4 shrink-0">{c.ok ? "✓" : "✗"}</span>
-                  <span>
-                    {c.control}
-                    {c.detalle && <span className="text-neutral-500"> · {c.detalle}</span>}
-                    {!c.ok && <span className="block text-xs text-red-700">Acción: {c.accion}</span>}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </section>
+    </div>
   );
 }
 
@@ -412,5 +407,121 @@ function TodosLosFormatos({
         })}
       </div>
     </div>
+  );
+}
+
+function LeyendaGuias() {
+  const item = (estilo: React.CSSProperties, texto: string) => (
+    <span className="flex items-center gap-1.5">
+      <span className="inline-block h-3 w-4" style={estilo} />
+      {texto}
+    </span>
+  );
+  return (
+    <div className="flex max-w-[460px] flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
+      {item({ border: "1.5px dashed #0891b2" }, "margen de diseño")}
+      {item({ border: "1.5px dotted #0891b2" }, "margen mínimo")}
+      {item({ border: "1.5px solid #c026d3" }, "cajas medidas")}
+      {item({ border: "1.5px dashed #64748b" }, "capa decorativa")}
+      {item({ background: "#dc262666", outline: "1.5px solid #dc2626" }, "elementos que se pisan")}
+      {item({ background: "repeating-linear-gradient(45deg, #f59e0b88 0 3px, transparent 3px 7px)" }, "tapado por la plataforma")}
+    </div>
+  );
+}
+
+/** Dónde cae el logo en la pieza: sirve para ver si la serie mantiene su ancla en todos los formatos. */
+function anclaLogo(m: Medicion, formato: Formato): string | null {
+  if (!m.logo) return null;
+  const f = FORMATOS[formato];
+  const cx = (m.logo.x + m.logo.w / 2) / f.ancho;
+  const cy = (m.logo.y + m.logo.h / 2) / f.alto;
+  const v = cy < 1 / 3 ? "arriba" : cy > 2 / 3 ? "abajo" : "al medio";
+  const h = cx < 1 / 3 ? "a la izquierda" : cx > 2 / 3 ? "a la derecha" : "centrado";
+  return `${v} ${h}`;
+}
+
+/**
+ * Hoja de contactos: la misma pieza en los cuatro formatos, grandes y con guías, para revisar la serie como un todo
+ * antes de exportar (que el logo mantenga su lugar, que la escala del H1 sea pareja, que nada se pise).
+ */
+function HojaContactos({
+  marca,
+  piezaEn,
+  onElegir,
+}: {
+  marca: Marca;
+  piezaEn: (formato: Formato, canal: Canal) => TPieza;
+  onElegir: (formato: Formato, canal: Canal) => void;
+}) {
+  const [datos, setDatos] = useState<Partial<Record<Formato, { r: ResultadoChecklist; m: Medicion }>>>({});
+  const [conGuias, setConGuias] = useState(true);
+  const ALTO = 380;
+  const anclas = TODOS.map(({ formato }) => (datos[formato] ? anclaLogo(datos[formato]!.m, formato) : null));
+  const completa = TODOS.every(({ formato }) => datos[formato]);
+  const distintas = new Set(anclas.filter(Boolean)).size;
+  return (
+    <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6 lg:col-span-3">
+      <div className="flex flex-wrap items-center gap-4">
+        <h2 className="text-lg font-semibold">Hoja de contactos</h2>
+        <label className="flex items-center gap-1.5 text-xs">
+          <input type="checkbox" checked={conGuias} onChange={(e) => setConGuias(e.target.checked)} />
+          Guías
+        </label>
+        {completa && (
+          <span className={`text-xs ${distintas > 1 ? "text-amber-800" : "text-neutral-600"}`}>
+            {distintas > 1
+              ? "⚠ El logo cambia de lugar entre formatos: revisá que la serie se siga reconociendo como una sola campaña."
+              : "El logo mantiene su lugar en los cuatro formatos."}
+          </span>
+        )}
+      </div>
+      {conGuias && <LeyendaGuias />}
+      <div className="flex flex-wrap items-start gap-6">
+        {TODOS.map(({ formato, canal }, i) => {
+          const f = FORMATOS[formato];
+          const escala = ALTO / f.alto;
+          const d = datos[formato];
+          const pendientes = d ? d.r.controles.filter((c) => c.aviso || (!c.ok && !c.aceptado)) : [];
+          return (
+            <div key={formato} className="flex flex-col gap-2" style={{ width: f.ancho * escala }}>
+              <button
+                type="button"
+                onClick={() => onElegir(formato, canal)}
+                title="Editar este formato"
+                className="relative overflow-hidden rounded text-left shadow-md"
+                style={{ width: f.ancho * escala, height: ALTO }}
+              >
+                <div style={{ transform: `scale(${escala})`, transformOrigin: "top left", pointerEvents: "none" }}>
+                  <Pieza marca={marca} pieza={piezaEn(formato, canal)} onResultado={(r, m) => setDatos((prev) => ({ ...prev, [formato]: { r, m } }))} />
+                  {conGuias && <Guias formato={formato} medicion={d?.m ?? null} escala={escala} />}
+                </div>
+              </button>
+              <div className="text-xs">
+                <div className="flex gap-2">
+                  <span className="font-medium">{f.nombre}</span>
+                  <span className={d?.r.estado === "ok" ? "text-emerald-700" : d ? "text-red-700" : "text-neutral-400"}>
+                    {d ? (d.r.estado === "ok" ? "✓" : d.r.estado === "revision_manual" ? "revisión" : "✗") : "…"}
+                  </span>
+                </div>
+                {d && (
+                  <div className="text-neutral-500">
+                    H1 {d.m.h1.px} px · {d.m.h1.lineas.length} {d.m.h1.lineas.length === 1 ? "línea" : "líneas"}
+                    {anclas[i] ? ` · logo ${anclas[i]}` : ""}
+                  </div>
+                )}
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {pendientes.map((c) => (
+                    <li key={c.control} className={c.aviso ? "text-amber-800" : "text-red-800"}>
+                      {c.aviso ? "⚠" : "✗"} {c.control}
+                      {c.detalle && <span className="text-neutral-500"> · {c.detalle}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

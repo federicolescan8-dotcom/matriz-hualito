@@ -6,7 +6,8 @@ export type ValorMarca = "confianza" | "energia" | "calma" | "innovacion";
 export type TipoAcento = "complementario" | "analogo";
 export type Modo = "A" | "B";
 export type Alineacion = "izquierda" | "centrado";
-export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4";
+/** "P" (Punto) es solo para los slides de contenido del carrusel. */
+export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4" | "P";
 
 export interface PresetRubro {
   nombre: string;

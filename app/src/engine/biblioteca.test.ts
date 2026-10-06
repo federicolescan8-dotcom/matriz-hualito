@@ -38,12 +38,30 @@ describe("capa decorativa efectiva", () => {
     expect(decoEfectiva(marca, { ...piezaNueva(marca), variante: "2B-L" })).toMatchObject({ forma: "circulo", relleno: "patron", patron: "puntos" });
   });
 
-  it("foto pedida sin foto cargada: la misma forma se rellena con el relleno siguiente del rubro", () => {
+  it("foto pedida sin foto cargada: se queda en el modo imagen con un ícono, siempre en círculo en el 2B-L", () => {
     const conFotos = { ...marca, fotos_habilitadas: true };
     const p = { ...piezaNueva(conFotos), variante: "2B-L" as const, deco: { forma: "sello", relleno: "foto" as const, foto: null } };
-    expect(decoEfectiva(conFotos, p)).toMatchObject({ forma: "sello", relleno: "patron" });
+    expect(decoEfectiva(conFotos, p)).toMatchObject({ forma: "circulo", relleno: "icono" });
     const conFoto = { ...p, deco: { ...p.deco, foto: "data:image/png;base64,AAAA" } };
-    expect(decoEfectiva(conFotos, conFoto)).toMatchObject({ forma: "sello", relleno: "foto" });
+    expect(decoEfectiva(conFotos, conFoto)).toMatchObject({ forma: "circulo", relleno: "foto" });
+    // Figura y patrón conserva la forma elegida.
+    expect(decoEfectiva(conFotos, { ...p, deco: { ...p.deco, relleno: "patron" as const } })).toMatchObject({ forma: "sello", relleno: "patron" });
+  });
+
+  it("2B-L con imagen: círculo del 80% del ancho desde el centro, centrado en alto", async () => {
+    const { geometria2BLImagen } = await import("./pieza");
+    const g = geometria2BLImagen("4:5");
+    // En 4:5 el bloque del mensaje va del borde superior al inferior del círculo.
+    expect(g).toMatchObject({ diametro: 864, izquierda: 540, arriba: 243, textoArriba: 243, logoAbajo: 243 + 864 });
+    const s = geometria2BLImagen("9:16");
+    expect(s.diametro).toBe(864);
+    // Centrado en la zona segura del 9:16 (15% arriba, 20% abajo), no en el lienzo.
+    expect(s.arriba).toBeCloseTo(288 + (1536 - 288 - 864) / 2);
+    expect(s.textoArriba).toBeCloseTo(s.arriba - 1920 * 0.08);
+    expect(s.logoAbajo).toBeCloseTo(s.arriba + 864 + 1920 * 0.08);
+    // Si hace falta lugar para el H1, el círculo puede arrancar en el 60%; en 1:1 arranca siempre ahí.
+    expect(g.posiciones).toEqual([540, 648]);
+    expect(geometria2BLImagen("1:1").posiciones).toEqual([648]);
   });
 
   it("una forma o un patrón que el rubro no habilita se reemplazan por los del rubro", () => {

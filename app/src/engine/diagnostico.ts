@@ -33,6 +33,8 @@ export interface Chip {
   etiqueta: string;
   H: number;
   modo: "optimizado" | "heredado";
+  /** Modo heredado: false si el cliente eligió respetar solo su color, sin versión funcional. */
+  funcional?: boolean;
   resultado: ResultadoPaleta;
 }
 
@@ -48,6 +50,11 @@ export interface Marca {
     base: HSL;
     version_funcional: HSL | null;
     banda_prohibida: [number, number] | null;
+    /**
+     * Heredado que no alcanza como texto y el cliente eligió no usar versión funcional (v1.1). Los controles de color
+     * que no cumplen se aceptan con aviso.
+     */
+    solo_heredado?: boolean;
   };
   paleta: Paleta;
   /** Paleta tal como la calculó la fórmula, antes de ajustes manuales en la ficha. */
@@ -109,13 +116,25 @@ export function generarChips(d: Diagnostico): Chip[] {
       modo: "optimizado",
       resultado: derivarPaleta({ ...base, modo: "optimizado", H: previo.H }),
     });
+    const heredado = derivarPaleta({ ...base, modo: "heredado", heredado: previo });
+    // Si el color del cliente no alcanza como texto, la versión funcional es una opción, no un paso automático.
     chips.push({
       id: "previo-heredado",
-      etiqueta: "Tu color tal cual",
+      etiqueta: heredado.requiere_funcional ? "Tu color con versión funcional" : "Tu color tal cual",
       H: previo.H,
       modo: "heredado",
-      resultado: derivarPaleta({ ...base, modo: "heredado", heredado: previo }),
+      resultado: heredado,
     });
+    if (heredado.requiere_funcional) {
+      chips.push({
+        id: "previo-heredado-solo",
+        etiqueta: "Tu color tal cual, sin versión funcional",
+        H: previo.H,
+        modo: "heredado",
+        funcional: false,
+        resultado: derivarPaleta({ ...base, modo: "heredado", heredado: previo, funcional: false }),
+      });
+    }
   }
   return chips;
 }
@@ -138,6 +157,7 @@ export function construirMarca(d: Diagnostico, chip: Chip, organizacion_id = "hu
       base: paleta.color_marca,
       version_funcional: paleta.version_funcional,
       banda_prohibida: paleta.banda_prohibida,
+      ...(chip.funcional === false ? { solo_heredado: true } : {}),
     },
     paleta,
     logo: d.logo,
@@ -201,4 +221,47 @@ export function elegirCtaModoB(m: Marca, modo: CtaModoB | null): Marca {
   if (modo) paleta.cta_modo_b = modo;
   else delete paleta.cta_modo_b;
   return { ...m, paleta };
+}
+
+/** Color heredado del cliente tal como se eligió (antes de ajustes manuales). */
+function colorHeredado(m: Marca): HSL {
+  return (m.paleta_calculada ?? m.paleta).color_marca;
+}
+
+/** Recalcula la paleta de una marca heredada con o sin versión funcional. */
+export function paletaHeredada(m: Marca, funcional: boolean): ResultadoPaleta {
+  return derivarPaleta({
+    rubro: m.rubro,
+    modo: "heredado",
+    heredado: colorHeredado(m),
+    valor: m.diagnostico.personalidad.valor,
+    excluido_H: m.diagnostico.excluido_H,
+    funcional,
+  });
+}
+
+/** La marca es heredada y su color no alcanza como texto: se puede elegir con o sin versión funcional. */
+export function puedeElegirFuncional(m: Marca): boolean {
+  return m.color.modo === "heredado" && paletaHeredada(m, true).requiere_funcional === true;
+}
+
+/**
+ * Cambia la elección de versión funcional (v1.1). La paleta se recalcula desde el color heredado y se descartan los
+ * ajustes manuales. Si la opción pedida no tiene paleta posible, la marca queda como estaba.
+ */
+export function elegirVersionFuncional(m: Marca, funcional: boolean): Marca {
+  const r = paletaHeredada(m, funcional);
+  if (!r.paleta) return m;
+  return {
+    ...m,
+    paleta: r.paleta,
+    paleta_calculada: undefined,
+    ajustes_manuales: [],
+    color: {
+      ...m.color,
+      base: r.paleta.color_marca,
+      version_funcional: r.paleta.version_funcional,
+      solo_heredado: funcional ? undefined : true,
+    },
+  };
 }

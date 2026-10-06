@@ -159,3 +159,40 @@ export function descargarJson(m: Marca): void {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ── Marca activa: la última abierta en Marcas o elegida en Publicar, compartida entre secciones ──
+
+const CLAVE_ACTIVA = "hualito.marcaActiva";
+const EVENTO_ACTIVA = "hualito:marcaActiva";
+
+function leerActiva(): string | null {
+  try {
+    return localStorage.getItem(CLAVE_ACTIVA);
+  } catch {
+    return null;
+  }
+}
+
+export function elegirMarcaActiva(id: string): void {
+  try {
+    localStorage.setItem(CLAVE_ACTIVA, id);
+  } catch {
+    // Sin almacenamiento, la marca activa vale solo para esta vista.
+  }
+  window.dispatchEvent(new Event(EVENTO_ACTIVA));
+}
+
+export function useMarcaActiva(): string | null {
+  return useSyncExternalStore(
+    (cb) => {
+      window.addEventListener(EVENTO_ACTIVA, cb);
+      window.addEventListener("storage", cb);
+      return () => {
+        window.removeEventListener(EVENTO_ACTIVA, cb);
+        window.removeEventListener("storage", cb);
+      };
+    },
+    leerActiva,
+    () => null,
+  );
+}

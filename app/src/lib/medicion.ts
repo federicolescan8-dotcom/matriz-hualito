@@ -5,7 +5,9 @@
 import type { HSL } from "@/engine/color";
 import type { Medicion, MedidaTexto, Rect } from "@/engine/checklist";
 import type { TipoDeco } from "@/engine/biblioteca";
-import type { PlantillaVariante } from "@/engine/pieza";
+import { h1Minimo, type PlantillaVariante } from "@/engine/pieza";
+import { tocaDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
+import { CTA_MIN, JERARQUIA_H1 } from "@/engine/typography";
 
 const q = (root: HTMLElement, slot: string) => root.querySelector<HTMLElement>(`[data-slot="${slot}"]`);
 
@@ -14,12 +16,69 @@ const q = (root: HTMLElement, slot: string) => root.querySelector<HTMLElement>(`
  * conserve el H1. No desborda a lo ancho ni pasa el alto máximo del H1 de la variante. Si nada entra al mínimo,
  * informa desborde.
  */
-export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, alto: number, escala: number): boolean {
+export function ajustarTexto(
+  root: HTMLElement,
+  plantilla: PlantillaVariante,
+  alto: number,
+  escala: number,
+  /** 2B-L con imagen: posiciones posibles del círculo (variable --deco-izq), en orden de preferencia. */
+  decoIzq?: number[],
+): boolean {
+  // El CTA va en una línea; si así no entra en ninguna posición, se le permite partirse en dos.
+  root.style.setProperty("--cta-salto", "nowrap");
+  root.style.setProperty("--h1-mayuscula", "0px");
+  let desborde = ajustarEnPosiciones(root, plantilla, alto, escala, decoIzq);
+  if (desborde && q(root, "cta")) {
+    root.style.setProperty("--cta-salto", "normal");
+    desborde = ajustarEnPosiciones(root, plantilla, alto, escala, decoIzq);
+  }
+  // 2B-L con imagen: el tope de las mayúsculas del H1 (no el del renglón) se alinea con el borde del círculo. Subir el
+  // bloque solo libera lugar abajo, así que el ajuste sigue valiendo.
+  const h1 = q(root, "h1");
+  if (decoIzq && h1) root.style.setProperty("--h1-mayuscula", `${aireSobreMayuscula(h1)}px`);
+  return desborde;
+}
+
+/** Distancia entre el borde superior del renglón del H1 y el tope de sus mayúsculas, en px. */
+function aireSobreMayuscula(h1: HTMLElement): number {
+  const cs = getComputedStyle(h1);
+  const fs = parseFloat(cs.fontSize);
+  const ctx = document.createElement("canvas").getContext("2d");
+  if (!ctx) return 0;
+  ctx.font = `${cs.fontWeight} ${fs}px ${cs.fontFamily}`;
+  const m = ctx.measureText("H");
+  const alto = parseFloat(cs.lineHeight) || fs * 1.04;
+  const aire = (alto - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+  return Math.max(0, Math.round(aire));
+}
+
+function ajustarEnPosiciones(root: HTMLElement, plantilla: PlantillaVariante, alto: number, escala: number, decoIzq?: number[]): boolean {
+  if (decoIzq && decoIzq.length > 1) {
+    // Se queda en la primera posición si el H1 llega a un tamaño cómodo (el medio de su rango); si no, usa la que dé
+    // el H1 más grande.
+    const deseado = Math.round(((plantilla.h1.min + plantilla.h1.max) / 2) * escala);
+    let mejor: { v: number; h1: number; desborde: boolean } | null = null;
+    for (const v of decoIzq) {
+      root.style.setProperty("--deco-izq", `${v}px`);
+      const desborde = ajustarTextoUna(root, plantilla, alto, escala);
+      const h1 = parseFloat(root.style.getPropertyValue("--h1"));
+      if (!desborde && h1 >= deseado) return false;
+      if (!mejor || (mejor.desborde && !desborde) || (mejor.desborde === desborde && h1 > mejor.h1)) mejor = { v, h1, desborde };
+    }
+    root.style.setProperty("--deco-izq", `${mejor!.v}px`);
+    return ajustarTextoUna(root, plantilla, alto, escala);
+  }
+  if (decoIzq) root.style.setProperty("--deco-izq", `${decoIzq[0]}px`);
+  return ajustarTextoUna(root, plantilla, alto, escala);
+}
+
+function ajustarTextoUna(root: HTMLElement, plantilla: PlantillaVariante, alto: number, escala: number): boolean {
   const zona = q(root, "mensaje");
   const contenido = q(root, "mensaje-contenido");
   const h1 = q(root, "h1");
   if (!zona || !contenido || !h1) return false;
   const body = q(root, "body");
+  const cta = q(root, "cta");
   const px = (v: number) => Math.round(v * escala);
   // Las cajas reales de las letras (ascendentes y descendentes) pueden sobresalir del interlineado: tienen que quedar
   // dentro de la columna de contenido (la zona segura), si no pisan el margen.
@@ -33,23 +92,69 @@ export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, al
       return [...range.getClientRects()].every((r) => r.top >= z.top - 0.5 && r.bottom <= z.bottom + 0.5);
     });
   };
+  // 2B-L vertical: la forma real (no su caja), con un aire de 40 px de lienzo. El título puede acercarse al contorno
+  // pero no pasarlo: si lo toca, se achica. El círculo se mide exacto; otra forma, sobre su contorno muestreado.
+  const lateralEl = root.querySelector<HTMLElement>("[data-deco-lateral]");
+  const circuloEl = lateralEl?.hasAttribute("data-circulo") ? lateralEl : null;
+  const escalaVista = root.getBoundingClientRect().width / root.offsetWidth || 1;
+  const lejosDelCirculo = () => {
+    if (!lateralEl) return true;
+    const cajas = [h1, body].flatMap((el) => {
+      if (!el) return [];
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return [...range.getClientRects()];
+    });
+    if (cta) cajas.push(cta.getBoundingClientRect());
+    if (!circuloEl) {
+      const puntos = contornoForma(lateralEl, 240);
+      return cajas.every((k) => !tocaContorno(k, puntos, 40 * escalaVista));
+    }
+    const c = circuloEl.getBoundingClientRect();
+    const circulo = { cx: c.left + c.width / 2, cy: c.top + c.height / 2, r: c.width / 2 + 40 * escalaVista };
+    return cajas.every((k) => !tocaCirculo(k, circulo));
+  };
+  // Decoración de plantilla: el texto se aleja 40 px de sus figuras; si las toca, se achica.
+  const decoEl = root.querySelector<SVGElement>("[data-decoracion]");
+  const geoDeco = decoEl ? (JSON.parse(decoEl.dataset.decoracion!) as GeometriaDecoracion) : null;
+  const lejosDeLaDecoracion = () => {
+    if (!geoDeco) return true;
+    const cajas = [h1, body].flatMap((el) => {
+      if (!el) return [];
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return [...range.getClientRects()];
+    });
+    if (cta) cajas.push(cta.getBoundingClientRect());
+    root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]').forEach((el) => cajas.push(el.getBoundingClientRect()));
+    return cajas.every((k) => !tocaDecoracion(relativo(root, k), geoDeco, 40));
+  };
   const cabe = () =>
     contenido.offsetHeight <= zona.clientHeight + 1 &&
+    lejosDelCirculo() &&
+    lejosDeLaDecoracion() &&
+    zona.scrollHeight <= zona.clientHeight + 1 &&
     letrasDentro() &&
     h1.scrollWidth <= h1.clientWidth + 1 &&
     (!body || body.scrollWidth <= body.clientWidth + 1) &&
+    // El CTA no pasa el borde derecho de la columna (no pisa la capa decorativa).
+    (!cta || cta.getBoundingClientRect().right <= columna.getBoundingClientRect().right + 0.5) &&
     h1.offsetHeight <= plantilla.h1.altoMax * alto &&
     (!plantilla.h1.maxLineas || lineasH1() <= plantilla.h1.maxLineas);
   // Renglones del H1 a partir de su alto y su interlineado (1,04).
   const lineasH1 = () => Math.round(h1.offsetHeight / (parseFloat(getComputedStyle(h1).fontSize) * 1.04));
 
+  // Jerarquía: el CTA acompaña al H1 (a lo sumo la mitad) y el body nunca pasa la mitad del H1.
+  const ctaMin = Math.min(px(CTA_MIN), px(plantilla.cta));
+  const ctaPara = (h: number) => Math.max(ctaMin, Math.min(px(plantilla.cta), Math.floor(h / JERARQUIA_H1)));
   const prueba = (h: number, b: number) => {
     root.style.setProperty("--h1", `${h}px`);
     root.style.setProperty("--body", `${b}px`);
+    root.style.setProperty("--cta", `${ctaPara(h)}px`);
     return cabe();
   };
-  const h1Min = px(plantilla.h1.min);
   const bodyMin = px(plantilla.body.min);
+  const h1Min = h1Minimo(plantilla, escala);
   // 1) El H1 más grande que entra con el body al mínimo; 2) con ese H1, el body más grande que entra.
   // Búsqueda binaria en pasos de 2 px: unas 10 mediciones en vez de recorrer todas las combinaciones.
   const h1Px = mayorQueCabe(h1Min, px(plantilla.h1.max), (h) => prueba(h, bodyMin));
@@ -57,9 +162,62 @@ export function ajustarTexto(root: HTMLElement, plantilla: PlantillaVariante, al
     prueba(h1Min, bodyMin);
     return true;
   }
-  const bodyPx = mayorQueCabe(bodyMin, px(plantilla.body.max), (b) => prueba(h1Px, b)) ?? bodyMin;
+  const bodyMax = Math.max(bodyMin, Math.min(px(plantilla.body.max), Math.floor(h1Px / JERARQUIA_H1)));
+  const bodyPx = mayorQueCabe(bodyMin, bodyMax, (b) => prueba(h1Px, b)) ?? bodyMin;
   prueba(h1Px, bodyPx);
   return false;
+}
+
+/**
+ * Contorno de la forma de una capa decorativa, en px de pantalla: puntos a lo largo del trazado de su recorte. El SVG
+ * ocupa la caja del elemento con viewBox 0 0 100 100.
+ */
+function contornoForma(el: HTMLElement, n: number): { x: number; y: number }[] {
+  const path = el.querySelector<SVGPathElement>("clipPath path");
+  if (!path) return [];
+  const caja = el.getBoundingClientRect();
+  const s = caja.width / 100;
+  const largo = path.getTotalLength();
+  return Array.from({ length: n }, (_, i) => {
+    const p = path.getPointAtLength((largo * i) / n);
+    return { x: caja.left + p.x * s, y: caja.top + p.y * s };
+  });
+}
+
+/** Punto dentro del polígono (regla par-impar). */
+function dentroDePoligono(x: number, y: number, pol: { x: number; y: number }[]): boolean {
+  let dentro = false;
+  for (let i = 0, j = pol.length - 1; i < pol.length; j = i++) {
+    const a = pol[i];
+    const b = pol[j];
+    if (a.y > y !== b.y > y && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) dentro = !dentro;
+  }
+  return dentro;
+}
+
+/**
+ * El rectángulo toca la forma con un aire de `aire` px: algún punto del contorno queda a menos de ese aire del
+ * rectángulo, o el rectángulo quedó adentro de la forma.
+ */
+export function tocaContorno(
+  k: { left: number; top: number; right: number; bottom: number },
+  pol: { x: number; y: number }[],
+  aire = 0,
+): boolean {
+  if (!pol.length) return false;
+  const cerca = pol.some((p) => {
+    const dx = Math.max(k.left - p.x, 0, p.x - k.right);
+    const dy = Math.max(k.top - p.y, 0, p.y - k.bottom);
+    return Math.hypot(dx, dy) < aire || (dx === 0 && dy === 0);
+  });
+  return cerca || dentroDePoligono((k.left + k.right) / 2, (k.top + k.bottom) / 2, pol);
+}
+
+/** El rectángulo toca el círculo: el punto del rectángulo más cercano al centro está a menos de un radio. */
+export function tocaCirculo(k: { left: number; top: number; right: number; bottom: number }, c: { cx: number; cy: number; r: number }): boolean {
+  const x = Math.max(k.left, Math.min(c.cx, k.right));
+  const y = Math.max(k.top, Math.min(c.cy, k.bottom));
+  return Math.hypot(x - c.cx, y - c.cy) < c.r;
 }
 
 /** Mayor valor (en pasos de 2 entre min y max) para el que `cabe` es verdadero, suponiendo que achicar siempre ayuda. */
@@ -131,10 +289,18 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
       : null,
     deco: medirDeco(root),
     iconos: root.querySelectorAll("[data-icono]").length,
-    contacto: [...root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]')].map((fila) => ({
-      icono: relativo(root, q(fila, "contacto-icono")!.getBoundingClientRect()),
-      texto: medirTexto(root, q(fila, "contacto-texto")!),
-    })),
+    contacto: [...root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]')].map((fila) => {
+      const icono = q(fila, "contacto-icono")!;
+      return {
+        icono: relativo(root, icono.getBoundingClientRect()),
+        texto: medirTexto(root, q(fila, "contacto-texto")!),
+        soporte: icono.dataset.soporte ? (JSON.parse(icono.dataset.soporte) as { fondo: HSL; icono: HSL }) : undefined,
+      };
+    }),
+    decoracion: (() => {
+      const el = root.querySelector<SVGElement>("[data-decoracion]");
+      return el ? (JSON.parse(el.dataset.decoracion!) as GeometriaDecoracion) : null;
+    })(),
     items: [...root.querySelectorAll<HTMLElement>('[data-slot="item"]')].map((it) => {
       const visual = q(it, "item-visual")!;
       return {
@@ -154,6 +320,23 @@ function recortarAlLienzo(r: Rect, ancho: number, alto: number): Rect {
   return { x, y, w: Math.max(0, Math.min(ancho, r.x + r.w) - x), h: Math.max(0, Math.min(alto, r.y + r.h) - y) };
 }
 
+/** Contorno de la forma del 2B-L vertical cuando no es un círculo, en px del lienzo. */
+function medirContorno(root: HTMLElement): { x: number; y: number }[] | undefined {
+  const el = root.querySelector<HTMLElement>("[data-deco-lateral]");
+  if (!el || el.hasAttribute("data-circulo")) return undefined;
+  const R = root.getBoundingClientRect();
+  const s = R.width / root.offsetWidth || 1;
+  return contornoForma(el, 160).map((p) => ({ x: (p.x - R.left) / s, y: (p.y - R.top) / s }));
+}
+
+/** Círculo del 2B-L vertical, en px del lienzo (centro y radio). */
+function medirCirculo(root: HTMLElement): { cx: number; cy: number; r: number } | undefined {
+  const el = root.querySelector<HTMLElement>("[data-deco-lateral][data-circulo]");
+  if (!el) return undefined;
+  const c = relativo(root, el.getBoundingClientRect());
+  return { cx: c.x + c.w / 2, cy: c.y + c.h / 2, r: c.w / 2 };
+}
+
 function medirDeco(root: HTMLElement): Medicion["deco"] {
   const el = q(root, "deco");
   if (!el) return null;
@@ -164,5 +347,8 @@ function medirDeco(root: HTMLElement): Medicion["deco"] {
     opacidad: parseFloat(el.dataset.opacidad ?? "1"),
     overlay: el.dataset.overlay ? parseFloat(el.dataset.overlay) : null,
     color: JSON.parse(el.dataset.color!) as HSL,
+    protagonista: el.dataset.protagonista === "true",
+    circulo: medirCirculo(root),
+    contorno: medirContorno(root),
   };
 }

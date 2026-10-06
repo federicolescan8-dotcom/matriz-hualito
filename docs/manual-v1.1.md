@@ -46,12 +46,24 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 10. **Alcance**: se aclara que el sistema genera piezas pero no las publica. *(Cap. 1)*
 11. **Modo heredado sin revisión manual**: versión funcional profundizada (paso 8, 2b) y acento con rango de L ampliado (paso 8, 4). *(Cap. 3)*
 12. **Peso del H1 limitado al máximo real de cada familia** (Manrope, Sora y Newsreader 800; Space Grotesk 700). *(Cap. 4)*
-13. **Ajuste manual de la paleta en la ficha de marca**: cualquier rol se puede corregir por HEX si el resultado no convence. La paleta calculada se conserva para volver atrás; el texto sobre el acento se vuelve a elegir solo, y los contrastes que no cumplen quedan marcados y bloquean la publicación hasta corregirlos. *(Cap. 3, A.3)*
+13. **Ajuste manual de la paleta en la ficha de marca**: cualquier rol se puede corregir por HEX si el resultado no convence. La paleta calculada se conserva para volver atrás; el texto sobre el acento se vuelve a elegir solo, y los contrastes que no cumplen quedan marcados (ver el cambio 19). *(Cap. 3, A.3)*
 14. **CTA en Modo B con contorno o invertido**: si el acento no alcanza 3:1 contra el color de marca (p. ej. rojo y verde de luminosidad parecida), el CTA de Modo B se separa con fondo neutro en vez de rechazar la paleta. *(Cap. 3, Cap. 8, A.3)*
 15. **CTA en Modo A con contorno**: un acento claro sobre el fondo neutro claro lleva un contorno fino en el color de marca. *(Cap. 3, Cap. 8)*
 16. **Proporciones por formato**: tamaños de H1, body, CTA y logo definidos por formato y variante; el ajuste de texto usa las cajas reales de las letras para no pisar el margen. *(Cap. 6, A.6)*
 17. **Biblioteca gráfica implementada**: 17 formas, 6 patrones y 60 íconos, con criterios de color, forma de fondo y espacio negativo para las variantes 2B, 3 y 4. *(Cap. 5, Cap. 6)*
 18. **Correcciones de numeración de la extracción del PDF**: cascada del paso 5 (cap. 3), cascada del modo heredado (cap. 3), capas del cap. 9 y pipeline del cap. 9, y limpieza de números de página sueltos.
+19. **Ajuste manual sin bloqueo**: un color ajustado a mano después de la fórmula, por decisión del cliente, se acepta con aviso en el checklist de color. La ficha sugiere el color válido más próximo. *(Cap. 3 paso 9, Cap. 8)*
+20. **Versión funcional opcional en el modo heredado**: si el color heredado no alcanza como texto, el cliente elige usar versión funcional o solo su color. Sin versión funcional, la paleta se genera desde el heredado, lo que no cumple queda como aviso sin bloquear, y se sugieren el tono de apoyo, el fondo neutro y el acento más próximos que cumplen. *(Cap. 3 paso 8, Cap. 8)*
+21. **2B-L con dos opciones de capa decorativa**: imagen o ícono en un círculo del 80% del ancho desde el centro, con el mensaje alineado al círculo y el CTA en el punto medio entre el body y el logo; o figura geométrica con patrón. *(Cap. 5, Cap. 6)*
+22. **Jerarquía del H1**: el H1 mide al menos el doble que el body y el CTA, que se achican con él. El H1 del 2B-L tiene un mínimo de 64 px, y su círculo pasa al 60% del ancho cuando el mensaje necesita lugar (en 1:1, siempre). *(Cap. 4, Cap. 5, Cap. 8)*
+23. **2B-L según el ejemplo de referencia**: el bloque del mensaje queda enmarcado por el alto del círculo (mayúsculas del H1 en su borde superior, logo en su borde inferior). El título se limita por la circunferencia real y la foto del círculo va sin overlay. *(Cap. 5, Cap. 6)*
+24. **Sugerencia por contraste en el ajuste manual**: además del color válido más próximo (ΔE), la ficha ofrece una segunda sugerencia que conserva el matiz y el croma percibidos del color elegido (OKLCH) y mueve solo la luminosidad hasta cumplir los mismos controles. Es la técnica de Adobe Leonardo (colores generados a partir del contraste objetivo). Si las dos coinciden, se muestra una sola. *(Cap. 3 pasos 8 y 9)*
+25. **Revisión visual y sugerencias de oficio**: el checklist suma un control de superposición (ningún texto tapado por otro elemento) y dos sugerencias que no bloquean: un H1 que quedó en su tamaño mínimo pide recortar palabras antes que achicar la letra, y el H1 protagonista de la variante 2 se sugiere en 6 palabras o menos. En Publicar hay una capa de guías (márgenes y cajas medidas, no se exporta) y una hoja de contactos con los cuatro formatos, que muestra además si el logo mantiene su lugar entre formatos. Criterios tomados de la revisión de piezas en motion design: medir en vez de adivinar, menos palabras antes que letra más chica, y revisar la serie completa antes de exportar. *(Cap. 8, A.8)*
+26. **Zonas seguras de la plataforma**: el 9:16 reserva 15% arriba y 20% abajo, porque la barra de respuesta de stories y estados tapa ~340 px, y un control verifica que nada quede debajo de la interfaz. El 1:1 pasa a un margen lateral del 14%, y un control verifica que el H1, el CTA y el logo se vean enteros en la grilla 3:4 del perfil de Instagram. Las guías muestran las dos zonas rayadas. *(Cap. 1, Cap. 6, Cap. 8, A.8)*
+27. **Compensación óptica del texto secundario**: con familias de x baja (Newsreader, Fraunces) el dato de apoyo y los datos de contacto se agrandan hasta igualar la altura de x de una sans, con un tope del 20%. *(Cap. 4)*
+28. **2B-L con figura y patrón con la misma estructura que imagen o ícono**: en 4:5, 9:16 y 1:1 la forma del rubro ocupa el lugar del círculo y el mensaje se ajusta a su contorno real. *(Cap. 5, Cap. 8)*
+29. **Decoración de plantilla**: figuras opcionales que forman parte del diseño, con sombra mínima: arco lateral para H1 protagonista y esquinas en diagonal para Contacto, medidas sobre los ejemplos de referencia. Reemplazan a la forma de fondo automática, y sumar una nueva es agregar una entrada al catálogo. Aparte, en Contacto los íconos pueden ir sobre un soporte (cuadrado redondeado). *(Cap. 6, Cap. 8, A.8)*
+30. **Carrusel 4:5 y Facebook en vertical**: se suma el carrusel (2 a 10 slides) con portada, contenido y cierre, la variante P (Punto) para el contenido, el ritmo de modos y el control de la serie. El feed orgánico de Facebook pasa al 4:5 y al 1:1, y el 1200×630 queda como vista previa de links y anuncios. *(Cap. 1, Cap. 6, Cap. 8)*
 
 ---
 
@@ -80,10 +92,12 @@ El sistema cubre la generación de piezas gráficas estáticas sobre la siguient
 | Plataforma | Formato | Medida | Zona segura |
 |---|---|---|---|
 | Instagram Feed (post) | 1080×1350 px (4:5) | — | 10-12% de margen en bordes |
-| Instagram Feed cuadrado | 1080×1080 px (1:1) | — | 10-12% de margen en bordes |
-| Instagram / Facebook | Story | 1080×1920 px (9:16) | 15% superior e inferior reservados |
-| WhatsApp | Estado | 1080×1920 px (9:16) | 15% superior e inferior reservados |
-| Facebook | Feed (link post) | 1200×630 px | 10% de margen en bordes |
+| Instagram Feed cuadrado | 1080×1080 px (1:1) | — | 14% a los lados (grilla del perfil 3:4) y 11% arriba y abajo *(v1.1)* |
+| Instagram / Facebook | Story | 1080×1920 px (9:16) | 15% superior y 20% inferior reservados *(v1.1)* |
+| WhatsApp | Estado | 1080×1920 px (9:16) | 15% superior y 20% inferior reservados *(v1.1)* |
+| Facebook | Feed (post) *(v1.1)* | 1080×1350 px (4:5) o 1080×1080 px (1:1) | igual que Instagram |
+| Instagram / LinkedIn | Carrusel *(v1.1)* | 2 a 10 slides de 1080×1350 px (4:5) | igual que el feed 4:5 |
+| Links y anuncios | Vista previa (1.91:1) *(v1.1)* | 1200×630 px | 10% de margen en bordes |
 
 Cada pieza, sea cual sea el formato, se construye a partir de las mismas cuatro variables definidas por el sistema: color, tipografía, elemento gráfico y layout. Lo que cambia entre formatos no es la identidad, sino cómo se reacomoda esa identidad dentro de cada relación de aspecto.
 
@@ -271,7 +285,15 @@ La secuencia de uso de cada modo la define el capítulo 7, con conteo independie
 **Cascada de validación de contraste.** El color heredado no se modifica: se ajusta lo que lo rodea. *(v1.1 — numeración corregida)*
 
 1. Ajustar la luminosidad del fondo neutro dentro del rango 85-100%. Resuelve los casos límite, entre 3,5:1 y 4,5:1.
-2. Generar una versión funcional del color de marca: mismo matiz y saturación, con la luminosidad de la tabla del paso 3. Se usa en texto, íconos y elementos finos. El color original se reserva para logo, masas grandes, badges y fondo de Modo B, donde el mínimo exigido es 3:1.
+2. **La versión funcional es una opción, no un paso automático** *(v1.1, decisión del cliente)*. Si el color heredado no alcanza 4,5:1 como texto después del paso 1, el cliente elige entre dos caminos. En el diagnóstico se muestran como dos chips: "Tu color con versión funcional" y "Tu color tal cual, sin versión funcional". En la ficha de la marca se puede cambiar la elección, y la paleta se recalcula desde el color heredado.
+   - **Con versión funcional:** se siguen los pasos 2a y 2b.
+   - **Solo el color heredado:** el color del cliente es el color de marca y también el texto. Fondo neutro, tono de apoyo y acento se generan desde él, lo más apegados posible a la fórmula:
+     - el fondo neutro es el de S30 con la L entre 85 y 100 que más contraste dé con el heredado;
+     - el tono de apoyo sale de la fórmula del paso 4;
+     - el acento sigue la cascada normal y, si nada cumple, se toma el que más se acerca a los mínimos.
+
+     Lo que no llegue a los mínimos no se fuerza cambiando el color de marca: queda como **aviso**. Los controles de color del capítulo 8 lo aceptan sin bloquear la publicación. La ficha sugiere los colores que cumplen (el más próximo y el de su mismo matiz, paso 9) solo para el tono de apoyo, el fondo neutro y el acento, cada uno dentro de su rango de la fórmula: fondo L85-100 y tono de apoyo hasta L67. El color de marca no recibe sugerencia porque ya lo eligió el cliente.
+2a. Generar una versión funcional del color de marca: mismo matiz y saturación, con la luminosidad de la tabla del paso 3. Se usa en texto, íconos y elementos finos. El color original se reserva para logo, masas grandes, badges y fondo de Modo B, donde el mínimo exigido es 3:1.
 2b. **Profundizar la versión funcional** *(v1.1)*. Si ni el fondo neutro ni la versión funcional alcanzan 4,5:1 como texto sobre el color original (Modo B), se baja la L de la versión funcional de a 2 puntos, hasta L6 como mínimo. Se elige la primera L que dé 4,5:1 contra el original; si ninguna llega, la primera que dé 3:1. Resuelve sin intervención los colores de tono medio (ej. turquesa #0B9EBF), que antes no servían ni como texto ni como fondo: el original queda para masas y fondos, y la versión funcional hace de texto sobre el neutro y sobre el original. En Modo B el texto usa el que más contraste dé entre el fondo neutro y la versión funcional.
 3. Si la luminosidad del color heredado supera el 70%, invertir el modo predominante de esa marca: el Modo B pasa a ser el principal y la secuencia del capítulo 7 se invierte, porque un color claro rinde mejor como fondo que como texto.
 4. **Acento con rango ampliado** *(v1.1)*. Si la cascada del acento (pasos 4b y 5) no encuentra un acento dentro de L 35-65, se repite con L 15-85 en el mismo orden de matices, antes de probar el mismo matiz de la marca. Los colores de tono medio lo necesitan: para separarse de ellos, el acento tiene que ser muy claro o muy oscuro.
@@ -310,7 +332,19 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 
 - La paleta calculada por la fórmula se guarda aparte, junto con la lista de roles ajustados a mano (`paleta_calculada`, `ajustes_manuales`). Cada rol se puede volver al valor calculado, o toda la paleta de una vez.
 - El texto sobre el acento se vuelve a elegir con el criterio del paso 4b cada vez que cambia el acento o la marca.
-- Los colores ajustados no pasan por la fórmula: los contrastes se muestran en vivo y los que no alcanzan el mínimo quedan marcados. Una marca con contrastes en falta no puede publicar hasta corregirlos (capítulo 8).
+- Los colores ajustados no pasan por la fórmula: los contrastes se muestran en vivo y los que no alcanzan el mínimo quedan marcados.
+- **Excepción por decisión del cliente.** Hay clientes que quieren respetar más de un color heredado aunque no cumpla los mínimos. Por eso, un color ajustado a mano *después* del cálculo de la fórmula no bloquea la publicación. Los controles de color del capítulo 8 que fallen en esa marca se registran como **aceptados con aviso**, y la pieza se exporta. La excepción no alcanza a una paleta sin ajustes manuales: ahí el checklist sigue siendo binario. Tampoco alcanza a los controles de tipografía, composición, zonas seguras o contenido.
+- **Sugerencia del color válido más próximo.** Para cada rol ajustado que no cumple, salvo el color de marca (elección del cliente), se muestra el color más próximo al elegido que sí cumple todos los controles de paleta en los que interviene ese rol, con el resto de la paleta como está. Esos controles son:
+  - texto de marca sobre el fondo neutro, 4,5:1;
+  - texto sobre la marca en Modo B, 3:1;
+  - texto sobre el acento, 4,5:1;
+  - versión funcional sobre la marca, 3:1;
+  - el mejor tratamiento de CTA en Modo A y en Modo B;
+  - CTA sobre el tono de apoyo (cúpula del 2B-S).
+
+  La cercanía se mide como diferencia perceptual (ΔE en CIELAB). El matiz se aleja a lo sumo 40° del elegido y, para color de marca y acento, nunca cae en la banda prohibida. Aplicar la sugerencia es opcional.
+- **Variante por contraste.** Junto a la sugerencia anterior se muestra una segunda, tomada de la técnica de Adobe Leonardo: conserva el matiz y el croma del color elegido medidos en OKLCH, un espacio donde a igual luminosidad los colores se perciben igual de claros, y recorre solo la luminosidad, del cambio más chico al más grande, hasta cumplir los mismos controles. Si a esa luminosidad el croma no entra en sRGB, se baja. El resultado es el mismo color más claro o más oscuro, sin el desvío de matiz que puede tener la sugerencia por ΔE. Respeta los mismos rangos por rol y la banda prohibida. Si las dos sugerencias coinciden, se muestra una sola. Aplicarla es opcional.
+- Los ejemplos de Modo A y Modo B de la ficha muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
 
 ---
 
@@ -343,7 +377,7 @@ Si el cliente tiene tipografía previa y existe en versión variable, se prioriz
 |---|---|---|---|
 | H1 | mensaje principal | calculado según longitud, ver fórmula abajo — máximo 900 *(v1.1)* | 48-64 px |
 | H2 | dato de apoyo, subtítulo | Semibold (600) | 32-40 px |
-| Body | texto secundario | Regular (400) | 24-28 px |
+| Body | texto secundario | Regular (400) | 24-28 px (con compensación óptica, ver abajo) |
 | Caption | datos mínimos | Regular (400) | 18-20 px |
 
 **Peso del H1 *(v1.1)*.** Deja de ser un rango libre 700-900 elegido a criterio: se calcula según la cantidad de caracteres *n* del texto del H1:
@@ -359,6 +393,14 @@ redondeado al múltiplo de 50 más cercano. Un H1 de hasta 15 caracteres da 900 
 **Regla dura.** Dentro de una misma pieza no se combinan dos pesos en el mismo nivel jerárquico, ni se resalta una palabra suelta con un peso mayor al asignado a ese nivel. Si hace falta destacar un dato, el destaque se resuelve con el color acento o con un tamaño mayor dentro del mismo nivel, nunca con un salto de peso. Esto se mantiene sin cambios: el H1 calculado sigue siendo un único peso para toda la pieza. *(v1.1)*
 
 En formato story y estado, todos los tamaños se escalan entre 15% y 20% respecto del feed.
+
+**Jerarquía del H1 *(v1.1)*.** El H1 mide siempre al menos el doble que el body y que el texto del CTA. Es un control del checklist (capítulo 8). Para cumplirlo, el body y el CTA se achican junto con el H1, nunca al revés:
+- el body llega como máximo a la mitad del H1;
+- el CTA también llega como máximo a la mitad del H1, y nunca baja de 24 px en feed.
+
+**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44%. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
+
+El H1 del 2B-L tiene un mínimo más alto (64 px en feed), porque su columna es angosta. Si ni así entra, la pieza va a revisión manual: hay que acortar el texto o usar la opción figura y patrón.
 
 ### Paso 3 — Reglas de uso de la itálica
 
@@ -463,9 +505,29 @@ La foto solo se ofrece si la marca tiene fotos propias. Si se elige foto y no se
 
 | Variante | Posición de la forma | Tamaño |
 |---|---|---|
-| 2B-L | Media forma contra el borde derecho: lado recto sobre el borde, curva hacia el centro. Centrada con el bloque de título, texto y CTA, que va agrupado a la izquierda. | Diámetro igual al alto del bloque del mensaje (hasta el 80% del ancho; 70% en 9:16). |
+| 2B-L · imagen o ícono (4:5, 9:16 y 1:1) | **Círculo** que arranca en el centro de la pieza (o en el 60% del ancho, ver abajo) y se recorta contra el borde derecho; centrado en el alto de la zona segura. | Diámetro del 80% del ancho. |
+| 2B-L · figura y patrón (4:5, 9:16 y 1:1) *(v1.1)* | La misma ubicación y la misma estructura que imagen o ícono, con la forma elegida del rubro en lugar del círculo. | La caja de la forma mide el 80% del ancho. |
 | 2B-S | **Cúpula**: círculo de 1,3 veces el ancho con el centro debajo del borde inferior, que asoma el ~38% de abajo. A la altura del CTA ya cubre todo el ancho, así el CTA y el logo se apoyan enteros sobre ella, con la misma alineación que el mensaje. | 38% del alto (40% en 1:1). |
 | 2B-L y 2B-S en Facebook | Media forma contra el borde derecho, en la mitad libre. | 95% del alto. |
+
+**2B-L: dos opciones de capa decorativa *(v1.1)*.**
+
+- **Imagen o ícono.** La foto con overlay de marca o un ícono grande sobre el tono de apoyo van siempre en un círculo de 80% del ancho. Si se pide foto y no hay foto cargada, se usa el ícono: la pieza se queda en el mismo modo.
+- **Figura y patrón.** Una forma del rubro rellena con su patrón. En 4:5, 9:16 y 1:1 replica la estructura de imagen o ícono *(v1.1)*: la forma ocupa el lugar del círculo, el mensaje se enmarca con su alto, el CTA va en el punto medio y el logo cierra abajo. El texto se aleja 40 px del contorno real de la forma (no de su caja), así una forma orgánica deja entrar el mensaje donde su curva lo permite. En 1200×630 sigue la media forma sangrada de la tabla.
+
+Posición del círculo: arranca en el centro de la pieza. Si con esa columna el H1 no llega al medio de su rango de tamaños, el círculo arranca en el 60% del ancho, y el mensaje gana lugar. En 1:1 arranca siempre en el 60%.
+
+Composición con imagen o ícono en 4:5, tomada del ejemplo de referencia de Hualito:
+
+- El bloque del mensaje queda enmarcado por el alto del círculo. El tope de las mayúsculas del H1 se alinea con el borde superior del círculo; se mide sobre la tipografía real, no sobre el renglón. El logo termina en el borde inferior del círculo. Los dos quedan siempre dentro de la zona segura.
+- El CTA queda en el punto medio exacto entre el final del body y el comienzo del logo.
+- **El límite del título es la circunferencia.** La columna del mensaje pasa 40 px el borde izquierdo del círculo, porque arriba y abajo la curva deja lugar. Ninguna línea del H1 o del body, ni el CTA, puede quedar a menos de 40 px del círculo real. Si alguna lo toca, el tamaño baja hasta que no lo toque, respetando la jerarquía. El checklist mide el choque contra el círculo, no contra su caja.
+- El CTA va en una línea y solo se parte en dos si en una no entra.
+- La foto del círculo va natural, **sin overlay de marca**. Es la imagen protagonista de la pieza, no una textura, y no lleva texto encima. El overlay del 60-70% sigue rigiendo para la foto como textura: la media forma sangrada y la cúpula del 2B-S.
+
+En 9:16 el círculo queda en el mismo lugar y centrado en el alto de la zona segura (no del lienzo), que es asimétrica *(v1.1)*. El mensaje sube un 8% del alto por encima del borde superior del círculo, y el logo baja hasta un 8% del alto por debajo del borde inferior. Los dos quedan siempre dentro de la zona segura, y el CTA sigue en el punto medio. El H1 tiene el mismo tope que en 4:5, 86 px antes de la escala de story, porque la columna tiene el mismo ancho.
+
+En 1:1 se usa el mismo orden que en 4:5 (mensaje arriba alineado al círculo, CTA en el punto medio, logo abajo), con el círculo desde el 60% del ancho y hasta 3 líneas de H1. En 1200×630 la imagen o el ícono van en la media forma sangrada, porque el mensaje ya ocupa la mitad izquierda.
 
 En la cúpula, el CTA y el logo van sobre la capa decorativa y se validan contra su relleno: el tono de apoyo o, con foto, el color de marca del overlay. El CTA toma el primer tratamiento que cumple: directo, con contorno o invertido. Para el contorno se prueban el fondo neutro, el color de marca, la tinta de marca y el blanco, porque con un tono de apoyo de luminosidad media solo la tinta llega a 3:1. El logo va en monocromo claro sobre foto o sobre un apoyo oscuro, y en monocromo oscuro sobre un apoyo claro. El título y el texto nunca van sobre la cúpula.
 
@@ -527,6 +589,26 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 - Foto: siempre con overlay de color de marca al 60-70% para garantizar contraste.
 - Fallback: si se quita la capa decorativa, la pieza tiene que seguir funcionando completa.
 
+### Decoración de plantilla *(v1.1)*
+
+Figuras que forman parte del diseño de la pieza. No son un relleno como la capa decorativa de las 2B. Son opcionales y se eligen en Publicar, en el selector **Decoración**. Una pieza usa una sola de estas tres cosas: la capa decorativa (2B), una decoración de plantilla o la forma de fondo automática. Si se elige una decoración, la forma de fondo automática (el círculo de abajo a la derecha) no va.
+
+Reglas comunes:
+
+- Las figuras van en tono de apoyo. En Modo B van opacas sobre el color de marca. En Modo A van sobre el fondo neutro, con la opacidad segura de la forma de fondo (35% o menos).
+- Llevan una sombra mínima hacia el fondo, medida del ejemplo de referencia: oscurece ~8% junto al borde y se desvanece en ~30 px (desenfoque 12 px, opacidad 20%).
+- Van sobre el fondo y debajo del texto. Ninguna figura pasa por debajo de un texto ni del logo. El texto se aleja 40 px de su contorno y, si lo toca, se achica.
+- Pueden pasar por debajo de la interfaz de stories y del recorte de la grilla: son decoración, no contenido.
+
+| Decoración | Variante | Geometría (medida sobre el ejemplo en 4:5) | Otros formatos | Bloque del mensaje |
+|---|---|---|---|---|
+| Arco lateral | 2 · H1 protagonista | El fondo es un círculo con centro en el 69% del ancho y el 50% del alto, radio del 77% del ancho. El tono de apoyo asoma solo en las esquinas de la izquierda: el arco corta los bordes superior e inferior en el 23,8% del ancho, y su punto más a la izquierda queda 8,1% fuera del lienzo. Es simétrico respecto del eje horizontal. | Se conservan los cortes con los bordes y el punto más a la izquierda, en fracción del ancho. | H1, dato de apoyo y logo forman un solo bloque, centrado en alto. |
+| Esquinas en diagonal | 3 · Contacto | Dos círculos de radio 74,2% del ancho con el centro fuera del lienzo. Asoman arriba a la izquierda (cortan el borde superior en el 26,3% y el izquierdo en el 28,3% del ancho) y abajo a la derecha, simétricos respecto del centro de la pieza. | La unidad es el ancho en los verticales y el alto / 1,25 en 1200×630, para que las esquinas no crezcan con el ancho. | La composición de la variante 3. |
+
+Para sumar una decoración nueva se agrega una entrada al catálogo de decoraciones, con su geometría por formato, sus variantes y su bloque.
+
+**Soporte de los íconos de contacto *(v1.1)*.** Es una opción aparte de la variante 3 y se puede usar con o sin decoración. Cada ícono va sobre un cuadrado redondeado de 58 px (46 px en 1200×630), con radio de 14 px. El soporte va en el color del texto y el ícono en el color del fondo, el mismo par que ya cumple contraste en el texto. Lleva la misma sombra mínima.
+
 ### Las seis variantes de layout
 
 | Variante | Orden de slots | Proporciones | Uso |
@@ -540,6 +622,27 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 
 **Regla de cierre.** El CTA es el último elemento en las variantes 1 y 4. En las variantes 2B el logo cierra la pieza y el CTA va inmediatamente antes.
 
+### Carrusel 4:5 *(v1.1)*
+
+El carrusel es el formato orgánico de más alcance y guardados en Instagram, y también sirve como documento en LinkedIn. Tiene de 2 a 10 slides de 4:5 con una estructura fija de lectura. Cada slide es una pieza normal: pasa por el mismo ajuste de texto y el mismo checklist que una publicación simple.
+
+| Slide | Rol | Variantes | Contenido | Logo | CTA |
+|---|---|---|---|---|---|
+| 1 | Portada | 2 (H1 protagonista) o 2B-L | gancho de hasta 8 palabras | sí | no; abajo a la derecha va la señal "Deslizá →" |
+| 2 a n-1 | Contenido | P (Punto), 2, 3 o 4 | un punto por slide | no; en su lugar va la posición "i / n" | no |
+| n | Cierre | 1 (base) | resumen | sí | sí, el único del carrusel |
+
+- **Variante P (Punto).** Es solo para el carrusel. Lleva el número del punto en grande ("01", "02"…), en acento si contrasta 3:1 con el fondo y si no en el color del texto, y debajo un H1 corto con su desarrollo. El número es un elemento gráfico: no cuenta para la jerarquía del H1.
+- **Ritmo de modos.** La portada y el cierre van en el modo predominante de la marca, y los slides de contenido en el opuesto. Así la serie marca el comienzo, el desarrollo y el final.
+- **Continuidad.** Todos los slides van alineados a la izquierda y repiten la forma de fondo en el mismo lugar.
+- **Control del carrusel**, además del checklist de cada slide:
+  - entre 2 y 10 slides;
+  - portada primera, contenido en el medio y cierre al final;
+  - un único CTA, en el cierre;
+  - portada de hasta 8 palabras;
+  - todos los slides aprobados.
+- **Exportación:** un ZIP con un PNG por slide, numerados en orden (`marca-carrusel-01.png`…).
+
 ### Alineación del mensaje (variantes 2 y 3)
 
 - Valores permitidos: izquierda o centrado. La alineación derecha y el justificado quedan prohibidos en todo el sistema, para no romper la lógica de atención del público.
@@ -552,9 +655,9 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 ### Grillas por formato
 
 - **Feed 1080×1350 (4:5).** Margen seguro de 10-12% en los cuatro bordes. Es el formato de referencia para las proporciones de la tabla de variantes.
-- **Feed 1080×1080 (1:1).** Mismas variantes, con H1 limitado a 2 líneas y catálogo limitado a 2-3 ítems por la menor altura disponible.
-- **Story y estado 1080×1920 (9:16).** 15% superior e inferior reservados. Todo el contenido va en la zona segura entre el 15% y el 85%, con tamaños escalados 15-20%.
-- **Facebook link 1200×630.** Los sectores verticales se reacomodan en horizontal: mensaje a la izquierda con máximo 50% del ancho, y capa decorativa, ítems o contacto a la derecha.
+- **Feed 1080×1080 (1:1).** Mismas variantes, con H1 limitado a 2 líneas y catálogo limitado a 2-3 ítems por la menor altura disponible. Margen lateral del 14% *(v1.1)*: desde 2025 la grilla del perfil de Instagram muestra las miniaturas en 3:4, recortadas al centro, y una pieza 1:1 pierde 135 px de cada lado (12,5%). Con el 14%, el mensaje y el logo quedan enteros en la miniatura y con aire. El 4:5 pierde solo 34 px por lado, dentro de su margen.
+- **Story y estado 1080×1920 (9:16).** Zona segura asimétrica *(v1.1)*: 15% arriba y 20% abajo, porque la interfaz tapa más abajo que arriba. Arriba van la foto de perfil, el nombre y la barra de progreso (~250 px). Abajo van la barra de respuesta y, en anuncios, el botón (~340 px). Todo el contenido va entre el 15% y el 80% del alto, con tamaños escalados 15-20%.
+- **Link / vista previa 1200×630** (antes "Facebook link"; el post orgánico de Facebook pasa al 4:5 y al 1:1) *(v1.1)*. Los sectores verticales se reacomodan en horizontal: mensaje a la izquierda con máximo 50% del ancho, y capa decorativa, ítems o contacto a la derecha.
 
 ### Proporciones por formato *(v1.1)*
 
@@ -637,7 +740,9 @@ Cada canal lleva su propia secuencia independiente: feed de Instagram, stories d
 
 Reunir en un solo lugar todas las validaciones que una pieza debe pasar antes de darse por publicable. El checklist no introduce criterios nuevos: formaliza las reglas de los capítulos 3 a 7 como controles verificables, con un resultado binario y una acción definida para cada falla.
 
-Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente.
+Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente. Única excepción *(v1.1)*: los controles de color de una marca con colores ajustados a mano, o con el color heredado sin versión funcional, por decisión del cliente, se registran como aceptados con aviso y no bloquean (cap. 3, pasos 8 y 9).
+
+Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de oficio que no son reglas duras. Una sugerencia nunca bloquea la exportación; se muestra en ámbar con su recomendación.
 
 ### Bloque 1 — Color y contraste
 
@@ -664,6 +769,10 @@ Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Un
 | Itálica solo en rubros y familias habilitados | belleza y gastronomía, solo si la familia tiene itálica (cap. 4, paso 3) *(v1.1)* | quitar itálica |
 | Itálica en peso regular y nivel permitido | máximo 1 bloque por pieza | quitar itálica |
 | Itálica ausente en precios, fechas y CTA | sin excepción | rechazo |
+| H1 con margen sobre su tamaño mínimo *(v1.1)* | el ajuste no lo dejó en el piso de su rango | sugerencia: recortar palabras antes que achicar la letra |
+| H1 protagonista (variante 2) *(v1.1)* | 6 palabras o menos | sugerencia: dejar lo esencial y pasar el resto al dato de apoyo |
+
+El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1 siga midiendo el doble que el body y el CTA en sus mínimos. *(v1.1)*
 
 ### Bloque 3 — Composición y layout
 
@@ -678,13 +787,18 @@ Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Un
 | Orden de slots según variante | el definido en el capítulo 6 | rechazo |
 | Alineación del mensaje | izquierda o centrado según rubro | corregir |
 | Líneas de body en centrado | máximo 4 | recortar texto |
+| Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
+| Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
+| Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
 
 | Formato | Control |
 |---|---|
 | Feed 4:5 y 1:1 | 10-12% libre de texto y logo en los cuatro bordes |
-| Story y estado 9:16 | contenido solo entre el 15% y el 85% de la altura |
+| Feed de Instagram (4:5 y 1:1) | H1, CTA y logo enteros en la grilla del perfil 3:4 (1:1 pierde 135 px por lado) *(v1.1)* |
+| Story y estado 9:16 | contenido solo entre el 15% y el 82% de la altura (mínimo exigido; el layout usa 15-80%) *(v1.1)* |
+| Story y estado 9:16 | nada que informe debajo de la interfaz: 250 px arriba y 340 px abajo *(v1.1)* |
 | Feed 1:1 | H1 máximo 2 líneas, catálogo máximo 3 ítems |
 | Facebook 1200×630 | mensaje máximo 50% del ancho |
 
@@ -710,6 +824,20 @@ Estos controles no se evalúan sobre la pieza aislada sino sobre el historial de
 | Posición relativa del logo | igual en todos los formatos dentro de una misma variante *(v1.1)* |
 
 La posición del logo (arriba o abajo) puede diferir entre variantes, porque cada variante ubica el logo según su propio orden de slots (por ejemplo, arriba en la variante 4, abajo en la variante 1 o en las 2B). Lo que se exige es coherencia dentro de una misma variante a través de los formatos, no una posición única para toda la marca. *(v1.1)*
+
+### Revisión visual: guías y hoja de contactos *(v1.1)*
+
+Las medidas del checklist se pueden ver sobre la pieza. En Publicar, el interruptor **Guías** dibuja encima de la vista previa:
+
+- el margen de diseño del formato (línea discontinua) y el margen mínimo que exige el checklist (punteada), si son distintos;
+- en 1200×630, el límite de la columna del mensaje;
+- las cajas medidas de cada elemento (H1, body, CTA, logo, contacto, ítems), las mismas que evalúa el checklist;
+- la capa decorativa (su caja, o el círculo del 2B-L);
+- en rojo, las zonas donde dos elementos se pisan.
+
+Las guías van fuera de la pieza: nunca llegan al PNG.
+
+La **hoja de contactos** muestra la misma pieza en los cuatro formatos, grandes y con guías, con el resultado del checklist de cada uno, el tamaño y las líneas del H1 y el lugar del logo. Si el logo cambia de lugar entre formatos, avisa (bloque 6). Sirve para revisar la serie completa antes de exportar el ZIP.
 
 ### Motivos de revisión manual
 
@@ -1069,8 +1197,17 @@ checklist: {
             max_iconos: { base: 2, contacto: 4, catalogo: "1 por item" },
             max_deco: 1, z_index: "fijo", logo_en_margen_seguro: true,
             logo_posicion_relativa: "coherente dentro de la misma variante",  // (v1.1)
-            alineacion: ["izquierda","centrado"] },
-  zonas_seguras: { feed: "10-12%", story: "15-85%",
+            alineacion: ["izquierda","centrado"],
+            superposicion: "ningun texto tapado por otro elemento, tolerancia 2 px",  // (v1.1)
+            decoracion_plantilla: { max: 1, excluye: ["capa_decorativa", "forma_de_fondo"],
+                                    sin_tapar: "texto y logo", aire_px: 40,
+                                    soporte_iconos_min: 3.0 } },  // (v1.1)
+  sugerencias: { h1_sobre_minimo: "recortar palabras antes que achicar",  // (v1.1) no bloquean
+                 h1_protagonista_max_palabras: 6 },
+  zonas_seguras: { feed: "10-12%", feed_1_1_lateral: "14%",  // (v1.1) grilla del perfil 3:4
+                   story: { arriba: "15%", abajo: "20% (minimo 18%)" },  // (v1.1)
+                   interfaz_story: { arriba_px: 250, abajo_px: 340 },
+                   grilla_perfil: "3:4 recortada al centro, H1, CTA y logo enteros",
                    fb: "mensaje 50% ancho" },
   contenido: { max_h1: 1, max_cta: 1, fallback_sin_foto: true,
                fallback_sin_deco: true, overlay_foto: [60,70] },

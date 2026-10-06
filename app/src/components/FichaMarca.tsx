@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { contraste, hexToHsl, hslCss, hslToHex, type HSL } from "@/engine/color";
 import {
   colorTextoAcento,
@@ -9,14 +9,26 @@ import {
   ctaModoB,
   ctaModoBAuto,
   ctaModoBElegidoInvalido,
+  colorPorContraste,
+  colorValidoCercano,
   cumple,
+  fallasPaleta,
   MIN_GRAFICO,
   MIN_TEXTO,
   relacionAcento,
   type CtaModoB,
+  type Paleta,
   type RolPaleta,
 } from "@/engine/palette";
-import { ajustarColorMarca, elegirCtaModoB, pendientesMarca, restaurarColorMarca, type Marca } from "@/engine/diagnostico";
+import {
+  ajustarColorMarca,
+  elegirCtaModoB,
+  elegirVersionFuncional,
+  pendientesMarca,
+  puedeElegirFuncional,
+  restaurarColorMarca,
+  type Marca,
+} from "@/engine/diagnostico";
 import { PRESETS } from "@/engine/presets";
 import { escala, pesoH1, PESOS } from "@/engine/typography";
 import { fontFamily } from "@/lib/fuentes";
@@ -42,6 +54,9 @@ function Muestra({
   editar,
   ajustado,
   onRestaurar,
+  rol,
+  paleta,
+  sugerir,
   children,
 }: {
   nombre: string;
@@ -51,6 +66,10 @@ function Muestra({
   editar?: (color: HSL) => void;
   ajustado?: boolean;
   onRestaurar?: () => void;
+  rol?: RolPaleta;
+  paleta?: Paleta;
+  /** Mostrar qué controles no cumple y el color válido más próximo. */
+  sugerir?: boolean;
   children?: React.ReactNode;
 }) {
   const hex = hslToHex(color);
@@ -71,10 +90,113 @@ function Muestra({
       </div>
       <div className="text-xs text-neutral-500">{nota}</div>
       {children}
+      {sugerir && rol && paleta && <SugerenciaColor paleta={paleta} rol={rol} onUsar={editar} />}
       {ajustado && onRestaurar && (
         <button type="button" onClick={onRestaurar} className="self-start text-xs underline">
           Volver al calculado
         </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Color heredado que no alcanza como texto (v1.1): la versión funcional es una opción. Sin ella, el resto de la paleta
+ * se genera desde el color heredado y lo que no cumpla queda como aviso.
+ */
+function OpcionFuncional({ marca, onChange }: { marca: Marca; onChange: (m: Marca) => void }) {
+  const actual = marca.color.solo_heredado ? "solo" : "funcional";
+  const elegir = (opcion: "funcional" | "solo") => {
+    if (opcion === actual) return;
+    if ((marca.ajustes_manuales ?? []).length > 0 && !confirm("La paleta se recalcula y se pierden los ajustes manuales. ¿Seguir?")) return;
+    onChange(elegirVersionFuncional(marca, opcion === "funcional"));
+  };
+  return (
+    <div className="mb-4 rounded-md border border-neutral-200 p-4 text-sm">
+      <div className="mb-1 font-medium">El color heredado no alcanza 4,5:1 como texto sobre el fondo neutro</div>
+      <p className="mb-3 text-xs text-neutral-500">Elegí cómo se resuelve. Se recalcula la paleta desde el color heredado.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {([
+          ["funcional", "Con versión funcional", "Un tono más profundo del mismo matiz para texto e íconos. Cumple la fórmula."],
+          ["solo", "Solo el color heredado", "El color del cliente también como texto. El resto de la paleta se ajusta a él; lo que no cumpla queda como aviso."],
+        ] as const).map(([opcion, titulo, desc]) => (
+          <button
+            key={opcion}
+            type="button"
+            onClick={() => elegir(opcion)}
+            className={`flex flex-col gap-1 rounded-md border-2 p-3 text-left ${actual === opcion ? "border-neutral-900" : "border-neutral-200"}`}
+          >
+            <span className="font-medium">{titulo}</span>
+            <span className="text-xs text-neutral-500">{desc}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const NOMBRE_ROL: Record<RolPaleta, string> = {
+  color_marca: "color de marca",
+  version_funcional: "versión funcional",
+  tono_apoyo: "tono de apoyo",
+  fondo_neutro: "fondo neutro",
+  acento: "acento",
+};
+
+/**
+ * Color ajustado a mano que rompe la fórmula (v1.1): qué controles no cumple y los colores que sí los cumplen con el
+ * resto de la paleta como está: el más próximo al elegido (ΔE) y el de su mismo matiz por contraste.
+ */
+function SugerenciaColor({ paleta, rol, onUsar }: { paleta: Paleta; rol: RolPaleta; onUsar?: (c: HSL) => void }) {
+  const actual = paleta[rol];
+  const clave = JSON.stringify(paleta);
+  const fallas = useMemo(() => fallasPaleta(paleta, rol), [clave, rol]); // eslint-disable-line react-hooks/exhaustive-deps
+  const sugerido = useMemo(
+    () => (fallas.length && actual ? colorValidoCercano(paleta, rol, actual) : null),
+    [clave, rol, fallas.length], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const porContraste = useMemo(
+    () => (fallas.length && actual ? colorPorContraste(paleta, rol, actual) : null),
+    [clave, rol, fallas.length], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  if (!fallas.length || !actual) return null;
+  // Las dos variantes del paso 9; si coinciden se muestra una sola.
+  const opciones = [
+    { etiqueta: "Más próximo que cumple", color: sugerido },
+    { etiqueta: "Mismo matiz, por contraste", color: porContraste },
+  ].filter((o, i, todas): o is { etiqueta: string; color: HSL } =>
+    o.color !== null && todas.findIndex((x) => x.color && hslToHex(x.color) === hslToHex(o.color!)) === i,
+  );
+  return (
+    <div className="flex flex-col gap-1.5 rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+      <span>No cumple la fórmula (se acepta con aviso):</span>
+      <ul className="list-disc pl-4">
+        {fallas.map((f) => (
+          <li key={f.control}>
+            {f.control}: {f.valor.toFixed(1)}:1 (mín. {f.minimo})
+          </li>
+        ))}
+      </ul>
+      {opciones.length ? (
+        opciones.map(({ etiqueta, color }) => (
+          <div key={etiqueta} className="flex items-center gap-2">
+            <span className="h-6 w-6 shrink-0 rounded border border-black/10" style={{ background: hslCss(color) }} />
+            <span>
+              {`${etiqueta}: `}
+              <span className="font-mono">{hslToHex(color).toUpperCase()}</span>
+            </span>
+            {onUsar && (
+              <button type="button" onClick={() => onUsar(color)} className="ml-auto rounded bg-amber-900 px-2 py-1 text-white">
+                Usar
+              </button>
+            )}
+          </div>
+        ))
+      ) : (
+        <span>
+          Ningún {NOMBRE_ROL[rol]} dentro del rango de la fórmula cumple con el resto de la paleta. El aviso se mantiene; se
+          puede ajustar otro de los colores.
+        </span>
       )}
     </div>
   );
@@ -89,12 +211,20 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
   const pendientes = pendientesMarca(marca.logo);
   const [textos, setTextos] = useState<TextosPieza>(TEXTOS_EJEMPLO[marca.rubro]);
   const ajustes = marca.ajustes_manuales ?? [];
+  const soloHeredado = marca.color.solo_heredado === true;
+  // La sugerencia nunca va sobre el color de marca: es una elección del cliente. Sí sobre los colores ajustados a mano
+  // y, con el heredado sin versión funcional, sobre el tono de apoyo, el fondo neutro y el acento aunque no se hayan tocado.
+  const sugerir = (rol: RolPaleta) =>
+    rol !== "color_marca" && (ajustes.includes(rol) || (soloHeredado && ["tono_apoyo", "fondo_neutro", "acento"].includes(rol)));
   const props = (rol: RolPaleta) =>
     onChange
       ? {
           editar: (c: HSL) => onChange(ajustarColorMarca(marca, rol, c)),
           ajustado: ajustes.includes(rol),
           onRestaurar: () => onChange(restaurarColorMarca(marca, rol)),
+          rol,
+          paleta: p,
+          sugerir: sugerir(rol),
         }
       : { ajustado: ajustes.includes(rol) };
   const relacion = relacionAcento(p);
@@ -113,11 +243,15 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
     <div className="flex flex-col gap-10">
       <section className="grid gap-6 lg:grid-cols-[1fr_1fr_18rem]">
         <div>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">Modo A · claro</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+            Modo A · claro{ajustes.length > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700">con ajustes manuales</span>}
+          </h3>
           <PiezaMuestra paleta={p} tipografia={marca.tipografia} rubro={marca.rubro} modo="A" nombre={marca.nombre} logo={marca.logo} textos={textos} />
         </div>
         <div>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">Modo B · bold</h3>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+            Modo B · bold{ajustes.length > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700">con ajustes manuales</span>}
+          </h3>
           <PiezaMuestra paleta={p} tipografia={marca.tipografia} rubro={marca.rubro} modo="B" nombre={marca.nombre} logo={marca.logo} textos={textos} />
         </div>
         <div className="flex flex-col gap-4 text-sm">
@@ -158,22 +292,45 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
       <section>
         <div className="mb-4 flex flex-wrap items-baseline gap-3">
           <h2 className="text-lg font-semibold">Paleta</h2>
-          {onChange && <span className="text-sm text-neutral-500">Podés corregir cualquier color escribiendo su HEX.</span>}
+          {onChange && (
+            <span className="text-sm text-neutral-500">
+              Podés corregir cualquier color escribiendo su HEX. Los ejemplos de Modo A y Modo B se actualizan al instante.
+            </span>
+          )}
           {onChange && ajustes.length > 0 && (
             <button type="button" onClick={() => onChange(restaurarColorMarca(marca))} className="ml-auto text-sm underline">
               Volver a la paleta calculada
             </button>
           )}
         </div>
+        {onChange && puedeElegirFuncional(marca) && <OpcionFuncional marca={marca} onChange={onChange} />}
+        {soloHeredado && fallasPaleta(p).length > 0 && (
+          <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+            El color heredado se usa sin versión funcional, por decisión del cliente. Estos contrastes no llegan al mínimo del
+            manual; se aceptan con aviso y no bloquean las publicaciones:
+            <ul className="mt-1 list-disc pl-5">
+              {fallasPaleta(p).map((f) => (
+                <li key={f.control}>{f.control}: {f.valor.toFixed(1)}:1 (mín. {f.minimo})</li>
+              ))}
+            </ul>
+            El color de marca no se modifica. Debajo del tono de apoyo, el fondo neutro y el acento se sugiere el color más
+            próximo que cumple.
+          </div>
+        )}
         {ajustes.length > 0 && (
           <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-            Los colores ajustados a mano no pasan por la fórmula. Revisá los contrastes: los que quedan en rojo no cumplen el
-            mínimo del manual y van a bloquear las publicaciones hasta corregirlos.
+            Los colores ajustados a mano no pasan por la fórmula: se respetan por decisión del cliente. Los contrastes en rojo
+            no llegan al mínimo del manual; en Publicar figuran como aviso y no bloquean la exportación. Debajo de cada color
+            ajustado que no cumple (salvo el color de marca) se sugiere el más próximo que sí cumple.
           </p>
         )}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Muestra nombre="Color de marca" color={p.color_marca} nota={marca.color.modo === "heredado" ? "Heredado del cliente" : "Chip optimizado"} {...props("color_marca")}>
-            <div className="text-xs">vs. fondo: <Ratio valor={contraste(p.color_marca, p.fondo_neutro)} minimo={p.version_funcional ? MIN_GRAFICO : MIN_TEXTO} /></div>
+            {p.version_funcional ? (
+              <div className="text-xs">con la funcional encima: <Ratio valor={contraste(p.color_marca, p.version_funcional)} minimo={MIN_GRAFICO} /></div>
+            ) : (
+              <div className="text-xs">vs. fondo: <Ratio valor={contraste(p.color_marca, p.fondo_neutro)} minimo={MIN_TEXTO} /></div>
+            )}
           </Muestra>
           {p.version_funcional && (
             <Muestra nombre="Versión funcional" color={p.version_funcional} nota="Texto, íconos y elementos finos" {...props("version_funcional")}>

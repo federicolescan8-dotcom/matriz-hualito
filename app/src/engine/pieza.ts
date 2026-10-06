@@ -9,9 +9,11 @@ import {
   type RellenoDeco,
   type TipoContacto,
 } from "./biblioteca";
+import type { IdDecoracion } from "./decoraciones";
 import type { Marca } from "./diagnostico";
-import { CANALES, type Canal, type Formato } from "./formatos";
+import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
+import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
   id: string;
@@ -30,10 +32,16 @@ export interface Pieza {
   body_italica: boolean;
   /** Capa decorativa de las variantes 2B (una sola por pieza). null = la sugerida del rubro. */
   deco?: Deco | null;
+  /** Decoración de plantilla (v1.1): figuras propias del diseño. null = forma de fondo automática. */
+  decoracion?: IdDecoracion | null;
+  /** Variante 3: cada ícono de contacto sobre un soporte (cuadrado redondeado). */
+  soporte_iconos?: boolean;
   /** Variante 3: hasta 4 datos de contacto. */
   contacto?: DatoContacto[];
   /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
   items?: ItemCatalogo[];
+  /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
+  carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
 }
 
 /** Capa decorativa 2B: una forma sangrada y su relleno. */
@@ -111,7 +119,8 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     descripcion: "Mensaje a la izquierda y una capa decorativa a la derecha. Impacto con refuerzo visual.",
     orden: ["H1", "body", "cta", "logo"],
     tieneCta: true,
-    h1: { min: 56, max: 104, altoMax: 0.42 },
+    // La columna del mensaje es angosta (la mitad izquierda): el mínimo del H1 es más alto para sostener la jerarquía.
+    h1: { min: 64, max: 104, altoMax: 0.42 },
     body: { min: 26, max: 32 },
     cta: 32,
     logoPx: 90,
@@ -150,6 +159,16 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     logoPx: 80,
     bloque: "catalogo",
   },
+  P: {
+    nombre: "P · Punto",
+    descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
+    orden: ["H1", "body"],
+    tieneCta: false,
+    h1: { min: 56, max: 104, altoMax: 0.3 },
+    body: { min: 26, max: 34 },
+    cta: 32,
+    logoPx: 60,
+  },
 };
 
 /**
@@ -160,7 +179,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
   "1:1": {
     "1": { h1: { max: 104, altoMax: 0.42, maxLineas: 2 }, body: { max: 32 }, logoPx: 96 },
     "2": { h1: { max: 140, altoMax: 0.6, maxLineas: 2 }, body: { max: 32 }, logoPx: 88 },
-    "2B-L": { h1: { max: 88, altoMax: 0.4, maxLineas: 2 }, logoPx: 76 },
+    "2B-L": { h1: { max: 88, altoMax: 0.4, maxLineas: 3 }, logoPx: 76 },
     "2B-S": { h1: { max: 96, altoMax: 0.3, maxLineas: 2 }, logoPx: 76 },
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
@@ -168,6 +187,8 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
     "2": { h1: { max: 150, altoMax: 0.55 } },
+    // 2B-L: mismo H1 que en 4:5 (la columna tiene el mismo ancho); con la escala de story se partiría palabra por palabra.
+    "2B-L": { h1: { max: 86 } },
     "2B-S": { h1: { altoMax: 0.3 } },
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
@@ -182,13 +203,30 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
   },
 };
 
-export function plantillaPara(variante: Variante, formato: Formato): PlantillaVariante {
+/**
+ * Plantilla de la variante en el formato. Con `familia`, el rango del body se agranda según la compensación óptica de
+ * la familia (las de x baja se ven más chicas al mismo tamaño).
+ */
+export function plantillaPara(variante: Variante, formato: Formato, familia?: string): PlantillaVariante {
   const base = PLANTILLAS[variante]!;
   const a = AJUSTES_FORMATO[formato]?.[variante] ?? {};
-  return { ...base, ...a, h1: { ...base.h1, ...a.h1 }, body: { ...base.body, ...a.body } };
+  const k = familia ? compensacionOptica(familia) : 1;
+  const body = { ...base.body, ...a.body };
+  return { ...base, ...a, h1: { ...base.h1, ...a.h1 }, body: { min: Math.round(body.min * k), max: Math.round(body.max * k) } };
 }
 
-export const VARIANTES_HABILITADAS = Object.keys(PLANTILLAS) as Variante[];
+/**
+ * Piso real del H1 en px: el mínimo de la variante, subido si hace falta para que el H1 siga siendo el doble del body
+ * y del CTA en sus mínimos. El ajuste de texto nunca baja de acá.
+ */
+export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
+  const px = (v: number) => Math.round(v * escala);
+  const ctaMin = Math.min(px(CTA_MIN), px(plantilla.cta));
+  return Math.max(px(plantilla.h1.min), JERARQUIA_H1 * px(plantilla.body.min), JERARQUIA_H1 * ctaMin);
+}
+
+/** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
+export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
 
 /**
  * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2 y 3 se permite centrado
@@ -244,7 +282,13 @@ export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
   if (!lib.formasDeco.includes(elegida.forma)) elegida.forma = base.forma;
   if (!elegida.patron || !lib.patrones.includes(elegida.patron)) elegida.patron = base.patron;
   const valido = disponibles.includes(elegida.relleno) && (elegida.relleno !== "foto" || !!elegida.foto);
-  if (!valido) elegida.relleno = disponibles.find((t) => t !== "foto") ?? "patron";
+  // Sin foto, el respaldo se queda en el mismo modo: una foto pasa a ícono (imagen), no a patrón.
+  if (!valido) {
+    elegida.relleno =
+      (elegida.relleno === "foto" && disponibles.includes("icono") ? "icono" : disponibles.find((t) => t !== "foto")) ?? "patron";
+  }
+  // 2B-L con imagen o ícono (v1.1): el relleno va siempre en un círculo.
+  if (pieza.variante === "2B-L" && elegida.relleno !== "patron") elegida.forma = "circulo";
   return elegida;
 }
 
@@ -261,6 +305,8 @@ export function piezaNueva(marca: Marca): Pieza {
     contenido: { h1: "", body: null, cta: null },
     body_italica: false,
     deco: null,
+    decoracion: null,
+    soporte_iconos: false,
     contacto: [
       { tipo: "whatsapp", valor: "11 5555-5555" },
       { tipo: "instagram", valor: "@" + marca.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "") },
@@ -278,4 +324,59 @@ export function piezaNueva(marca: Marca): Pieza {
 export function formatoDeCanal(canal: Canal, actual: Formato): Formato {
   const formatos = CANALES[canal].formatos;
   return formatos.includes(actual) ? actual : formatos[0];
+}
+
+/**
+ * Modo de la capa decorativa (v1.1): "imagen" es un círculo con foto o ícono; "figura" es una forma geométrica de la
+ * biblioteca con un patrón adentro.
+ */
+export function modoDeco(relleno: RellenoDeco): "imagen" | "figura" {
+  return relleno === "patron" ? "figura" : "imagen";
+}
+
+/**
+ * Geometría del 2B-L en modo imagen, formatos verticales (v1.1). El círculo mide el 80% del ancho, arranca en el centro
+ * de la pieza y se recorta contra el borde derecho; va centrado en el alto de la zona segura. El H1 arranca a la altura del borde superior
+ * del círculo y el logo cierra en el margen inferior. En 9:16 el mensaje sube y el logo baja un 8% del alto respecto
+ * de los bordes del círculo, sin salir de la zona segura.
+ */
+export function geometria2BLImagen(formato: Formato): {
+  diametro: number;
+  izquierda: number;
+  /** Posiciones posibles del borde izquierdo del círculo, en orden de preferencia. */
+  posiciones: number[];
+  arriba: number;
+  textoArriba: number;
+  logoAbajo: number;
+} {
+  const f = FORMATOS[formato];
+  const diametro = f.ancho * 0.8;
+  // Desde el centro; si el H1 no llega a un tamaño cómodo, desde el 60% del ancho (más lugar para el mensaje). En 1:1,
+  // donde el H1 tiene pocas líneas, siempre desde el 60%.
+  const posiciones = formato === "1:1" ? [f.ancho * 0.6] : [f.ancho * 0.5, f.ancho * 0.6];
+  const izquierda = posiciones[0];
+  const zonaArriba = f.alto * f.zona.arriba;
+  const zonaAbajo = f.alto * (1 - f.zona.abajo);
+  // Centrado en la zona segura (no en el lienzo): en 9:16 la zona es asimétrica porque la interfaz tapa más abajo.
+  const arriba = zonaArriba + (zonaAbajo - zonaArriba - diametro) / 2;
+  if (formato === "9:16") {
+    return {
+      diametro,
+      izquierda,
+      posiciones,
+      arriba,
+      textoArriba: Math.max(zonaArriba + 16, arriba - f.alto * 0.08),
+      logoAbajo: Math.min(zonaAbajo, arriba + diametro + f.alto * 0.08),
+    };
+  }
+  // 4:5 y 1:1: el bloque del mensaje queda enmarcado por el alto del círculo: el H1 arranca en su borde superior y el
+  // logo termina en su borde inferior (siempre dentro de la zona segura, con 16 px para las ascendentes).
+  return {
+    diametro,
+    izquierda,
+    posiciones,
+    arriba,
+    textoArriba: Math.max(zonaArriba + 16, arriba),
+    logoAbajo: Math.min(zonaAbajo, arriba + diametro),
+  };
 }

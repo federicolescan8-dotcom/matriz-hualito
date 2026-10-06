@@ -6,7 +6,7 @@ import { PRESETS } from "@/engine/presets";
 import { hslCss } from "@/engine/color";
 import { FichaMarca } from "@/components/FichaMarca";
 import type { Marca } from "@/engine/diagnostico";
-import { borrarMarca, descargarJson, guardarMarca, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcas } from "@/lib/marcas";
+import { borrarMarca, descargarJson, elegirMarcaActiva, guardarMarca, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcas } from "@/lib/marcas";
 import { usaSupabase } from "@/lib/supabase";
 
 export default function MarcasPage() {
@@ -55,7 +55,10 @@ export default function MarcasPage() {
           <li key={m.id}>
             <button
               type="button"
-              onClick={() => setAbierta(m.id === abierta ? null : m.id)}
+              onClick={() => {
+                setAbierta(m.id === abierta ? null : m.id);
+                elegirMarcaActiva(m.id);
+              }}
               className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left ${m.id === abierta ? "border-neutral-900" : "border-neutral-200"}`}
             >
               <span className="flex overflow-hidden rounded">
@@ -73,11 +76,11 @@ export default function MarcasPage() {
       </ul>
       {actual && (
         <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="sticky top-0 z-10 -mx-4 flex flex-wrap items-center gap-3 bg-white/95 px-4 py-3 backdrop-blur">
             <h2 className="mr-auto text-xl font-semibold">{actual.nombre}</h2>
             {sinGuardar && (
               <>
-                <span className="text-sm text-amber-800">Cambios sin guardar</span>
+                <span className="text-sm text-amber-800">Cambios sin confirmar · se aplican en Publicar al confirmar</span>
                 <button type="button" onClick={() => setBorrador(null)} className="text-sm underline">Descartar</button>
                 <button
                   type="button"
@@ -86,10 +89,18 @@ export default function MarcasPage() {
                   }}
                   className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
                 >
-                  Guardar cambios
+                  Confirmar cambios
                 </button>
               </>
             )}
+            <Link
+              href="/publicar"
+              onClick={() => elegirMarcaActiva(actual.id)}
+              className={`rounded-md px-4 py-2 text-sm ${sinGuardar ? "pointer-events-none border border-neutral-200 text-neutral-400" : "border border-neutral-300"}`}
+              title={sinGuardar ? "Confirmá o descartá los cambios antes de publicar" : undefined}
+            >
+              Publicar con esta marca
+            </Link>
             <button type="button" onClick={() => descargarJson(actual)} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">Exportar JSON</button>
             <button
               type="button"
