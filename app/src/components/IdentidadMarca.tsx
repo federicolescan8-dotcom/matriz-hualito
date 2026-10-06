@@ -30,7 +30,8 @@ import {
   type Marca,
 } from "@/engine/diagnostico";
 import { PRESETS } from "@/engine/presets";
-import { escala, pesoH1, PESOS } from "@/engine/typography";
+import { escala, familiaTexto, pesoH1, PESOS } from "@/engine/typography";
+import { ParTipografico } from "./ParTipografico";
 import { fontFamily } from "@/lib/fuentes";
 import { PiezaMuestra, textosPara, type TextosPieza } from "./PiezaMuestra";
 import { CampoHex } from "./CampoHex";
@@ -416,11 +417,13 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
         id="tipografia"
         extra={
           <span className="text-sm text-neutral-500">
-            {marca.identidad.tipografia.familia_variable} ·{" "}
+            {marca.identidad.tipografia.familia_variable}
+            {marca.identidad.tipografia.familia_texto && ` + ${marca.identidad.tipografia.familia_texto}`} ·{" "}
             {marca.identidad.tipografia.italic_habilitado ? "itálica habilitada (solo body/caption, regular)" : "sin itálica"}
           </span>
         }
       >
+        {onChange && <ParTipografico marca={marca} onChange={onChange} />}
         <div className="flex flex-col gap-3 rounded-md border border-black/10 p-6" style={{ fontFamily: familia, color: hslCss(A.texto), background: hslCss(A.fondo) }}>
           {([
             ["H1", `${pesoH1("", marca.identidad.tipografia.familia_variable)} → 700 según largo`, "Mensaje principal", pesoH1("", marca.identidad.tipografia.familia_variable), escala("H1", "feed")],
@@ -432,7 +435,7 @@ export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (
               <span className="w-28 shrink-0 font-sans text-xs text-neutral-500" style={{ fontFamily: "system-ui" }}>
                 {nivel} · {peso}<br />{min}-{max} px
               </span>
-              <span style={{ fontWeight: w, fontSize: Math.round(max * 0.6) }}>{texto}</span>
+              <span style={{ fontWeight: w, fontSize: Math.round(max * 0.6), fontFamily: nivel === "Body" || nivel === "Caption" ? fontFamily(familiaTexto(marca.identidad.tipografia)) : undefined }}>{texto}</span>
             </div>
           ))}
         </div>

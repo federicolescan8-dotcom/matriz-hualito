@@ -78,8 +78,8 @@ manuales.
   - dos marcas del mismo rubro con ejes distintos arrancan con paleta y tipografía distintas;
   - las marcas existentes se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad.
 
-### E3 · Laboratorio de color y tipografía en par · [~] en curso · depende de E9
-- **Estado:** E3a hecha: laboratorio de color (armonías, bloquear y regenerar, extraer de logo, foto o pantalla, daltonismo) y paleta extendida (2 secundarios y neutro oscuro, usados como color de la decoración de plantilla). E3b pendiente: tipografía en par, catálogo ampliado y fuente propia.
+### E3 · Laboratorio de color y tipografía en par · [x] hecha · depende de E9
+- **Estado:** E3a hecha: laboratorio de color (armonías, bloquear y regenerar, extraer de logo, foto o pantalla, daltonismo) y paleta extendida (2 secundarios y neutro oscuro, usados como color de la decoración de plantilla). E3b hecha: catálogo de 12 familias con clases, par display + texto con regla de combinación en vivo y pares sugeridos, y fuente propia (WOFF2, WOFF, TTF u OTF) subida desde la identidad.
 - **Alcance:**
   - **laboratorio de color**, para explorar en vivo:
     - selector libre (rueda, HEX y cuentagotas sobre el logo o una foto) y **armonías** (análoga, complementaria,

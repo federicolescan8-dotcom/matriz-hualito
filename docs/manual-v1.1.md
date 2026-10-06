@@ -67,7 +67,8 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
 32. **Niveles de regla y aceptación con justificación**: cada control del checklist tiene un nivel: *bloqueante* (legibilidad crítica, nunca se acepta), *aviso* (se puede aceptar con justificación) o *sugerencia* (lo que fija el rubro, no frena). Un aviso aceptado queda registrado con motivo, autor y fecha, viaja con la pieza (la exportación lo respeta) y se guarda en el historial de decisiones de la marca. La alineación del mensaje y la itálica pasan a ser sugerencias: ya no rechazan la pieza. La excepción de los ajustes manuales de color (cambio 19) no alcanza a los bloqueantes: un texto bajo 3:1 ya no se acepta por esa vía. *(Cap. 8, Cap. 3 paso 9, Cap. 9)*
 33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
-34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par queda para E3b. *(Cap. 3, Cap. 6, Cap. 9)*
+34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par se resolvió en E3b (cambio 35). *(Cap. 3, Cap. 6, Cap. 9)*
+35. **Tipografía en par, catálogo ampliado y fuente propia (E3b)**: el catálogo suma 6 familias variables (Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque) y cada familia tiene una clase (serif, geométrica, grotesca, humanista). La marca puede usar una familia display (H1 y H2) y otra de texto (body, CTA, datos de contacto e ítems del catálogo), con una regla de combinación que se muestra en vivo y sugiere sin bloquear. La itálica y la compensación óptica del body salen de la familia de texto. Se puede subir una fuente propia (WOFF2, WOFF, TTF u OTF) con su clase. Con esto el principio de una sola familia pasa a ser el caso por defecto, no una obligación. *(Cap. 4, Cap. 9, A.4)*
 
 ---
 
@@ -401,7 +402,7 @@ Definir cómo se elige y aplica la tipografía de cada marca con el mismo criter
 
 ### Principio base: una sola familia variable
 
-El sistema usa una única familia tipográfica variable por marca, donde la jerarquía se resuelve exclusivamente por el eje de peso, nunca mezclando familias distintas. Esto reduce el diseño tipográfico a una sola decisión y elimina el riesgo de incompatibilidad visual entre título y texto.
+El sistema usa por defecto una única familia tipográfica variable por marca, donde la jerarquía se resuelve exclusivamente por el eje de peso. Esto reduce el diseño tipográfico a una sola decisión y elimina el riesgo de incompatibilidad visual entre título y texto. *(v1.1)* Una marca puede sumar una segunda familia para el texto (ver "Tipografía en par"); la jerarquía sigue resolviéndose por peso y tamaño dentro de cada familia.
 
 ### Paso 1 — Selección de familia por rubro
 
@@ -416,7 +417,44 @@ Cada rubro tiene un par de familias variables. Cuál de las dos se usa lo decide
 
 Si el cliente tiene tipografía previa y existe en versión variable, se prioriza esa sobre la tabla.
 
-*(v1.1)* Con los ejes de personalidad (capítulo 2, paso 2), la tabla es el valor por defecto: la familia sugerida es la más cercana a la posición de la marca en clásico↔moderno, sobrio↔expresivo y artesanal↔tecnológico, entre las seis familias, cada una ubicada en ese espacio. Prioridad: tipografía previa del cliente, luego la sugerida por los ejes, luego la tabla según el tono.
+*(v1.1)* Con los ejes de personalidad (capítulo 2, paso 2), la tabla es el valor por defecto: la familia sugerida es la más cercana a la posición de la marca en clásico↔moderno, sobrio↔expresivo y artesanal↔tecnológico, entre las familias del catálogo, cada una ubicada en ese espacio. Prioridad: tipografía previa del cliente, luego la sugerida por los ejes, luego la tabla según el tono.
+
+### Catálogo, clases y tipografía en par *(v1.1, E3b)*
+
+**Catálogo.** Doce familias variables. Las seis originales y seis sumadas en E3b, que se bajan solo cuando una pieza las usa:
+
+| Familia | Clase | Itálica | Peso máx. | Altura de x |
+|---|---|---|---|---|
+| Fraunces | serif | sí | 900 | 47% |
+| Newsreader | serif | sí | 800 | 44% |
+| Playfair Display | serif | sí | 900 | 51% |
+| Literata | serif | sí | 900 | 47% |
+| Sora | geométrica | no | 800 | 54% |
+| DM Sans | geométrica | sí | 900 | 50% |
+| Outfit | geométrica | no | 900 | 50% |
+| Inter | grotesca | sí | 900 | 55% |
+| Space Grotesk | grotesca | no | 700 | 49% |
+| Work Sans | grotesca | sí | 900 | 52% |
+| Manrope | humanista | no | 800 | 54% |
+| Bricolage Grotesque | humanista | no | 800 | 52% |
+
+Las alturas de x de las seis nuevas son estimadas, no medidas.
+
+**Par display + texto.** La familia *display* (la de la marca) se usa en H1 y H2; la familia de *texto*, opcional, en body, CTA, datos de contacto e ítems del catálogo. Sin familia de texto, todo va en la display. La regla de combinación es una sugerencia visible, no bloquea:
+
+| Combinación | Resultado |
+|---|---|
+| Una sola familia | ok |
+| Serif + sans (cualquier clase) | ok |
+| Sans de clases distintas | ok |
+| Dos serif distintas | no: compiten |
+| Dos sans de la misma clase | no: se parecen sin contrastar |
+
+Se sugieren hasta 4 pares para la display elegida, con las sans primero. La jerarquía del H1 (el doble del body y del CTA) se cumple igual, porque se mide sobre las cajas reales de cada familia.
+
+**Por familia de texto.** El peso del H1 y su tope siguen por la display. La itálica se habilita según la familia de texto (que es donde se usa) y el rubro. La compensación óptica del body (paso 2) usa la altura de x de la familia de texto.
+
+**Fuente propia.** El cliente puede subir una fuente (WOFF2, WOFF, TTF u OTF) y elegir su clase. Queda como opción "Propia" en la display y en la de texto, con las mismas reglas de par según su clase. Si se la quita y estaba en uso, la marca vuelve a la familia sugerida por los ejes. Antes de medir el texto, el sistema espera a que la fuente (propia o del catálogo) esté cargada, así el ajuste y el checklist trabajan con la fuente real.
 
 ### Paso 2 — Jerarquía y pesos
 
@@ -445,7 +483,7 @@ En formato story y estado, todos los tamaños se escalan entre 15% y 20% respect
 - el body llega como máximo a la mitad del H1;
 - el CTA también llega como máximo a la mitad del H1, y nunca baja de 24 px en feed.
 
-**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44%. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
+**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44% (las de las familias de E3b, en la tabla del catálogo, son estimadas). *(v1.1, E3b)* Se aplica a la familia de texto. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
 
 El H1 del 2B-L tiene un mínimo más alto (64 px en feed), porque su columna es angosta. Si ni así entra, la pieza va a revisión manual: hay que acortar el texto o usar la opción figura y patrón.
 
@@ -457,7 +495,7 @@ La itálica se habilita solo en belleza/lifestyle y gastronomía/retail, y adem�
 italic_habilitado = rubro_lo_permite AND familia_tiene_italica
 ```
 
-Sora, Manrope y Space Grotesk no tienen itálica. En consecuencia, una marca de gastronomía a la que la pregunta de personalidad 1 le asignó Sora (respuesta "seria") queda sin itálica habilitada, aunque el rubro en general sí la permita. *(v1.1)*
+Sora, Manrope, Space Grotesk, Outfit y Bricolage Grotesque no tienen itálica. *(v1.1, E3b)* La condición se evalúa sobre la familia de texto, que es donde se usa la itálica. En consecuencia, una marca de gastronomía a la que la pregunta de personalidad 1 le asignó Sora (respuesta "seria") queda sin itálica habilitada, aunque el rubro en general sí la permita. *(v1.1)*
 
 Reglas de uso dentro de los rubros y familias habilitadas:
 
@@ -957,7 +995,9 @@ marca: {
       neutro_oscuro: { H, S: <= 20, L: 14 }
     },
     logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
-    tipografia: { familia_variable, italic_habilitado: bool },
+    tipografia: { familia_variable, italic_habilitado: bool,
+                  familia_texto?: string,                // (v1.1, E3b) body, CTA, contacto e ítems; sin ella, familia_variable
+                  propia?: { nombre, archivo, clase } }, // (v1.1, E3b) fuente subida; archivo = data URL; clase: serif | geométrica | grotesca | humanista
     graficos: { estilo_iconos },
     fotos_habilitadas: bool
   }
@@ -1130,14 +1170,15 @@ modo_color_heredado: {
 
 ```
 {
-  familia_variable: [segun rubro + tono de personalidad (seria|cercana), o tipografia previa del cliente],  // (v1.1)
+  familia_variable: [segun rubro + tono de personalidad (seria|cercana), o tipografia previa del cliente],  // (v1.1) display: H1 y H2
+  familia_texto: [opcional, v1.1 E3b: body, CTA, contacto e items; par valido segun cap. 4],
   pesos_fijos: {
     H1: "clamp(900 - 200*(n-15)/30, 700, 900), redondeado a multiplos de 50, n = caracteres del H1",  // (v1.1)
     H2: 600, body: 400, caption: 400
   },
   escala: { H1: "48-64px", H2: "32-40px", body: "24-28px", caption: "18-20px" },
   escala_story: "+15-20% sobre escala feed",
-  italic_habilitado: "rubro_lo_permite AND familia_tiene_italica",  // (v1.1) — Sora, Manrope y Space Grotesk no tienen italica
+  italic_habilitado: "rubro_lo_permite AND familia_tiene_italica",  // (v1.1) — la familia de texto; Sora, Manrope, Space Grotesk, Outfit y Bricolage no tienen italica
   italic_reglas: {
     peso_permitido: "regular",
     niveles_permitidos: ["body", "caption", "H2 si <6 palabras"],

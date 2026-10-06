@@ -79,6 +79,13 @@ const FAMILIAS_EN_EJES: { familia: string; punto: [number, number, number] }[] =
   { familia: "Manrope", punto: [60, 45, 40] },
   { familia: "Sora", punto: [75, 60, 70] },
   { familia: "Space Grotesk", punto: [90, 80, 95] },
+  // Catálogo ampliado (E3).
+  { familia: "Playfair Display", punto: [10, 80, 30] },
+  { familia: "Literata", punto: [25, 35, 25] },
+  { familia: "DM Sans", punto: [72, 35, 55] },
+  { familia: "Work Sans", punto: [55, 35, 65] },
+  { familia: "Outfit", punto: [82, 50, 60] },
+  { familia: "Bricolage Grotesque", punto: [65, 88, 45] },
 ];
 
 export function familiaDeEjes(e: Ejes): string {

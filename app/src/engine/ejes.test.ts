@@ -3,10 +3,13 @@ import { ejesDesdePersonalidad, ejesSemilla, EJES_RUBRO, familiaDeEjes, rangoMat
 import { construirMarca, diagnosticoVacio, generarChips, type Marca } from "./diagnostico";
 import { migrarMarca } from "./identidad";
 import { PRESETS, RUBROS } from "./presets";
+import { CLASE_FAMILIA } from "./typography";
 
 describe("diagnóstico abierto: ejes (E12)", () => {
-  it("la semilla de cada rubro da una de las familias de su preset", () => {
-    for (const r of RUBROS) expect(Object.values(PRESETS[r].familia)).toContain(familiaDeEjes(ejesSemilla(r)));
+  it("la semilla de cada rubro da una familia de la misma clase que las de su preset", () => {
+    // Con el catálogo ampliado (E3) puede ser otra familia, pero de la misma clase (serif, geométrica, etc.).
+    for (const r of RUBROS)
+      expect(Object.values(PRESETS[r].familia).map((f) => CLASE_FAMILIA[f])).toContain(CLASE_FAMILIA[familiaDeEjes(ejesSemilla(r))]);
   });
 
   it("mezclar dos rubros promedia sus ejes", () => {

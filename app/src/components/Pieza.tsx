@@ -18,8 +18,8 @@ import {
   type Deco,
   type Pieza as TPieza,
 } from "@/engine/pieza";
-import { compensacionOptica, FACTOR_STORY, pesoH1 } from "@/engine/typography";
-import { fontFamily } from "@/lib/fuentes";
+import { compensacionOptica, FACTOR_STORY, familiaTexto, pesoH1 } from "@/engine/typography";
+import { asegurarFamilias, cargarFuentePropia, fontFamily } from "@/lib/fuentes";
 import { ajustarTexto, medirPieza } from "@/lib/medicion";
 import { decoracionEfectiva, SOMBRA_DECORACION, trazadoDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
 import { FormaRellena, FormaSvg, FotoEnForma, Icono } from "./Graficos";
@@ -42,9 +42,11 @@ export function Pieza({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
-  const plantilla = plantillaPara(pieza.variante, pieza.formato, marca.identidad.tipografia.familia_variable);
+  // El body se compensa por la familia de texto (la del par, si hay; E3).
+  const plantilla = plantillaPara(pieza.variante, pieza.formato, familiaTexto(marca.identidad.tipografia));
   // Compensación óptica de la familia para el texto secundario (los datos de contacto; el body ya viene en la plantilla).
-  const kOptico = compensacionOptica(marca.identidad.tipografia.familia_variable);
+  const kOptico = compensacionOptica(familiaTexto(marca.identidad.tipografia));
+  const fuenteTexto = fontFamily(familiaTexto(marca.identidad.tipografia));
   const horizontal = f.columnaMensaje != null;
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const px = (v: number) => Math.round(v * escala);
@@ -99,7 +101,11 @@ export function Pieza({
     const imagenes = [...root.querySelectorAll("image, img")].map((el) =>
       el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : Promise.resolve(),
     );
-    Promise.all([document.fonts.ready, ...imagenes]).then(() => {
+    // La fuente propia de la marca (E3) se registra antes de medir.
+    const fuentes = cargarFuentePropia(marca.identidad.tipografia.propia)
+      .then(() => asegurarFamilias([marca.identidad.tipografia.familia_variable, familiaTexto(marca.identidad.tipografia)]))
+      .then(() => document.fonts.ready);
+    Promise.all([fuentes, ...imagenes]).then(() => {
       if (!vigente) return;
       const desborde = ajustarTexto(root, plantilla, f.alto, escala, lateralVertical ? g.posiciones : undefined);
       const medicion = medirPieza(root, desborde);
@@ -148,6 +154,7 @@ export function Pieza({
 
   const bodyEstilo: React.CSSProperties = {
     margin: 0,
+    fontFamily: fuenteTexto,
     color: hslCss(c.texto),
     fontSize: "var(--body)",
     fontWeight: 400,
@@ -232,6 +239,7 @@ export function Pieza({
             color: hslCss(e.texto),
             fontSize: "var(--cta)",
             fontWeight: 600,
+            fontFamily: fuenteTexto,
             padding: horizontal ? `${px(14)}px ${px(32)}px` : `${px(22)}px ${px(angosto ? 32 : 46)}px`,
             whiteSpace: angosto ? "var(--cta-salto, nowrap)" : undefined,
             textAlign: "center",
@@ -712,7 +720,7 @@ function Catalogo({
               </>
             )}
           </div>
-          <span data-slot="item-texto" style={{ color: hslCss(colorTexto), fontSize: textoPx, fontWeight: 400, lineHeight: 1.25, textAlign: "center" }}>
+          <span data-slot="item-texto" style={{ color: hslCss(colorTexto), fontFamily: fontFamily(familiaTexto(marca.identidad.tipografia)), fontSize: textoPx, fontWeight: 400, lineHeight: 1.25, textAlign: "center" }}>
             {it.texto}
           </span>
         </div>

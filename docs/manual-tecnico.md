@@ -11,7 +11,7 @@ Cómo está construida la aplicación. Las **reglas de diseño** están en `docs
 | playwright-core | Render a PNG en el servidor (Edge → Chrome → Chromium de Playwright) |
 | fflate | ZIP de exportación (todos los formatos, carrusel) |
 | @phosphor-icons/react | 60 íconos de la biblioteca, en estilo lineal y sólido |
-| next/font (Google) | Familias variables: Inter, Manrope, Fraunces, Sora, Newsreader, Space Grotesk |
+| next/font (Google) | 12 familias variables (`lib/fuentes.ts`): Inter, Manrope, Fraunces, Sora, Newsreader, Space Grotesk, más Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque (E3b, con `preload: false`: se bajan cuando una pieza las usa). La fuente propia de la marca se registra con `FontFace` |
 | Supabase (opcional) | Base de marcas multi-organización con RLS y login por enlace mágico. Sin `.env.local`, modo local |
 
 ## 2. Estructura
@@ -43,7 +43,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 2. **Identidad** (`/identidad/[marca]`: `app/identidad/[marca]/page.tsx`, server con `await params`, y `VistaIdentidad.tsx`, cliente): la vista del sistema visual de la marca (`components/IdentidadMarca.tsx`). Abrirla vuelve a esa marca la marca activa. `/identidad` (`app/identidad/page.tsx`) redirige a la identidad de la marca activa o pide hacer un diagnóstico. Tiene un índice de secciones con ancla (`SECCIONES_IDENTIDAD`):
    - prueba Modo A / Modo B con texto de ejemplo, arriba;
    - **Color**: paleta con ajuste manual por HEX y sugerencias de color válido, opción con o sin versión funcional, CTA en Modo B, secuencia de modo, y el laboratorio (`components/LaboratorioColor.tsx`, solo cuando se puede editar): bloquear roles y "Ver otras opciones" (3 alternativas con muestra Modo A y B), tomar colores del logo, de una foto o de la pantalla (EyeDropper, donde exista) con `lib/imagen.ts › pixelesDeImagen` (imagen reducida a 72 px con canvas), paleta extendida por armonía (sumar, reemplazar, quitar) y "Ver la identidad como" con filtro SVG `feColorMatrix` (mismas matrices del motor) sobre toda la vista;
-   - **Tipografía**;
+   - **Tipografía** (`components/ParTipografico.tsx`, E3b): selectores de display y de texto agrupados por clase, la regla del par en vivo (`controlPar`), pares sugeridos (`paresSugeridos`) y la carga de la fuente propia (WOFF2, WOFF, TTF u OTF, con su clase, que queda como opción "Propia"); quitarla vuelve a la familia de los ejes si estaba en uso;
    - **Logo**;
    - **Recursos gráficos**: estilo de íconos, formas, patrones e íconos del rubro;
    - **Fotografía**: el check de fotos propias.
@@ -60,7 +60,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `presets.ts` | Rubros: rango de matiz, secuencia de modos, familias, alineaciones, variantes prioritarias. Tipos `Variante`, `Modo`, `Rubro` |
 | `palette.ts` | Fórmula de paleta (`derivarPaleta`, cap. 3): modo optimizado y heredado (con o sin versión funcional), acento y su texto, CTA en Modo A, Modo B y sobre cualquier fondo, `controlesPaleta`/`fallasPaleta`, sugerencias (`colorValidoCercano`) |
 | `ejes.ts` | Ejes continuos de personalidad (E12), 6 de 0 a 100. `EJES_RUBRO` (semilla por rubro), `ejesSemilla(rubro, secundario)` (promedio si hay mezcla), `ejesDesdePersonalidad(rubro, tono, valor)` (migración), `familiaDeEjes` con `FAMILIAS_EN_EJES`, `rangoMatiz(ejes, rubro, secundario)`, `valorDeEjes`, `tonoDeEjes` |
-| `typography.ts` | Familias (`resolverTipografia` con prioridad: previa del cliente > sugerida por los ejes > preset del rubro según tono), peso del H1 según el largo, escala, compensación óptica, jerarquía (`JERARQUIA_H1`, `CTA_MIN`) |
+| `typography.ts` | Familias (`FAMILIAS`, `CLASE_FAMILIA`, `ALTURA_X`; `resolverTipografia` con prioridad: previa del cliente > sugerida por los ejes > preset del rubro según tono), peso del H1 según el largo, escala, compensación óptica, jerarquía (`JERARQUIA_H1`, `CTA_MIN`). Par (E3b): `familiaTexto(t)`, `controlPar(display, texto)`, `paresSugeridos(display)` (hasta 4, sans primero) y `elegirPar(t, display, texto, italicaRubro)`, que toma la itálica de la familia de texto; la compensación óptica del body (`compensacionOptica`, `plantillaPara`) también usa la de texto |
 | `diagnostico.ts` | `Diagnostico` (suma `ejes`, `rubro_secundario`, `rubro_libre` y `contenido: ContenidoCliente`) → `Marca`: chips (`generarChips` usa el rango de `rangoMatiz`, no el H_rango fijo del rubro), `valorDiagnostico(d)` (valor guardado o el de los ejes), `diagnosticoDeMarca` y `reconstruirMarca` (edición), ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad`. También `registrarEnHistorial` (suma una `EntradaHistorial` a `marca.historial`) |
 | `laboratorio.ts` | Laboratorio de color (E3a, cap. 3). `ARMONIAS` y `paletaExtendida(paleta, armonia)` (2 secundarios con `texto` solo si llegan a 4,5:1, y neutro oscuro), `revalidarExtendida`; `regenerarPaleta(actual, bloqueados, entrada, semilla, cantidad=3)` con PRNG mulberry32 (determinista), que devuelve alternativas ordenadas (las que cumplen primero, sin repetidas a ΔE < 4); `extraerColores(pixeles, k=5)` (k-medias en RGB); daltonismo: `MATRICES_DALTONISMO`, `simularDaltonismo`, `confusionesDaltonismo` (`DELTA_CONFUSION` = 12). `diagnostico.ts › aplicarAlternativa(marca, alt)` aplica una alternativa |
 | `identidad.ts` | Tipo `Identidad` (todo lo visual de la marca) y migración de marcas guardadas antes de E1: `migrarMarca`, `esMarcaV1`, tipo `MarcaV1` |
@@ -73,15 +73,16 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `logo.ts` | Recoloreo de SVG para las versiones monocromas |
 
 ## 5. Del dato al PNG
-1. `components/Pieza.tsx` dibuja la pieza a tamaño real (por ejemplo 1080×1350). Lo hace a partir de `Marca` + `Pieza` y `plantillaPara(variante, formato)`.
-2. Al montarse, `lib/medicion.ts › ajustarTexto` hace una búsqueda binaria del tamaño del H1, el body y el CTA contra las cajas reales de las letras. Respeta:
+1. `components/Pieza.tsx` dibuja la pieza a tamaño real (por ejemplo 1080×1350). Lo hace a partir de `Marca` + `Pieza` y `plantillaPara(variante, formato)`. H1 y H2 van en la familia display (`familia_variable`); body, CTA, contacto e ítems del catálogo, en la de texto (`familiaTexto`). `PiezaMuestra.tsx` y la muestra de la identidad hacen lo mismo.
+2. Antes de medir, `Pieza.tsx` espera `lib/fuentes.ts › cargarFuentePropia` y `asegurarFamilias([display, texto])` (pide las familias con `document.fonts.load`, porque `document.fonts.ready` no espera una fuente que nadie pidió todavía) y recién después `document.fonts.ready`. Así `/api/render` también mide con la fuente real. `fontFamily()` nombra tal cual las familias que no son del catálogo (la propia).
+3. Al montarse, `lib/medicion.ts › ajustarTexto` hace una búsqueda binaria del tamaño del H1, el body y el CTA contra las cajas reales de las letras. Respeta:
    - la jerarquía (H1 ≥ 2× body y CTA);
    - las líneas máximas;
    - el contorno real de la capa decorativa.
 
    En el 2B-L también elige la posición del círculo.
-3. `medirPieza` arma la `Medicion` y `evaluarPieza` corre el checklist. La pieza marca `data-listo="true"`.
-4. **Vista previa:** la misma pieza escalada con CSS. **Exportación:** `lib/exportar.ts › renderizar` hace un POST a `/api/render`. Ese endpoint:
+4. `medirPieza` arma la `Medicion` y `evaluarPieza` corre el checklist. La pieza marca `data-listo="true"`.
+5. **Vista previa:** la misma pieza escalada con CSS. **Exportación:** `lib/exportar.ts › renderizar` hace un POST a `/api/render`. Ese endpoint:
    - abre `/render` en Playwright;
    - inyecta `window.__RENDER__` y espera `window.__RESULTADO__`;
    - devuelve el PNG solo si el estado es `ok`. Si no, responde 422 con el checklist.
@@ -91,7 +92,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
   - `color`: `modo`, `base`, `version_funcional`, `banda_prohibida` y `solo_heredado`;
   - `paleta`;
   - `paleta_calculada` y `ajustes_manuales`, con lo que la fórmula había calculado y qué se cambió a mano;
-  - `tipografia` y `logo` (data URLs);
+  - `tipografia` (`familia_variable` = display, `familia_texto?` para body, CTA, contacto e ítems, y `propia?: { nombre, archivo (data URL), clase }` con la fuente subida) y `logo` (data URL);
   - `graficos`, obligatorio: `{ estilo_iconos }`;
   - `fotos_habilitadas`;
   - `paleta_extendida?` (E3a): `{ armonia, secundarios[2], neutro_oscuro }`, opcional. Se recalcula con `revalidarExtendida` al ajustar un color a mano o aplicar una alternativa.
@@ -114,7 +115,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 - Configuración de Supabase: `docs/configurar-supabase.md`. Las claves van en `app/.env.local`, nunca en el repo.
 
 ## 7. Tests y verificación
-- `npm test`: más de 120 tests del motor, entre ellos:
+- `npm test`: más de 120 tests (128 con E3b) del motor, entre ellos:
   - toda la rueda de matices por rubro;
   - grillas de colores heredados;
   - el checklist con mediciones sintéticas;

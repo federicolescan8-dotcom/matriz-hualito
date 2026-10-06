@@ -67,3 +67,34 @@ describe("compensación óptica del texto secundario", () => {
   });
 });
 
+
+describe("tipografía en par (E3)", () => {
+  it("serif con sans funciona; dos serif o dos sans de la misma clase no", async () => {
+    const { controlPar } = await import("./typography");
+    expect(controlPar("Fraunces", "Inter").ok).toBe(true);
+    expect(controlPar("Fraunces", "Fraunces").ok).toBe(true);
+    expect(controlPar("Fraunces", "Playfair Display").ok).toBe(false);
+    expect(controlPar("Sora", "DM Sans").ok).toBe(false);
+    expect(controlPar("Sora", "Manrope").ok).toBe(true);
+  });
+
+  it("los pares sugeridos pasan las reglas y para una serif proponen sans primero", async () => {
+    const { controlPar, paresSugeridos, CLASE_FAMILIA } = await import("./typography");
+    const pares = paresSugeridos("Playfair Display");
+    expect(pares.length).toBeGreaterThan(0);
+    for (const t of pares) expect(controlPar("Playfair Display", t).ok).toBe(true);
+    expect(CLASE_FAMILIA[pares[0]]).not.toBe("serif");
+  });
+
+  it("elegir el par fija la familia de texto y la itálica sale de la de texto", async () => {
+    const { elegirPar, familiaTexto } = await import("./typography");
+    const base = resolverTipografia("belleza", "cercana");
+    const conPar = elegirPar(base, "Playfair Display", "Outfit", true);
+    expect(familiaTexto(conPar)).toBe("Outfit");
+    expect(conPar.italic_habilitado).toBe(false); // Outfit no tiene itálica
+    const sinPar = elegirPar(conPar, "Playfair Display", null, true);
+    expect(sinPar.familia_texto).toBeUndefined();
+    expect(sinPar.italic_habilitado).toBe(true);
+  });
+
+});

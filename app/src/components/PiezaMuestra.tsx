@@ -1,7 +1,7 @@
 import { hslCss } from "@/engine/color";
 import { coloresModo, estiloCta, opacidadSegura, type Paleta } from "@/engine/palette";
 import type { Rubro } from "@/engine/presets";
-import { pesoH1, type Tipografia } from "@/engine/typography";
+import { familiaTexto, pesoH1, type Tipografia } from "@/engine/typography";
 import type { ContenidoCliente, Diagnostico } from "@/engine/diagnostico";
 import { fontFamily } from "@/lib/fuentes";
 
@@ -61,6 +61,7 @@ export function PiezaMuestra({
   const t = textos ?? TEXTOS_EJEMPLO[rubro];
   const logoSrc = logo?.[c.logo] ?? null;
   const familia = fontFamily(tipografia.familia_variable);
+  const deTexto = fontFamily(familiaTexto(tipografia));
   const margen = "11%";
   // CTA: con contorno o invertido cuando el acento no contrasta con su fondo (cap. 3, paso 8b).
   const cta = estiloCta(paleta, modo);
@@ -105,6 +106,7 @@ export function PiezaMuestra({
               color: hslCss(c.texto),
               fontSize: px(34),
               fontWeight: 400,
+              fontFamily: deTexto,
               lineHeight: 1.35,
               fontStyle: tipografia.italic_habilitado ? "italic" : "normal",
               maxWidth: "85%",
@@ -123,6 +125,7 @@ export function PiezaMuestra({
               boxShadow: cta.anillo ? `0 0 0 ${px(cta.anillo.px)} ${hslCss(cta.anillo.color)}` : undefined,
               fontSize: px(32),
               fontWeight: 600,
+              fontFamily: deTexto,
               padding: `${px(20)} ${px(40)}`,
               borderRadius: px(999),
             }}

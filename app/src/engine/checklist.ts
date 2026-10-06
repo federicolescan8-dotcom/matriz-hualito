@@ -19,7 +19,7 @@ import {
 import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
-import { FACTOR_STORY, JERARQUIA_H1, pesoH1 } from "./typography";
+import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
 
 export interface Rect {
   x: number;
@@ -219,7 +219,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // Un texto por debajo de 3:1 no se lee: es bloqueante. Entre 3:1 y el mínimo de su regla es un aviso.
   const nivelTexto = (valor: number): NivelRegla => (valor < MIN_GRAFICO ? "bloqueante" : "aviso");
   const f = FORMATOS[pieza.formato];
-  const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato, marca.identidad.tipografia.familia_variable) : undefined;
+  const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato, familiaTexto(marca.identidad.tipografia)) : undefined;
   const p = marca.identidad.paleta;
   const c = coloresModo(p, pieza.modo);
   const escala = f.escala === "story" ? FACTOR_STORY : 1;

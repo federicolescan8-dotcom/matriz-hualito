@@ -12,13 +12,97 @@ export const FAMILIAS: Record<string, { italica: boolean; pesoMax: number }> = {
   Sora: { italica: false, pesoMax: 800 },
   Newsreader: { italica: true, pesoMax: 800 },
   "Space Grotesk": { italica: false, pesoMax: 700 },
+  // Catálogo ampliado (E3): más voces para diferenciar, todas variables en peso.
+  "Playfair Display": { italica: true, pesoMax: 900 },
+  Literata: { italica: true, pesoMax: 900 },
+  "DM Sans": { italica: true, pesoMax: 900 },
+  "Work Sans": { italica: true, pesoMax: 900 },
+  Outfit: { italica: false, pesoMax: 900 },
+  "Bricolage Grotesque": { italica: false, pesoMax: 800 },
 };
 
+/** Clase de cada familia, para las reglas de combinación del par (E3). */
+export type ClaseFamilia = "serif" | "geometrica" | "grotesca" | "humanista";
+
+export const CLASE_FAMILIA: Record<string, ClaseFamilia> = {
+  Inter: "grotesca",
+  Manrope: "humanista",
+  Fraunces: "serif",
+  Sora: "geometrica",
+  Newsreader: "serif",
+  "Space Grotesk": "grotesca",
+  "Playfair Display": "serif",
+  Literata: "serif",
+  "DM Sans": "geometrica",
+  "Work Sans": "grotesca",
+  Outfit: "geometrica",
+  "Bricolage Grotesque": "humanista",
+};
+
+/** Fuente propia de la marca (WOFF2 subido por el estudio, E3). */
+export interface FuentePropia {
+  nombre: string;
+  /** data URL del archivo WOFF2. */
+  archivo: string;
+  clase: ClaseFamilia;
+}
+
 export interface Tipografia {
+  /** Familia display: H1 y H2. Si no hay par, también el texto. */
   familia_variable: string;
+  /** Familia de texto (body, CTA, datos e ítems) cuando la marca usa un par (E3). */
+  familia_texto?: string;
   italic_habilitado: boolean;
   /** true si la familia vino de la tipografía previa del cliente. */
   previa: boolean;
+  /** Fuente propia cargada a la marca; su nombre se puede usar como display o como texto. */
+  propia?: FuentePropia;
+}
+
+/** Familia del texto: la del par o, sin par, la display. */
+export function familiaTexto(t: Tipografia): string {
+  return t.familia_texto ?? t.familia_variable;
+}
+
+function claseDe(familia: string, t?: Tipografia): ClaseFamilia | undefined {
+  return CLASE_FAMILIA[familia] ?? (t?.propia?.nombre === familia ? t.propia.clase : undefined);
+}
+
+/**
+ * Reglas de combinación del par display + texto (E3): el par tiene que contrastar o ser una sola familia. Dos serif
+ * distintas compiten; dos sans de la misma clase se parecen sin contrastar. Una serif con una sans, o dos sans de
+ * clases distintas, funcionan.
+ */
+export function controlPar(display: string, texto: string, t?: Tipografia): { ok: boolean; motivo: string } {
+  if (display === texto) return { ok: true, motivo: "Una sola familia: el contraste lo dan el peso y el tamaño." };
+  const a = claseDe(display, t);
+  const b = claseDe(texto, t);
+  if (!a || !b) return { ok: true, motivo: "Fuente propia sin clase conocida: revisar el par a ojo." };
+  if (a === "serif" && b === "serif") return { ok: false, motivo: "Dos serif distintas compiten entre sí. Usá una sans para el texto." };
+  if (a === b) return { ok: false, motivo: `Dos ${a === "geometrica" ? "geométricas" : a === "grotesca" ? "grotescas" : "humanistas"} distintas se parecen sin contrastar.` };
+  return { ok: true, motivo: a === "serif" || b === "serif" ? "Serif con sans: contraste clásico." : "Sans de clases distintas: contraste de construcción." };
+}
+
+/** Pares sugeridos para una display: las familias del catálogo que pasan las reglas, las sans primero. */
+export function paresSugeridos(display: string, t?: Tipografia): string[] {
+  return Object.keys(FAMILIAS)
+    .filter((f) => f !== display && controlPar(display, f, t).ok)
+    .sort((x, y) => Number(CLASE_FAMILIA[x] === "serif") - Number(CLASE_FAMILIA[y] === "serif"))
+    .slice(0, 4);
+}
+
+/**
+ * Elige el par (o lo quita con texto null). La itálica depende de la familia de texto, que es donde se usa (body y
+ * caption, cap. 4).
+ */
+export function elegirPar(t: Tipografia, display: string, texto: string | null, rubroItalica: boolean): Tipografia {
+  const familia_texto = texto && texto !== display ? texto : undefined;
+  const deTexto = familia_texto ?? display;
+  const italica = FAMILIAS[deTexto]?.italica ?? false;
+  const r: Tipografia = { ...t, familia_variable: display, italic_habilitado: rubroItalica && italica };
+  if (familia_texto) r.familia_texto = familia_texto;
+  else delete r.familia_texto;
+  return r;
 }
 
 /** Paso 1: familia por rubro según pregunta 1 (seria/cercana); la tipografía previa variable tiene prioridad. */
@@ -87,6 +171,12 @@ export const ALTURA_X: Record<string, number> = {
   "Space Grotesk": 0.49,
   Fraunces: 0.47,
   Newsreader: 0.44,
+  "Playfair Display": 0.51,
+  Literata: 0.47,
+  "DM Sans": 0.5,
+  "Work Sans": 0.52,
+  Outfit: 0.5,
+  "Bricolage Grotesque": 0.52,
 };
 /** Altura de x de referencia (las sans del sistema) y umbral: por debajo, el texto secundario se compensa. */
 const X_REFERENCIA = 0.54;
