@@ -92,3 +92,37 @@ export async function pixelesDeImagen(src: string, lado = 72): Promise<{ rgb: [n
   for (let i = 0; i < d.length; i += 4) salida.push({ rgb: [d[i], d[i + 1], d[i + 2]], alfa: d[i + 3] });
   return salida;
 }
+
+/**
+ * Contorno de la forma principal de un SVG (rasgos propios, E2): se dibuja fuera de pantalla, se toma la figura de
+ * mayor superficie (path, polygon, circle, ellipse o rect, con sus transformaciones) y se muestrean `n` puntos sobre
+ * su trazado. El motor lo normaliza a la caja 0-100 (`normalizarContorno`).
+ */
+export function contornoDeSvg(texto: string, n = 360): { x: number; y: number }[] {
+  const doc = new DOMParser().parseFromString(texto, "image/svg+xml");
+  const svg = doc.querySelector("svg");
+  if (!svg) return [];
+  const host = document.createElement("div");
+  host.style.cssText = "position:absolute;left:-10000px;top:0;width:400px;height:400px;visibility:hidden";
+  const vivo = document.importNode(svg, true) as SVGSVGElement;
+  vivo.setAttribute("width", "400");
+  vivo.setAttribute("height", "400");
+  host.appendChild(vivo);
+  document.body.appendChild(host);
+  try {
+    const figuras = [...vivo.querySelectorAll<SVGGeometryElement>("path, polygon, circle, ellipse, rect")];
+    const mayor = figuras
+      .map((f) => ({ f, b: f.getBBox() }))
+      .sort((a, b) => b.b.width * b.b.height - a.b.width * a.b.height)[0]?.f;
+    if (!mayor) return [];
+    const m = mayor.getCTM();
+    const largo = mayor.getTotalLength();
+    return Array.from({ length: n }, (_, i) => {
+      const p = mayor.getPointAtLength((largo * i) / n);
+      const q = m ? new DOMPoint(p.x, p.y).matrixTransform(m) : p;
+      return { x: q.x, y: q.y };
+    });
+  } finally {
+    host.remove();
+  }
+}

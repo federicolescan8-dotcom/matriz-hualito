@@ -10,6 +10,7 @@ import {
   type TipoContacto,
 } from "./biblioteca";
 import type { IdDecoracion } from "./decoraciones";
+import type { RecursosPropios } from "./recursos";
 import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
@@ -289,10 +290,21 @@ export function estiloIconos(marca: Marca): EstiloIconos {
   return marca.identidad.graficos.estilo_iconos;
 }
 
-/** Capa decorativa por defecto del rubro con un relleno dado. */
-export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
+/** Capa decorativa por defecto con un relleno dado: primero la forma y el patrón propios de la marca (E2). */
+export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco, recursos?: RecursosPropios): Deco {
   const lib = BIBLIOTECA_RUBRO[rubro];
-  return { forma: lib.formasDeco[0], relleno, patron: lib.patrones[0], icono: ICONOS[lib.iconosSugeridos[0]][0], foto: null };
+  return { forma: formasDeco(rubro, recursos)[0], relleno, patron: patronesDeco(rubro, recursos)[0], icono: ICONOS[lib.iconosSugeridos[0]][0], foto: null };
+}
+
+/** Formas de la capa decorativa: las propias primero, después las del rubro. */
+export function formasDeco(rubro: Rubro, recursos?: RecursosPropios): string[] {
+  return [...(recursos?.formas.map((f) => f.id) ?? []), ...BIBLIOTECA_RUBRO[rubro].formasDeco];
+}
+
+/** Patrones de la capa decorativa: el propio primero (si la marca lo usa), después los del rubro. */
+export function patronesDeco(rubro: Rubro, recursos?: RecursosPropios): Patron[] {
+  const propio: Patron[] = recursos?.patron_propio && recursos.formas.length ? ["propio"] : [];
+  return [...propio, ...BIBLIOTECA_RUBRO[rubro].patrones];
 }
 
 /**
@@ -300,12 +312,12 @@ export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
  * siguiente relleno del rubro con la misma forma (la pieza tiene que funcionar completa sin foto, cap. 5).
  */
 export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
-  const lib = BIBLIOTECA_RUBRO[marca.rubro];
+  const recursos = marca.identidad.recursos;
   const disponibles = rellenosDisponibles(marca.rubro, marca.identidad.fotos_habilitadas);
-  const base = decoPorDefecto(marca.rubro, disponibles[0]);
+  const base = decoPorDefecto(marca.rubro, disponibles[0], recursos);
   const elegida = { ...base, ...pieza.deco };
-  if (!lib.formasDeco.includes(elegida.forma)) elegida.forma = base.forma;
-  if (!elegida.patron || !lib.patrones.includes(elegida.patron)) elegida.patron = base.patron;
+  if (!formasDeco(marca.rubro, recursos).includes(elegida.forma)) elegida.forma = base.forma;
+  if (!elegida.patron || !patronesDeco(marca.rubro, recursos).includes(elegida.patron)) elegida.patron = base.patron;
   const valido = disponibles.includes(elegida.relleno) && (elegida.relleno !== "foto" || !!elegida.foto);
   // Sin foto, el respaldo se queda en el mismo modo: una foto pasa a ícono (imagen), no a patrón.
   if (!valido) {

@@ -78,6 +78,11 @@ export function Pieza({
   // protagonistas (cap. 6).
   // Decoración de plantilla (v1.1): reemplaza a la forma de fondo automática.
   const decoracion = decoracionEfectiva(pieza);
+  // Rasgos propios (E2): forma de fondo y detalle recurrente. El detalle va en el acento si se distingue del fondo; si
+  // no, en el color del texto.
+  const formaPropia = marca.identidad.recursos?.formas[0] ?? null;
+  const detalle = marca.identidad.recursos?.detalle ?? null;
+  const colorDetalle = contraste(p.acento, c.fondo) >= MIN_GRAFICO ? p.acento : c.texto;
   // La decoración puede ir en un secundario de la paleta extendida (E3): es masa, nunca texto, y su opacidad en Modo A
   // se limita para que el texto que pase por encima siga cumpliendo.
   const colorDeco = (pieza.color_decoracion != null && marca.identidad.paleta_extendida?.secundarios[pieza.color_decoracion]?.color) || p.tono_apoyo;
@@ -211,6 +216,10 @@ export function Pieza({
             lineHeight: 1.04,
             letterSpacing: "-0.01em",
             overflowWrap: "normal",
+            // Detalle recurrente (E2): subrayado con la tinta de la marca. Va debajo de las letras, no detrás.
+            ...(detalle === "subrayado"
+              ? { textDecorationLine: "underline", textDecorationColor: hslCss(colorDetalle), textDecorationThickness: "0.07em", textUnderlineOffset: "0.12em", textDecorationSkipInk: "none" }
+              : {}),
           }}
         >
           {h1 || " "}
@@ -535,9 +544,28 @@ export function Pieza({
             ...(horizontal && !lateral
               ? { width: f.alto * 1.25, height: f.alto * 1.25, right: -f.alto * 0.1, top: -f.alto * 0.12 }
               : { width: f.ancho * 0.72, height: f.ancho * 0.72, right: -f.ancho * 0.24, bottom: -f.ancho * 0.2 }),
-            borderRadius: "50%",
-            background: hslCss(formaColor),
+            // La forma de fondo es la propia de la marca si tiene (E2); si no, un círculo.
+            ...(formaPropia ? {} : { borderRadius: "50%", background: hslCss(formaColor) }),
             opacity: horizontal && lateral ? formaOpacidad * 0.5 : formaOpacidad,
+          }}
+        >
+          {formaPropia && <FormaSvg id={formaPropia.id} formas={[formaPropia]} color={formaColor} style={{ width: "100%", height: "100%" }} />}
+        </div>
+      )}
+      {detalle === "marco" && (
+        // Detalle recurrente (E2): marco fino a mitad del margen, nunca sobre el contenido.
+        <div
+          data-slot="detalle-marco"
+          style={{
+            position: "absolute",
+            // A la mitad de la zonaMinima: el contenido siempre queda más adentro que el marco.
+            left: Math.round(f.ancho * f.zonaMinima.x * 0.5),
+            right: Math.round(f.ancho * f.zonaMinima.x * 0.5),
+            top: Math.round(f.alto * f.zonaMinima.arriba * 0.5),
+            bottom: Math.round(f.alto * f.zonaMinima.abajo * 0.5),
+            border: `${px(6)}px solid ${hslCss(colorDetalle)}`,
+            borderRadius: px(10),
+            pointerEvents: "none",
           }}
         />
       )}
@@ -650,6 +678,7 @@ function CapaDecorativa({
     >
       <FormaRellena
         formaId={deco.forma}
+        formas={marca.identidad.recursos?.formas}
         relleno={deco.relleno}
         fondo={p.tono_apoyo}
         foto={deco.foto}

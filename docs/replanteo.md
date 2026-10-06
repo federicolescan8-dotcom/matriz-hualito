@@ -118,7 +118,8 @@ manuales.
   - en una sesión se pueden probar opciones, volver atrás sin perder nada y dejar aprobada una versión;
   - la versión aprobada es la que usa Publicaciones.
 
-### E2 · Rasgos propios de la marca · [ ] pendiente · depende de E3
+### E2 · Rasgos propios de la marca · [x] hecha · depende de E3
+> Quedó: `engine/recursos.ts` (formas propias normalizadas a la caja 0-100, paramétricas con semilla desde los ejes, patrón propio, detalle subrayado o marco), carga de SVG del diseñador (`contornoDeSvg`), `RasgosPropios.tsx` en Recursos gráficos, y lo propio primero en la capa 2B, los patrones y la forma de fondo. El detalle recurrente quedó en subrayado y marco (el sticker no se hizo).
 - **Objetivo:** que cada marca tenga recursos que solo tenga ella.
 - **Alcance:**
   - **forma propia** y **patrón propio**: los dibuja el diseñador (Illustrator, Corel) y **se cargan como SVG** a la

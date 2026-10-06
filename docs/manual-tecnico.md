@@ -45,7 +45,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
    - **Color**: paleta con ajuste manual por HEX y sugerencias de color válido, opción con o sin versión funcional, CTA en Modo B, secuencia de modo, y el laboratorio (`components/LaboratorioColor.tsx`, solo cuando se puede editar): bloquear roles y "Ver otras opciones" (3 alternativas con muestra Modo A y B), tomar colores del logo, de una foto o de la pantalla (EyeDropper, donde exista) con `lib/imagen.ts › pixelesDeImagen` (imagen reducida a 72 px con canvas), paleta extendida por armonía (sumar, reemplazar, quitar) y "Ver la identidad como" con filtro SVG `feColorMatrix` (mismas matrices del motor) sobre toda la vista;
    - **Tipografía** (`components/ParTipografico.tsx`, E3b): selectores de display y de texto agrupados por clase, la regla del par en vivo (`controlPar`), pares sugeridos (`paresSugeridos`) y la carga de la fuente propia (WOFF2, WOFF, TTF u OTF, con su clase, que queda como opción "Propia"); quitarla vuelve a la familia de los ejes si estaba en uso;
    - **Logo**;
-   - **Recursos gráficos**: estilo de íconos, formas, patrones e íconos del rubro;
+   - **Recursos gráficos**: al inicio, los rasgos propios (`components/RasgosPropios.tsx`, E2): formas propias (la primera es la principal ★; "principal", "quitar"), "Subir SVG del diseñador" (`lib/imagen.ts › contornoDeSvg`: dibuja el SVG fuera de pantalla, toma la figura de mayor superficie, con sus transformaciones, y muestrea 360 puntos; no vectoriza ni simplifica), "Generar con los ejes" ("otra", "usar"), patrón propio (casilla) y detalle recurrente (select). Después, estilo de íconos, formas, patrones e íconos del rubro;
    - **Fotografía**: el check de fotos propias.
 
    Los cambios quedan en borrador hasta **Confirmar cambios** (o **Descartar**). El botón **Publicar con esta identidad** se deshabilita mientras haya cambios sin confirmar.
@@ -68,7 +68,8 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 | `diagnostico.ts` | `Diagnostico` (suma `ejes`, `rubro_secundario`, `rubro_libre` y `contenido: ContenidoCliente`) → `Marca`: chips (`generarChips` usa el rango de `rangoMatiz`, no el H_rango fijo del rubro), `valorDiagnostico(d)` (valor guardado o el de los ejes), `diagnosticoDeMarca` y `reconstruirMarca` (edición), ajustes manuales (`ajustarColorMarca`, `restaurarColorMarca`), elección de versión funcional y CTA en Modo B (`elegirVersionFuncional`, `puedeElegirFuncional`, `elegirCtaModoB`). Todas leen y modifican `marca.identidad`. También `registrarEnHistorial` (suma una `EntradaHistorial` a `marca.historial`) |
 | `laboratorio.ts` | Laboratorio de color (E3a, cap. 3). `ARMONIAS` y `paletaExtendida(paleta, armonia)` (2 secundarios con `texto` solo si llegan a 4,5:1, y neutro oscuro), `revalidarExtendida`; `regenerarPaleta(actual, bloqueados, entrada, semilla, cantidad=3)` con PRNG mulberry32 (determinista), que devuelve alternativas ordenadas (las que cumplen primero, sin repetidas a ΔE < 4); `extraerColores(pixeles, k=5)` (k-medias en RGB); daltonismo: `MATRICES_DALTONISMO`, `simularDaltonismo`, `confusionesDaltonismo` (`DELTA_CONFUSION` = 12). `diagnostico.ts › aplicarAlternativa(marca, alt)` aplica una alternativa |
 | `identidad.ts` | Tipo `Identidad` (todo lo visual de la marca) y migración de marcas guardadas antes de E1: `migrarMarca`, `esMarcaV1`, tipo `MarcaV1` |
-| `biblioteca.ts` | Formas, patrones, íconos y contenedores por rubro; opacidades y overlay |
+| `recursos.ts` | Rasgos propios (E2, cap. 5). `RecursosPropios { formas, patron_propio?, detalle? }` en `identidad.recursos`; prefijo de id `propia-`. `normalizarContorno(puntos)` lleva un contorno muestreado a un trazado `M…L…Z` en la caja 0-100 (escala uniforme, centrado), así la forma propia se dibuja y se mide como las de la biblioteca (el `clipPath path` del 2B-L). `formaParametrica(semilla, ejes)`: mulberry32 con los ejes (artesanal y lúdico: mancha de 3 a 6 lóbulos; tecnológico: superelipse), curva Catmull-Rom → Bézier |
+| `biblioteca.ts` | Formas, patrones, íconos y contenedores por rubro; opacidades y overlay. E2: `CategoriaForma` suma "propias", `Patron` suma "propio"; `resolverForma(id, propias)`, `formasDeco(rubro, recursos)` y `patronesDeco(rubro, recursos)` ponen lo propio primero; `decoPorDefecto` y `decoEfectiva` los usan |
 | `decoraciones.ts` | Decoraciones de plantilla (arco lateral, esquinas en diagonal) como geometría de círculos |
 | `formatos.ts` | Formatos (4:5, 1:1, 9:16, 1200×630) con márgenes, zonas de interfaz y recorte de grilla, y canales (IG feed y stories, WA estados, FB feed, link) |
 | `pieza.ts` | Objeto `Pieza` (con `aceptaciones?: Aceptacion[]`, `aceptarControl`, `quitarAceptacion`), plantillas por variante (1, 2, 2B-L, 2B-S, 3, 4, P) y ajustes por formato, capa decorativa efectiva, geometría del 2B-L. `piezasDeGrilla` (E13) arma las 9 piezas del feed de la presentación: rota variantes empezando por las prioritarias del rubro y sigue la secuencia de modos |
@@ -99,6 +100,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
   - `paleta_calculada` y `ajustes_manuales`, con lo que la fórmula había calculado y qué se cambió a mano;
   - `tipografia` (`familia_variable` = display, `familia_texto?` para body, CTA, contacto e ítems, y `propia?: { nombre, archivo (data URL), clase }` con la fuente subida) y `logo` (data URL);
   - `graficos`, obligatorio: `{ estilo_iconos }`;
+  - `recursos?` (E2, `engine/recursos.ts`): `{ formas, patron_propio?, detalle?: "subrayado" | "marco" | null }`. `Pieza.tsx` y los componentes `FormaSvg`, `FormaRellena`, `FotoEnForma` y `PatronSvg` (Graficos) reciben las formas propias; la forma de fondo usa la principal (sin propias, el círculo, con la misma opacidad segura); el detalle se dibuja en `Pieza.tsx` (subrayado del H1 con `text-decoration`, 0,07 em de grosor y 0,12 em de desplazamiento; marco de 6 px a la mitad de la `zonaMinima`), en el acento si contrasta 3:1 con el fondo o en el color del texto. El editor de la capa decorativa de Publicaciones muestra primero lo propio;
   - `fotos_habilitadas`;
   - `paleta_extendida?` (E3a): `{ armonia, secundarios[2], neutro_oscuro }`, opcional. Se recalcula con `revalidarExtendida` al ajustar un color a mano o aplicar una alternativa.
 
@@ -121,7 +123,7 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 - Configuración de Supabase: `docs/configurar-supabase.md`. Las claves van en `app/.env.local`, nunca en el repo.
 
 ## 7. Tests y verificación
-- `npm test`: más de 120 tests (134 con E13) del motor, entre ellos:
+- `npm test`: más de 120 tests (138 con E2, con `recursos.test.ts`: normalización, determinismo de la paramétrica, lo propio primero y dos marcas del mismo rubro con capas distintas) del motor, entre ellos:
   - toda la rueda de matices por rubro;
   - grillas de colores heredados;
   - el checklist con mediciones sintéticas;

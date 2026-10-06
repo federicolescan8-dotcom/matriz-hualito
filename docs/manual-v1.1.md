@@ -69,6 +69,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
 34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par se resolvió en E3b (cambio 35). *(Cap. 3, Cap. 6, Cap. 9)*
 35. **Tipografía en par, catálogo ampliado y fuente propia (E3b)**: el catálogo suma 6 familias variables (Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque) y cada familia tiene una clase (serif, geométrica, grotesca, humanista). La marca puede usar una familia display (H1 y H2) y otra de texto (body, CTA, datos de contacto e ítems del catálogo), con una regla de combinación que se muestra en vivo y sugiere sin bloquear. La itálica y la compensación óptica del body salen de la familia de texto. Se puede subir una fuente propia (WOFF2, WOFF, TTF u OTF) con su clase. Con esto el principio de una sola familia pasa a ser el caso por defecto, no una obligación. *(Cap. 4, Cap. 9, A.4)*
+37. **Rasgos propios de la marca (E2)**: la marca puede tener formas propias (SVG del diseñador o paramétricas derivadas de los ejes), un patrón propio y un detalle recurrente (subrayado o marco). La capa decorativa 2B, el patrón y la forma de fondo usan primero lo propio, y el checklist mide su contorno real igual que el de las formas de la biblioteca. Dos marcas del mismo rubro con recursos propios distintos dan piezas distintas. *(Cap. 5, Cap. 6, Cap. 9)*
 36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
 
 ---
@@ -624,6 +625,14 @@ En la cúpula, el CTA y el logo van sobre la capa decorativa y se validan contra
 - Foto decorativa: overlay de color de marca al 65%.
 - Íconos informativos (contacto y catálogo): en Modo A, color de marca. En Modo B el fondo es la marca, así que van en acento si contrasta 3:1 con ella; si no, en fondo neutro.
 
+**Rasgos propios de la marca *(v1.1, E2)*.** Cada marca puede tener recursos que solo tiene ella, en `identidad.recursos`. Se editan al inicio de la sección Recursos gráficos de la identidad.
+
+- **Formas propias.** Las dibuja el diseñador y se cargan como SVG. La herramienta toma la figura de mayor superficie del archivo (path, polígono, círculo, elipse o rectángulo, con sus transformaciones), la muestrea en 360 puntos y la lleva a un trazado en la caja 0-100 de la biblioteca (escala uniforme, centrada). No vectoriza ni simplifica el logo: la forma la decide el diseñador. Como queda en la misma caja que las formas de la biblioteca, se dibuja y se mide igual: el ajuste de texto y el checklist usan su contorno real. La primera forma es la **principal**; se puede cambiar o quitar.
+- **Formas paramétricas (atajo opcional).** "Generar con los ejes" crea una forma con semilla derivada de los ejes: cuanto más artesanal y lúdica, una mancha orgánica de 3 a 6 lóbulos con más irregularidad; cuanto más tecnológica, un cuadrado redondeado (superelipse). La misma semilla da siempre la misma forma.
+- **Patrón propio.** Repite la primera forma propia al 60% de la celda, con las mismas reglas de color y opacidad que los patrones de la biblioteca.
+- **Prioridad.** En la capa decorativa 2B (formas y rellenos) y en los patrones, lo propio va primero y lo del rubro después. Sin recursos propios, todo funciona como antes. La **forma de fondo** usa la forma propia principal; si no hay, el círculo de siempre, con la misma opacidad segura.
+- **Detalle recurrente.** Elemento fijo que se repite en todas las piezas, con una de dos opciones. *Subrayado*: subraya el H1 con grosor de 0,07 em, desplazado 0,12 em, así va debajo de las letras y no detrás. *Marco*: línea fina de 6 px a la mitad de la zona mínima de cada lado, nunca sobre el contenido. Color: el acento si contrasta 3:1 con el fondo; si no, el color del texto.
+
 **Forma de fondo.** El círculo de fondo (función estructural) no se usa cuando la pieza tiene capa decorativa (2B) ni en el catálogo (4), donde los ítems ya tienen su forma: así nunca hay dos formas protagonistas.
 
 **Espacio negativo.** Cuentan el texto, el CTA, el logo, el contacto y los ítems. La capa decorativa no cuenta, porque no informa y la pieza tiene que funcionar sin ella.
@@ -677,7 +686,7 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 
 ### Decoración de plantilla *(v1.1)*
 
-Figuras que forman parte del diseño de la pieza. No son un relleno como la capa decorativa de las 2B. Son opcionales y se eligen en Publicar, en el selector **Decoración**. Una pieza usa una sola de estas tres cosas: la capa decorativa (2B), una decoración de plantilla o la forma de fondo automática. Si se elige una decoración, la forma de fondo automática (el círculo de abajo a la derecha) no va.
+Figuras que forman parte del diseño de la pieza. No son un relleno como la capa decorativa de las 2B. Son opcionales y se eligen en Publicar, en el selector **Decoración**. Una pieza usa una sola de estas tres cosas: la capa decorativa (2B), una decoración de plantilla o la forma de fondo automática. Si se elige una decoración, la forma de fondo automática (el círculo de abajo a la derecha, o la forma propia principal de la marca, *v1.1 E2*) no va.
 
 Reglas comunes:
 
@@ -1000,6 +1009,11 @@ marca: {
                   familia_texto?: string,                // (v1.1, E3b) body, CTA, contacto e ítems; sin ella, familia_variable
                   propia?: { nombre, archivo, clase } }, // (v1.1, E3b) fuente subida; archivo = data URL; clase: serif | geométrica | grotesca | humanista
     graficos: { estilo_iconos },
+    recursos?: {                                        // (v1.1, E2) rasgos propios
+      formas: [{ id: "propia-…", trazado "M…L…Z" en caja 0-100 }],  // la primera es la principal
+      patron_propio?: bool,                              // repite la primera forma al 60% de la celda
+      detalle?: "subrayado" | "marco" | null
+    },
     fotos_habilitadas: bool
   },
   versiones?: [{ id, nombre, autor, fecha, identidad, favorita?, comentarios?, aprobacion? }],  // (v1.1, E13)

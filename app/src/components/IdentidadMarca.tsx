@@ -32,6 +32,7 @@ import {
 import { PRESETS } from "@/engine/presets";
 import { escala, familiaTexto, pesoH1, PESOS } from "@/engine/typography";
 import { ParTipografico } from "./ParTipografico";
+import { RasgosPropios } from "./RasgosPropios";
 import { fontFamily } from "@/lib/fuentes";
 import { PiezaMuestra, textosPara, type TextosPieza } from "./PiezaMuestra";
 import { CampoHex } from "./CampoHex";
@@ -496,6 +497,7 @@ function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Mar
   const estilo = estiloIconos(marca);
   return (
     <Seccion id="recursos">
+      {onChange && <RasgosPropios marca={marca} onChange={onChange} />}
       <div className="flex flex-wrap items-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <span className="font-medium">Íconos</span>

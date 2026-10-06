@@ -14,7 +14,7 @@ import { decoracionesPara, trazadoDecoracion } from "@/engine/decoraciones";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
 import { hslCss } from "@/engine/color";
-import { decoEfectiva, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
+import { decoEfectiva, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
 import { reducirFoto } from "@/lib/imagen";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
@@ -66,11 +66,11 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
       </div>
       {eligeForma && (
         <div className="flex flex-wrap gap-1">
-          {lib.formasDeco.map((id) => (
+          {formasDeco(marca.rubro, marca.identidad.recursos).map((id) => (
             <button key={id} type="button" title="Forma" onClick={() => set({ forma: id })} className={`${CAJA} overflow-hidden ${efectiva.forma === id ? "border-neutral-900" : "border-neutral-200"}`}>
               {/* Vista de la forma sangrada: solo la mitad visible, como en la pieza. */}
               <div style={{ width: 36, height: 36, transform: "translateX(18px)" }}>
-                <FormaSvg id={id} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
+                <FormaSvg id={id} formas={marca.identidad.recursos?.formas} color={p.tono_apoyo} style={{ width: "100%", height: "100%" }} />
               </div>
             </button>
           ))}
@@ -100,9 +100,12 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
 
       {pedido === "patron" && (
         <div className="flex flex-wrap gap-1">
-          {PATRONES.filter((pt) => lib.patrones.includes(pt.id)).map((pt) => (
+          {[
+            ...(marca.identidad.recursos?.patron_propio && marca.identidad.recursos.formas.length ? [{ id: "propio" as const, nombre: "Patrón propio" }] : []),
+            ...PATRONES.filter((pt) => lib.patrones.includes(pt.id)),
+          ].map((pt) => (
             <button key={pt.id} type="button" title={pt.nombre} onClick={() => set({ patron: pt.id })} className={`${CAJA} relative overflow-hidden ${efectiva.patron === pt.id ? "border-neutral-900" : "border-neutral-200"}`}>
-              <PatronSvg id={pt.id} color={p.color_marca} opacidad={0.6} celda={12} />
+              <PatronSvg id={pt.id} color={p.color_marca} opacidad={0.6} celda={12} forma={marca.identidad.recursos?.formas[0]} />
             </button>
           ))}
         </div>

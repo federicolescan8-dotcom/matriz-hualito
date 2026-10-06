@@ -9,6 +9,7 @@ import { BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Paleta, RolPaleta } from "./palette";
 import type { Tipografia } from "./typography";
 import type { PaletaExtendida } from "./laboratorio";
+import type { RecursosPropios } from "./recursos";
 
 export interface Identidad {
   /** Color: cómo se eligió el color de marca y la paleta que sale de él (cap. 3). */
@@ -36,6 +37,8 @@ export interface Identidad {
   logo: Diagnostico["logo"];
   /** Recursos gráficos: un solo estilo de íconos por marca (cap. 5). */
   graficos: { estilo_iconos: EstiloIconos };
+  /** Rasgos propios (E2): forma, patrón y detalle recurrente. Van primero en la capa decorativa. */
+  recursos?: RecursosPropios;
   /** Fotografía: la marca tiene fotos propias (habilita la foto como capa decorativa y en el catálogo). */
   fotos_habilitadas: boolean;
 }
