@@ -1,6 +1,7 @@
 import { chromium, type Browser } from "playwright-core";
 import { FORMATOS } from "@/engine/formatos";
 import type { Marca } from "@/engine/diagnostico";
+import { migrarMarca, type MarcaV1 } from "@/engine/identidad";
 import type { Pieza } from "@/engine/pieza";
 import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 
@@ -28,9 +29,13 @@ function abrirNavegador(): Promise<Browser> {
 }
 
 export async function POST(request: Request) {
-  const { marca, pieza } = (await request.json()) as { marca: Marca; pieza: Pieza };
+  const datos = (await request.json()) as { marca: Marca | MarcaV1; pieza: Pieza };
+  const pieza = datos.pieza;
   const f = FORMATOS[pieza?.formato];
-  if (!marca || !pieza || !f) return Response.json({ error: "Faltan la marca o la pieza" }, { status: 400 });
+  if (!datos.marca || !pieza || !f) return Response.json({ error: "Faltan la marca o la pieza" }, { status: 400 });
+
+  // Un JSON de marca anterior a E1 (exportado o de una pestaña vieja) se migra antes de renderizar.
+  const marca = migrarMarca(datos.marca);
 
   let browser: Browser;
   try {

@@ -16,9 +16,9 @@ import { dataUrlASvg, recolorearSvg, svgADataUrl } from "@/engine/logo";
 import { PRESETS, RUBROS, type Tono, type ValorMarca } from "@/engine/presets";
 import { FAMILIAS, resolverTipografia } from "@/engine/typography";
 import { PiezaMuestra } from "@/components/PiezaMuestra";
-import { FichaMarca } from "@/components/FichaMarca";
+import { IdentidadMarca } from "@/components/IdentidadMarca";
 import { CampoHex } from "@/components/CampoHex";
-import { descargarJson, guardarMarca } from "@/lib/marcas";
+import { descargarJson, elegirMarcaActiva, guardarMarca } from "@/lib/marcas";
 import { recortarTransparencia } from "@/lib/imagen";
 
 const PASOS = ["Rubro", "Personalidad", "Color", "Insumos", "Resultado"] as const;
@@ -323,16 +323,29 @@ export function DiagnosticoWizard() {
         <section className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{marca.nombre}</h2>
-            <button type="button" onClick={async () => setGuardada(await guardarMarca(marca))} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
+            <button
+              type="button"
+              onClick={async () => {
+                const ok = await guardarMarca(marca);
+                if (ok) elegirMarcaActiva(marca.id);
+                setGuardada(ok);
+              }}
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+            >
               Guardar marca
             </button>
             <button type="button" onClick={() => descargarJson(marca)} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
               Exportar JSON
             </button>
           </div>
-          {guardada === true && <p className="text-sm text-emerald-700">Marca guardada. <Link href="/marcas" className="underline">Ver marcas</Link></p>}
+          {guardada === true && (
+            <p className="text-sm text-emerald-700">
+              Marca guardada. Seguí con su <Link href={`/identidad/${marca.id}`} className="underline">identidad</Link> o{" "}
+              <Link href="/marcas" className="underline">volvé a las marcas</Link>.
+            </p>
+          )}
           {guardada === false && <p className="text-sm text-red-700">No se pudo guardar en este navegador. Exportá el JSON.</p>}
-          <FichaMarca marca={marca} onChange={(m) => { setMarca(m); setGuardada(null); }} />
+          <IdentidadMarca marca={marca} onChange={(m) => { setMarca(m); setGuardada(null); }} />
         </section>
       )}
 

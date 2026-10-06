@@ -105,10 +105,10 @@ function Muestra({
  * se genera desde el color heredado y lo que no cumpla queda como aviso.
  */
 function OpcionFuncional({ marca, onChange }: { marca: Marca; onChange: (m: Marca) => void }) {
-  const actual = marca.color.solo_heredado ? "solo" : "funcional";
+  const actual = marca.identidad.color.solo_heredado ? "solo" : "funcional";
   const elegir = (opcion: "funcional" | "solo") => {
     if (opcion === actual) return;
-    if ((marca.ajustes_manuales ?? []).length > 0 && !confirm("La paleta se recalcula y se pierden los ajustes manuales. ¿Seguir?")) return;
+    if ((marca.identidad.ajustes_manuales ?? []).length > 0 && !confirm("La paleta se recalcula y se pierden los ajustes manuales. ¿Seguir?")) return;
     onChange(elegirVersionFuncional(marca, opcion === "funcional"));
   };
   return (
@@ -202,16 +202,45 @@ function SugerenciaColor({ paleta, rol, onUsar }: { paleta: Paleta; rol: RolPale
   );
 }
 
-export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Marca) => void }) {
-  const p = marca.paleta;
+/** Secciones de la identidad, en el orden en que se presentan (replanteo, E1). */
+export const SECCIONES_IDENTIDAD = [
+  { id: "color", titulo: "Color" },
+  { id: "tipografia", titulo: "Tipografía" },
+  { id: "logo", titulo: "Logo" },
+  { id: "recursos", titulo: "Recursos gráficos" },
+  { id: "fotografia", titulo: "Fotografía" },
+] as const;
+
+type IdSeccion = (typeof SECCIONES_IDENTIDAD)[number]["id"];
+
+/** Una sección de la identidad: ancla para el índice, título y, si hace falta, una bajada. */
+function Seccion({ id, extra, children }: { id: IdSeccion; extra?: React.ReactNode; children: React.ReactNode }) {
+  const titulo = SECCIONES_IDENTIDAD.find((s) => s.id === id)!.titulo;
+  return (
+    <section id={id} className="flex scroll-mt-32 flex-col gap-4 border-t border-neutral-200 pt-6">
+      <div className="flex flex-wrap items-baseline gap-3">
+        <h2 className="text-lg font-semibold">{titulo}</h2>
+        {extra}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Identidad de la marca: el sistema visual por secciones (color, tipografía, logo, recursos gráficos y fotografía),
+ * con una prueba en Modo A y Modo B arriba. Edita solo `marca.identidad`; Publicaciones lee de ahí.
+ */
+export function IdentidadMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Marca) => void }) {
+  const p = marca.identidad.paleta;
   const preset = PRESETS[marca.rubro];
   const A = coloresModo(p, "A");
   const B = coloresModo(p, "B");
-  const familia = fontFamily(marca.tipografia.familia_variable);
-  const pendientes = pendientesMarca(marca.logo);
+  const familia = fontFamily(marca.identidad.tipografia.familia_variable);
+  const pendientes = pendientesMarca(marca.identidad.logo);
   const [textos, setTextos] = useState<TextosPieza>(TEXTOS_EJEMPLO[marca.rubro]);
-  const ajustes = marca.ajustes_manuales ?? [];
-  const soloHeredado = marca.color.solo_heredado === true;
+  const ajustes = marca.identidad.ajustes_manuales ?? [];
+  const soloHeredado = marca.identidad.color.solo_heredado === true;
   // La sugerencia nunca va sobre el color de marca: es una elección del cliente. Sí sobre los colores ajustados a mano
   // y, con el heredado sin versión funcional, sobre el tono de apoyo, el fondo neutro y el acento aunque no se hayan tocado.
   const sugerir = (rol: RolPaleta) =>
@@ -241,18 +270,18 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
 
   return (
     <div className="flex flex-col gap-10">
-      <section className="grid gap-6 lg:grid-cols-[1fr_1fr_18rem]">
+      <section aria-label="Prueba de la identidad" className="grid gap-6 lg:grid-cols-[1fr_1fr_18rem]">
         <div>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
             Modo A · claro{ajustes.length > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700">con ajustes manuales</span>}
           </h3>
-          <PiezaMuestra paleta={p} tipografia={marca.tipografia} rubro={marca.rubro} modo="A" nombre={marca.nombre} logo={marca.logo} textos={textos} />
+          <PiezaMuestra paleta={p} tipografia={marca.identidad.tipografia} rubro={marca.rubro} modo="A" nombre={marca.nombre} logo={marca.identidad.logo} textos={textos} />
         </div>
         <div>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
             Modo B · bold{ajustes.length > 0 && <span className="ml-2 normal-case tracking-normal text-amber-700">con ajustes manuales</span>}
           </h3>
-          <PiezaMuestra paleta={p} tipografia={marca.tipografia} rubro={marca.rubro} modo="B" nombre={marca.nombre} logo={marca.logo} textos={textos} />
+          <PiezaMuestra paleta={p} tipografia={marca.identidad.tipografia} rubro={marca.rubro} modo="B" nombre={marca.nombre} logo={marca.identidad.logo} textos={textos} />
         </div>
         <div className="flex flex-col gap-4 text-sm">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Texto de ejemplo</h3>
@@ -271,7 +300,7 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
               />
               {k === "h1" && (
                 <span className="text-xs text-neutral-500">
-                  {textos.h1.trim().length} caracteres → peso {pesoH1(textos.h1, marca.tipografia.familia_variable)}
+                  {textos.h1.trim().length} caracteres → peso {pesoH1(textos.h1, marca.identidad.tipografia.familia_variable)}
                 </span>
               )}
             </label>
@@ -284,25 +313,28 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
             Volver al texto de ejemplo
           </button>
           <p className="text-xs text-neutral-500">
-            Es solo para probar la marca con textos reales. Las publicaciones se arman en Publicar.
+            Es solo para probar la identidad con textos reales. Las publicaciones se arman en Publicaciones.
           </p>
         </div>
       </section>
 
-      <section>
-        <div className="mb-4 flex flex-wrap items-baseline gap-3">
-          <h2 className="text-lg font-semibold">Paleta</h2>
-          {onChange && (
-            <span className="text-sm text-neutral-500">
-              Podés corregir cualquier color escribiendo su HEX. Los ejemplos de Modo A y Modo B se actualizan al instante.
-            </span>
-          )}
-          {onChange && ajustes.length > 0 && (
-            <button type="button" onClick={() => onChange(restaurarColorMarca(marca))} className="ml-auto text-sm underline">
-              Volver a la paleta calculada
-            </button>
-          )}
-        </div>
+      <Seccion
+        id="color"
+        extra={
+          <>
+            {onChange && (
+              <span className="text-sm text-neutral-500">
+                Podés corregir cualquier color escribiendo su HEX. Los ejemplos de Modo A y Modo B se actualizan al instante.
+              </span>
+            )}
+            {onChange && ajustes.length > 0 && (
+              <button type="button" onClick={() => onChange(restaurarColorMarca(marca))} className="ml-auto text-sm underline">
+                Volver a la paleta calculada
+              </button>
+            )}
+          </>
+        }
+      >
         {onChange && puedeElegirFuncional(marca) && <OpcionFuncional marca={marca} onChange={onChange} />}
         {soloHeredado && fallasPaleta(p).length > 0 && (
           <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
@@ -320,12 +352,12 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
         {ajustes.length > 0 && (
           <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
             Los colores ajustados a mano no pasan por la fórmula: se respetan por decisión del cliente. Los contrastes en rojo
-            no llegan al mínimo del manual; en Publicar figuran como aviso y no bloquean la exportación. Debajo de cada color
+            no llegan al mínimo del manual; en Publicaciones figuran como aviso y no bloquean la exportación. Debajo de cada color
             ajustado que no cumple (salvo el color de marca) se sugiere el más próximo que sí cumple.
           </p>
         )}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          <Muestra nombre="Color de marca" color={p.color_marca} nota={marca.color.modo === "heredado" ? "Heredado del cliente" : "Chip optimizado"} {...props("color_marca")}>
+          <Muestra nombre="Color de marca" color={p.color_marca} nota={marca.identidad.color.modo === "heredado" ? "Heredado del cliente" : "Chip optimizado"} {...props("color_marca")}>
             {p.version_funcional ? (
               <div className="text-xs">con la funcional encima: <Ratio valor={contraste(p.color_marca, p.version_funcional)} minimo={MIN_GRAFICO} /></div>
             ) : (
@@ -356,18 +388,20 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
           {p.invertir_modo && " (invertida: el color heredado es claro y rinde mejor como fondo)"}.
           Texto en Modo B: <Ratio valor={contraste(B.fondo, B.texto)} minimo={MIN_TEXTO} />. Texto en Modo A: <Ratio valor={contraste(A.fondo, A.texto)} minimo={MIN_TEXTO} />.
         </p>
-      </section>
+      </Seccion>
 
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">
-          Tipografía · {marca.tipografia.familia_variable}
-          <span className="ml-2 text-sm font-normal text-neutral-500">
-            {marca.tipografia.italic_habilitado ? "itálica habilitada (solo body/caption, regular)" : "sin itálica"}
+      <Seccion
+        id="tipografia"
+        extra={
+          <span className="text-sm text-neutral-500">
+            {marca.identidad.tipografia.familia_variable} ·{" "}
+            {marca.identidad.tipografia.italic_habilitado ? "itálica habilitada (solo body/caption, regular)" : "sin itálica"}
           </span>
-        </h2>
+        }
+      >
         <div className="flex flex-col gap-3 rounded-md border border-black/10 p-6" style={{ fontFamily: familia, color: hslCss(A.texto), background: hslCss(A.fondo) }}>
           {([
-            ["H1", `${pesoH1("", marca.tipografia.familia_variable)} → 700 según largo`, "Mensaje principal", pesoH1("", marca.tipografia.familia_variable), escala("H1", "feed")],
+            ["H1", `${pesoH1("", marca.identidad.tipografia.familia_variable)} → 700 según largo`, "Mensaje principal", pesoH1("", marca.identidad.tipografia.familia_variable), escala("H1", "feed")],
             ["H2", String(PESOS.H2), "Dato de apoyo o subtítulo", PESOS.H2, escala("H2", "feed")],
             ["Body", String(PESOS.body), "Texto secundario que acompaña al mensaje principal.", PESOS.body, escala("body", "feed")],
             ["Caption", String(PESOS.caption), "Datos mínimos · condiciones · fechas", PESOS.caption, escala("caption", "feed")],
@@ -380,10 +414,9 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
             </div>
           ))}
         </div>
-      </section>
+      </Seccion>
 
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">Logo</h2>
+      <Seccion id="logo">
         <div className="grid grid-cols-3 gap-4">
           {([
             ["color", "Color · Modo A", p.fondo_neutro],
@@ -392,9 +425,9 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
           ] as const).map(([k, etiqueta, fondo]) => (
             <div key={k} className="flex flex-col gap-2">
               <div className="flex h-40 items-center justify-center rounded-md p-6" style={{ background: hslCss(fondo) }}>
-                {marca.logo[k] ? (
+                {marca.identidad.logo[k] ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={marca.logo[k]!} alt={etiqueta} className="max-h-full max-w-full object-contain" />
+                  <img src={marca.identidad.logo[k]!} alt={etiqueta} className="max-h-full max-w-full object-contain" />
                 ) : (
                   <span className="text-xs text-neutral-500">sin cargar</span>
                 )}
@@ -404,25 +437,40 @@ export function FichaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: M
           ))}
         </div>
         {pendientes.length > 0 && (
-          <ul className="mt-4 list-disc pl-5 text-sm text-amber-800">
+          <ul className="list-disc pl-5 text-sm text-amber-800">
             {pendientes.map((x) => <li key={x}>{x}</li>)}
           </ul>
         )}
-      </section>
+      </Seccion>
 
       <BibliotecaMarca marca={marca} onChange={onChange} />
+
+      <Seccion id="fotografia">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={marca.identidad.fotos_habilitadas}
+            disabled={!onChange}
+            onChange={(e) => onChange?.({ ...marca, identidad: { ...marca.identidad, fotos_habilitadas: e.target.checked } })}
+          />
+          La marca tiene fotos propias
+        </label>
+        <p className="text-xs text-neutral-500">
+          Habilita la foto como capa decorativa y en el catálogo. Sin fotos propias, las piezas usan formas, patrones e
+          íconos (cap. 5): toda pieza tiene que funcionar completa sin foto.
+        </p>
+      </Seccion>
     </div>
   );
 }
 
-/** Biblioteca gráfica de la marca (cap. 5): lo que habilita el rubro, en los colores de la marca. */
+/** Recursos gráficos de la marca (cap. 5): la biblioteca que habilita el rubro, en los colores de la marca. */
 function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Marca) => void }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const lib = BIBLIOTECA_RUBRO[marca.rubro];
   const estilo = estiloIconos(marca);
   return (
-    <section className="flex flex-col gap-5">
-      <h2 className="text-lg font-semibold">Biblioteca gráfica</h2>
+    <Seccion id="recursos">
       <div className="flex flex-wrap items-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <span className="font-medium">Íconos</span>
@@ -432,7 +480,7 @@ function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Mar
                 key={e}
                 type="button"
                 disabled={!onChange}
-                onClick={() => onChange?.({ ...marca, graficos: { ...marca.graficos, estilo_iconos: e } })}
+                onClick={() => onChange?.({ ...marca, identidad: { ...marca.identidad, graficos: { ...marca.identidad.graficos, estilo_iconos: e } } })}
                 className={`px-3 py-1.5 text-xs ${estilo === e ? "bg-neutral-900 text-white" : "bg-white"}`}
               >
                 {e === "lineal" ? "Lineal" : "Sólido"}
@@ -441,15 +489,6 @@ function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Mar
           </div>
           <span className="text-xs text-neutral-500">un solo estilo por marca</span>
         </div>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={marca.fotos_habilitadas}
-            disabled={!onChange}
-            onChange={(e) => onChange?.({ ...marca, fotos_habilitadas: e.target.checked })}
-          />
-          Tiene fotos propias (habilita la foto como capa decorativa y en el catálogo)
-        </label>
       </div>
       <div>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Formas del rubro</h3>
@@ -484,7 +523,7 @@ function BibliotecaMarca({ marca, onChange }: { marca: Marca; onChange?: (m: Mar
           ))}
         </div>
       </div>
-    </section>
+    </Seccion>
   );
 }
 
@@ -496,7 +535,7 @@ const CTA_OPCIONES: { modo: CtaModoB; etiqueta: string; descripcion: string }[] 
 
 /** Cómo va el CTA en Modo B: automático según contraste, o elegido a mano. */
 function CtaModoBPanel({ marca, onChange }: { marca: Marca; onChange?: (m: Marca) => void }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const actual = ctaModoB(p);
   const auto = ctaModoBAuto(p);
   return (

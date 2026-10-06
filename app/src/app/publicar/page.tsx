@@ -48,7 +48,8 @@ function piezaInicial(marca: Marca): TPieza {
 
 export default function PublicarPage() {
   const marcas = useMarcas();
-  // La marca activa es compartida con la sección Marcas: la última abierta o elegida.
+  // La marca activa es compartida con Marca e Identidad: la última abierta o elegida. Todo lo visual sale de
+  // `marca.identidad` (E1).
   const marcaId = useMarcaActiva();
   const marca = marcas.find((m) => m.id === marcaId) ?? marcas[0] ?? null;
   const [pieza, setPieza] = useState<TPieza | null>(null);
@@ -130,7 +131,12 @@ export default function PublicarPage() {
 
   const barra = (
     <div className="flex flex-wrap items-end gap-4">
-      <h1 className="mr-auto text-2xl font-semibold">Nueva publicación</h1>
+      <div className="mr-auto flex flex-col">
+        <h1 className="text-2xl font-semibold">Nueva publicación</h1>
+        <span className="text-xs text-neutral-500">
+          Usa la identidad confirmada de {marca.nombre} · <Link href={`/identidad/${marca.id}`} className="underline">ajustar la identidad</Link>
+        </span>
+      </div>
       <div className="flex overflow-hidden rounded-md border border-neutral-300 text-sm">
         {([
           ["simple", "Publicación simple"],
@@ -269,14 +275,14 @@ export default function PublicarPage() {
           <span className="font-medium">Mensaje principal (H1)</span>
           <textarea rows={2} value={actual.contenido.h1} onChange={(e) => setContenido({ h1: e.target.value })} className="resize-none rounded-md border border-neutral-300 px-3 py-2" />
           <span className="text-xs text-neutral-500">
-            {actual.contenido.h1.trim().length} caracteres → peso {pesoH1(actual.contenido.h1, marca.tipografia.familia_variable)}
+            {actual.contenido.h1.trim().length} caracteres → peso {pesoH1(actual.contenido.h1, marca.identidad.tipografia.familia_variable)}
           </span>
         </label>
         <label className="flex flex-col gap-1">
           <span className="font-medium">Dato de apoyo</span>
           <textarea rows={3} value={actual.contenido.body ?? ""} onChange={(e) => setContenido({ body: e.target.value || null })} className="resize-none rounded-md border border-neutral-300 px-3 py-2" />
         </label>
-        {marca.tipografia.italic_habilitado && (
+        {marca.identidad.tipografia.italic_habilitado && (
           <label className="-mt-3 flex items-center gap-2 text-xs">
             <input type="checkbox" checked={actual.body_italica} onChange={(e) => set({ body_italica: e.target.checked })} />
             Dato de apoyo en itálica (tono, no jerarquía)
@@ -298,7 +304,7 @@ export default function PublicarPage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
           <span>
-            {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.tipografia.familia_variable}
+            {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.identidad.tipografia.familia_variable}
           </span>
           <label className="flex shrink-0 items-center gap-1.5 text-neutral-700">
             <input type="checkbox" checked={guias} onChange={(e) => setGuias(e.target.checked)} />

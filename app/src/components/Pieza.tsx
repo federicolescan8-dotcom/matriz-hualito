@@ -42,20 +42,20 @@ export function Pieza({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
-  const plantilla = plantillaPara(pieza.variante, pieza.formato, marca.tipografia.familia_variable);
+  const plantilla = plantillaPara(pieza.variante, pieza.formato, marca.identidad.tipografia.familia_variable);
   // Compensación óptica de la familia para el texto secundario (los datos de contacto; el body ya viene en la plantilla).
-  const kOptico = compensacionOptica(marca.tipografia.familia_variable);
+  const kOptico = compensacionOptica(marca.identidad.tipografia.familia_variable);
   const horizontal = f.columnaMensaje != null;
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const px = (v: number) => Math.round(v * escala);
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const c = coloresModo(p, pieza.modo);
   const cta = estiloCta(p, pieza.modo);
   const estilo = estiloIconos(marca);
-  const logoSrc = marca.logo[c.logo];
+  const logoSrc = marca.identidad.logo[c.logo];
   const colorTextoMarca = p.version_funcional ?? p.color_marca;
   const centrado = pieza.alineacion === "centrado";
-  const italica = pieza.body_italica && marca.tipografia.italic_habilitado;
+  const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
   const ctaTexto = plantilla.tieneCta ? pieza.contenido.cta?.trim() : null;
   const deco = plantilla.deco ? decoEfectiva(marca, pieza) : null;
@@ -87,7 +87,7 @@ export function Pieza({
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.tipografia, marca.graficos, marca.logo[c.logo]?.length]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -115,7 +115,7 @@ export function Pieza({
 
   /** Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. */
   const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL) => {
-    const src = marca.logo[version] ?? logoSrc;
+    const src = marca.identidad.logo[version] ?? logoSrc;
     const colorNombre = [c.texto, p.fondo_neutro, colorTextoMarca].sort((a, b) => contraste(b, fondoLogo) - contraste(a, fondoLogo))[0];
     return (
       <div style={{ display: "flex", flexShrink: 0, alignItems: "center", height: px(plantilla.logoPx), justifyContent: justificar }}>
@@ -197,7 +197,7 @@ export function Pieza({
             width: "100%",
             color: hslCss(c.texto),
             fontSize: "var(--h1)",
-            fontWeight: pesoH1(h1, marca.tipografia.familia_variable),
+            fontWeight: pesoH1(h1, marca.identidad.tipografia.familia_variable),
             lineHeight: 1.04,
             letterSpacing: "-0.01em",
             overflowWrap: "normal",
@@ -458,7 +458,7 @@ export function Pieza({
             flexShrink: 0,
             color: hslCss(colorNumero),
             fontSize: px(210),
-            fontWeight: pesoH1("", marca.tipografia.familia_variable),
+            fontWeight: pesoH1("", marca.identidad.tipografia.familia_variable),
             lineHeight: 0.9,
             letterSpacing: "-0.03em",
           }}
@@ -507,7 +507,7 @@ export function Pieza({
         height: f.alto,
         overflow: "hidden",
         background: hslCss(c.fondo),
-        fontFamily: fontFamily(marca.tipografia.familia_variable),
+        fontFamily: fontFamily(marca.identidad.tipografia.familia_variable),
         ["--h1" as string]: `${px(plantilla.h1.max)}px`,
         ["--body" as string]: `${px(plantilla.body.max)}px`,
         ["--cta" as string]: `${px(plantilla.cta)}px`,
@@ -615,7 +615,7 @@ function CapaDecorativa({
   zonaIcono?: { x: number; y: number; w: number; h: number };
   sinOverlay?: boolean;
 }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const opacidadPatron = OPACIDAD_PATRON.max - 0.02;
   const opacidadIcono = OPACIDAD_ICONO_DECO.max;
   // El valor que mide el checklist depende del relleno: opacidad y color del patrón o del ícono, u overlay de la foto.
@@ -688,7 +688,7 @@ function Catalogo({
   textoPx: number;
   centrado: boolean;
 }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const contenedor = BIBLIOTECA_RUBRO[marca.rubro].contenedores[0];
   const lado = Math.floor(tamano);
   return (

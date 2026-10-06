@@ -39,7 +39,7 @@ describe("capa decorativa efectiva", () => {
   });
 
   it("foto pedida sin foto cargada: se queda en el modo imagen con un ícono, siempre en círculo en el 2B-L", () => {
-    const conFotos = { ...marca, fotos_habilitadas: true };
+    const conFotos = { ...marca, identidad: { ...marca.identidad, fotos_habilitadas: true } };
     const p = { ...piezaNueva(conFotos), variante: "2B-L" as const, deco: { forma: "sello", relleno: "foto" as const, foto: null } };
     expect(decoEfectiva(conFotos, p)).toMatchObject({ forma: "circulo", relleno: "icono" });
     const conFoto = { ...p, deco: { ...p.deco, foto: "data:image/png;base64,AAAA" } };
@@ -82,7 +82,7 @@ describe("checklist de elementos gráficos", () => {
   const h1 = "Llegó el menú de otoño";
   const base = (p: Partial<Pieza>): Pieza => ({ ...piezaNueva(marca), modo: "A", contenido: { h1, body: "Apoyo.", cta: "Reservá" }, ...p });
   const med = (m: Partial<Medicion>): Medicion => ({
-    h1: { lineas: [{ x: 119, y: 400, w: 400, h: 100 }], px: 100, peso: pesoH1(h1, marca.tipografia.familia_variable), italica: false },
+    h1: { lineas: [{ x: 119, y: 400, w: 400, h: 100 }], px: 100, peso: pesoH1(h1, marca.identidad.tipografia.familia_variable), italica: false },
     body: { lineas: [{ x: 119, y: 520, w: 300, h: 40 }], px: 30, peso: 400, italica: false },
     cta: { lineas: [], caja: { x: 119, y: 1000, w: 300, h: 80 }, px: 32, peso: 600, italica: false },
     logo: { x: 119, y: 1100, w: 250, h: 90 },
@@ -94,14 +94,14 @@ describe("checklist de elementos gráficos", () => {
   const falla = (r: ReturnType<typeof evaluarPieza>, control: string) => r.controles.find((c) => c.control.startsWith(control))?.ok === false;
 
   it("2B: la capa decorativa no puede tapar el texto", () => {
-    const deco = { tipo: "patron" as const, caja: { x: 300, y: 380, w: 400, h: 400 }, opacidad: 1, overlay: null, color: marca.paleta.tono_apoyo };
+    const deco = { tipo: "patron" as const, caja: { x: 300, y: 380, w: 400, h: 400 }, opacidad: 1, overlay: null, color: marca.identidad.paleta.tono_apoyo };
     expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco })), "Capa decorativa sin tapar")).toBe(true);
     const aparte = { ...deco, caja: { x: 600, y: 380, w: 340, h: 340 } };
     expect(falla(evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco: aparte })), "Capa decorativa sin tapar")).toBe(false);
   });
 
   it("2B: el ícono decorativo va al 15-25% y nunca en color de marca", () => {
-    const deco = { tipo: "icono" as const, caja: { x: 600, y: 380, w: 340, h: 340 }, opacidad: 0.6, overlay: null, color: marca.paleta.color_marca };
+    const deco = { tipo: "icono" as const, caja: { x: 600, y: 380, w: 340, h: 340 }, opacidad: 0.6, overlay: null, color: marca.identidad.paleta.color_marca };
     const r = evaluarPieza(marca, base({ variante: "2B-L" }), med({ deco, iconos: 1 }));
     expect(falla(r, "Ícono decorativo al 15-25%")).toBe(true);
     expect(falla(r, "Ícono decorativo en tono de apoyo")).toBe(true);

@@ -64,6 +64,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 28. **2B-L con figura y patrón con la misma estructura que imagen o ícono**: en 4:5, 9:16 y 1:1 la forma del rubro ocupa el lugar del círculo y el mensaje se ajusta a su contorno real. *(Cap. 5, Cap. 8)*
 29. **Decoración de plantilla**: figuras opcionales que forman parte del diseño, con sombra mínima: arco lateral para H1 protagonista y esquinas en diagonal para Contacto, medidas sobre los ejemplos de referencia. Reemplazan a la forma de fondo automática, y sumar una nueva es agregar una entrada al catálogo. Aparte, en Contacto los íconos pueden ir sobre un soporte (cuadrado redondeado). *(Cap. 6, Cap. 8, A.8)*
 30. **Carrusel 4:5 y Facebook en vertical**: se suma el carrusel (2 a 10 slides) con portada, contenido y cierre, la variante P (Punto) para el contenido, el ritmo de modos y el control de la serie. El feed orgánico de Facebook pasa al 4:5 y al 1:1, y el 1200×630 queda como vista previa de links y anuncios. *(Cap. 1, Cap. 6, Cap. 8)*
+31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
 
 ---
 
@@ -285,14 +286,14 @@ La secuencia de uso de cada modo la define el capítulo 7, con conteo independie
 **Cascada de validación de contraste.** El color heredado no se modifica: se ajusta lo que lo rodea. *(v1.1 — numeración corregida)*
 
 1. Ajustar la luminosidad del fondo neutro dentro del rango 85-100%. Resuelve los casos límite, entre 3,5:1 y 4,5:1.
-2. **La versión funcional es una opción, no un paso automático** *(v1.1, decisión del cliente)*. Si el color heredado no alcanza 4,5:1 como texto después del paso 1, el cliente elige entre dos caminos. En el diagnóstico se muestran como dos chips: "Tu color con versión funcional" y "Tu color tal cual, sin versión funcional". En la ficha de la marca se puede cambiar la elección, y la paleta se recalcula desde el color heredado.
+2. **La versión funcional es una opción, no un paso automático** *(v1.1, decisión del cliente)*. Si el color heredado no alcanza 4,5:1 como texto después del paso 1, el cliente elige entre dos caminos. En el diagnóstico se muestran como dos chips: "Tu color con versión funcional" y "Tu color tal cual, sin versión funcional". En la sección Color de la identidad de la marca se puede cambiar la elección, y la paleta se recalcula desde el color heredado.
    - **Con versión funcional:** se siguen los pasos 2a y 2b.
    - **Solo el color heredado:** el color del cliente es el color de marca y también el texto. Fondo neutro, tono de apoyo y acento se generan desde él, lo más apegados posible a la fórmula:
      - el fondo neutro es el de S30 con la L entre 85 y 100 que más contraste dé con el heredado;
      - el tono de apoyo sale de la fórmula del paso 4;
      - el acento sigue la cascada normal y, si nada cumple, se toma el que más se acerca a los mínimos.
 
-     Lo que no llegue a los mínimos no se fuerza cambiando el color de marca: queda como **aviso**. Los controles de color del capítulo 8 lo aceptan sin bloquear la publicación. La ficha sugiere los colores que cumplen (el más próximo y el de su mismo matiz, paso 9) solo para el tono de apoyo, el fondo neutro y el acento, cada uno dentro de su rango de la fórmula: fondo L85-100 y tono de apoyo hasta L67. El color de marca no recibe sugerencia porque ya lo eligió el cliente.
+     Lo que no llegue a los mínimos no se fuerza cambiando el color de marca: queda como **aviso**. Los controles de color del capítulo 8 lo aceptan sin bloquear la publicación. La identidad sugiere los colores que cumplen (el más próximo y el de su mismo matiz, paso 9) solo para el tono de apoyo, el fondo neutro y el acento, cada uno dentro de su rango de la fórmula: fondo L85-100 y tono de apoyo hasta L67. El color de marca no recibe sugerencia porque ya lo eligió el cliente.
 2a. Generar una versión funcional del color de marca: mismo matiz y saturación, con la luminosidad de la tabla del paso 3. Se usa en texto, íconos y elementos finos. El color original se reserva para logo, masas grandes, badges y fondo de Modo B, donde el mínimo exigido es 3:1.
 2b. **Profundizar la versión funcional** *(v1.1)*. Si ni el fondo neutro ni la versión funcional alcanzan 4,5:1 como texto sobre el color original (Modo B), se baja la L de la versión funcional de a 2 puntos, hasta L6 como mínimo. Se elige la primera L que dé 4,5:1 contra el original; si ninguna llega, la primera que dé 3:1. Resuelve sin intervención los colores de tono medio (ej. turquesa #0B9EBF), que antes no servían ni como texto ni como fondo: el original queda para masas y fondos, y la versión funcional hace de texto sobre el neutro y sobre el original. En Modo B el texto usa el que más contraste dé entre el fondo neutro y la versión funcional.
 3. Si la luminosidad del color heredado supera el 70%, invertir el modo predominante de esa marca: el Modo B pasa a ser el principal y la secuencia del capítulo 7 se invierte, porque un color claro rinde mejor como fondo que como texto.
@@ -320,7 +321,7 @@ El mínimo de 3:1 del acento sobre el color de marca existe para que el CTA se v
 | Con contorno | botón en acento con un anillo de fondo neutro (8 px en lienzo de 1080) | texto sobre acento ≥ 4,5:1; acento vs. neutro ≥ 3:1; neutro vs. marca ≥ 3:1 |
 | Invertido | botón en fondo neutro con el texto en acento | acento vs. neutro ≥ 4,5:1; neutro vs. marca ≥ 3:1 |
 
-Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la ficha de marca (`cta_modo_b`).
+Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la identidad de la marca (`cta_modo_b`).
 
 **Modo A** *(v1.1)*. El mismo problema aparece al revés con los acentos claros (amarillos, cianes): el texto sobre el botón se lee bien, pero el botón se funde con el fondo neutro claro. Si el acento no alcanza 3:1 contra el fondo neutro, el CTA de Modo A lleva un contorno fino (4 px en lienzo de 1080) en el color de texto de la marca, que sí contrasta con el neutro. Es el recurso de los botones claros con borde de las marcas reales.
 
@@ -344,7 +345,7 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 
   La cercanía se mide como diferencia perceptual (ΔE en CIELAB). El matiz se aleja a lo sumo 40° del elegido y, para color de marca y acento, nunca cae en la banda prohibida. Aplicar la sugerencia es opcional.
 - **Variante por contraste.** Junto a la sugerencia anterior se muestra una segunda, tomada de la técnica de Adobe Leonardo: conserva el matiz y el croma del color elegido medidos en OKLCH, un espacio donde a igual luminosidad los colores se perciben igual de claros, y recorre solo la luminosidad, del cambio más chico al más grande, hasta cumplir los mismos controles. Si a esa luminosidad el croma no entra en sRGB, se baja. El resultado es el mismo color más claro o más oscuro, sin el desvío de matiz que puede tener la sugerencia por ΔE. Respeta los mismos rangos por rol y la banda prohibida. Si las dos sugerencias coinciden, se muestra una sola. Aplicarla es opcional.
-- Los ejemplos de Modo A y Modo B de la ficha muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
+- Los ejemplos de Modo A y Modo B de la identidad muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
 
 ---
 
@@ -484,7 +485,7 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 
 **Patrones (6).** Puntos, líneas diagonales, ondas, grilla, ruido sutil y cruces, generados por código.
 
-**Íconos (60).** Phosphor, en seis grupos: contacto, comercio, gastronomía, belleza, servicios y tech. Estilo por marca: lineal (peso regular) o sólido (peso fill). El valor por defecto sale del rubro (sólido en gastronomía, lineal en el resto) y se cambia en la ficha de marca.
+**Íconos (60).** Phosphor, en seis grupos: contacto, comercio, gastronomía, belleza, servicios y tech. Estilo por marca: lineal (peso regular) o sólido (peso fill). El valor por defecto sale del rubro (sólido en gastronomía, lineal en el resto) y se cambia en la sección Recursos gráficos de la identidad.
 
 **Qué habilita cada rubro:**
 
@@ -874,16 +875,19 @@ marca: {
   id, nombre,
   rubro: "servicios | gastronomia | belleza | tech",
   personalidad: { tono: "seria | cercana", valor: "confianza | energia | calma | innovacion" },  // (v1.1)
-  color: {
-    modo: "optimizado | heredado",
-    H, S, L,
-    tipo_acento: "complementario | analogo",          // (v1.1)
-    version_funcional: { H, S, L },   // solo en modo heredado
-    banda_prohibida: [H_min, H_max] | null
-  },
-  logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
-  tipografia: { familia_variable, italic_habilitado: bool },
-  fotos_habilitadas: bool
+  identidad: {                                         // (E1) todo lo visual; Publicaciones lee solo de acá
+    color: {
+      modo: "optimizado | heredado",
+      H, S, L,
+      tipo_acento: "complementario | analogo",          // (v1.1)
+      version_funcional: { H, S, L },   // solo en modo heredado
+      banda_prohibida: [H_min, H_max] | null
+    },
+    logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
+    tipografia: { familia_variable, italic_habilitado: bool },
+    graficos: { estilo_iconos },
+    fotos_habilitadas: bool
+  }
 }
 ```
 

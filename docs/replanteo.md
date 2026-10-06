@@ -25,7 +25,7 @@ control de calidad que corre debajo de todo, no como lo que define cómo se ve l
 Cada etapa es una issue de GitHub. Al cerrarla, el subagente `manual` marca la etapa como hecha acá y actualiza los
 manuales.
 
-### E1 · Reordenar la aplicación: Marca → Identidad → Publicaciones · [ ] pendiente
+### E1 · Reordenar la aplicación: Marca → Identidad → Publicaciones · [x] hecha
 - **Objetivo:** que la navegación cuente el proceso nuevo.
   - *Marca*: diagnóstico y datos.
   - *Identidad*: el sistema visual, en una vista dedicada en lugar de la ficha de hoy.

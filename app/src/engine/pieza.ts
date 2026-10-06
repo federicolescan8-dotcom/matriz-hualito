@@ -239,7 +239,7 @@ export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alinea
 /** Secuencia de modo del rubro, invertida si el color heredado es claro (cap. 3 paso 8). */
 export function secuenciaModo(marca: Marca): Modo[] {
   const s = PRESETS[marca.rubro].secuencia;
-  return marca.paleta.invertir_modo ? s.map((m) => (m === "A" ? "B" : "A")) : s;
+  return marca.identidad.paleta.invertir_modo ? s.map((m) => (m === "A" ? "B" : "A")) : s;
 }
 
 /** Variante sugerida: la primera prioritaria del rubro que esté habilitada. */
@@ -261,7 +261,7 @@ export function maxIconos(variante: Variante, items: number): number {
 }
 
 export function estiloIconos(marca: Marca): EstiloIconos {
-  return marca.graficos?.estilo_iconos ?? BIBLIOTECA_RUBRO[marca.rubro].estiloIconos;
+  return marca.identidad.graficos.estilo_iconos;
 }
 
 /** Capa decorativa por defecto del rubro con un relleno dado. */
@@ -276,7 +276,7 @@ export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
  */
 export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
   const lib = BIBLIOTECA_RUBRO[marca.rubro];
-  const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
+  const disponibles = rellenosDisponibles(marca.rubro, marca.identidad.fotos_habilitadas);
   const base = decoPorDefecto(marca.rubro, disponibles[0]);
   const elegida = { ...base, ...pieza.deco };
   if (!lib.formasDeco.includes(elegida.forma)) elegida.forma = base.forma;

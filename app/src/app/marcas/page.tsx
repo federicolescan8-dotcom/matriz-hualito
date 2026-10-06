@@ -4,23 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { PRESETS } from "@/engine/presets";
 import { hslCss } from "@/engine/color";
-import { FichaMarca } from "@/components/FichaMarca";
 import type { Marca } from "@/engine/diagnostico";
-import { borrarMarca, descargarJson, elegirMarcaActiva, guardarMarca, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcas } from "@/lib/marcas";
+import { borrarMarca, descargarJson, elegirMarcaActiva, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { usaSupabase } from "@/lib/supabase";
+
+// Paso 1 del proceso (replanteo, E1): la marca y sus datos. El sistema visual se edita en Identidad.
+
+const VALORES: Record<string, string> = { confianza: "Confianza", energia: "Energía", calma: "Calma", innovacion: "Innovación" };
 
 export default function MarcasPage() {
   const marcas = useMarcas();
   const error = useErrorMarcas();
+  const activa = useMarcaActiva();
   const [importacion, setImportacion] = useState<string | null>(null);
   const pendientesImportar = usaSupabase ? marcasDelNavegador().filter((l) => !marcas.some((m) => m.id === l.id)) : [];
-  const [abierta, setAbierta] = useState<string | null>(null);
-  // Cambios sin guardar de la marca abierta (ajustes de paleta).
-  const [borrador, setBorrador] = useState<Marca | null>(null);
-
-  const guardada = marcas.find((m) => m.id === abierta);
-  const actual = borrador && borrador.id === abierta ? borrador : guardada;
-  const sinGuardar = actual != null && actual !== guardada;
+  const actual = marcas.find((m) => m.id === activa) ?? null;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
@@ -55,20 +53,17 @@ export default function MarcasPage() {
           <li key={m.id}>
             <button
               type="button"
-              onClick={() => {
-                setAbierta(m.id === abierta ? null : m.id);
-                elegirMarcaActiva(m.id);
-              }}
-              className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left ${m.id === abierta ? "border-neutral-900" : "border-neutral-200"}`}
+              onClick={() => elegirMarcaActiva(m.id)}
+              className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left ${m.id === actual?.id ? "border-neutral-900" : "border-neutral-200"}`}
             >
               <span className="flex overflow-hidden rounded">
-                {[m.paleta.color_marca, m.paleta.tono_apoyo, m.paleta.fondo_neutro, m.paleta.acento].map((c, i) => (
+                {[m.identidad.paleta.color_marca, m.identidad.paleta.tono_apoyo, m.identidad.paleta.fondo_neutro, m.identidad.paleta.acento].map((c, i) => (
                   <span key={i} className="h-8 w-5" style={{ background: hslCss(c) }} />
                 ))}
               </span>
               <span className="flex flex-col">
                 <span className="font-medium">{m.nombre}</span>
-                <span className="text-xs text-neutral-500">{PRESETS[m.rubro].nombre} · {m.tipografia.familia_variable}</span>
+                <span className="text-xs text-neutral-500">{PRESETS[m.rubro].nombre} · {m.identidad.tipografia.familia_variable}</span>
               </span>
             </button>
           </li>
@@ -76,29 +71,12 @@ export default function MarcasPage() {
       </ul>
       {actual && (
         <section className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
-          <div className="sticky top-0 z-10 -mx-4 flex flex-wrap items-center gap-3 bg-white/95 px-4 py-3 backdrop-blur">
+          <div className="flex flex-wrap items-center gap-3">
             <h2 className="mr-auto text-xl font-semibold">{actual.nombre}</h2>
-            {sinGuardar && (
-              <>
-                <span className="text-sm text-amber-800">Cambios sin confirmar · se aplican en Publicar al confirmar</span>
-                <button type="button" onClick={() => setBorrador(null)} className="text-sm underline">Descartar</button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (await guardarMarca(actual)) setBorrador(null);
-                  }}
-                  className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
-                >
-                  Confirmar cambios
-                </button>
-              </>
-            )}
-            <Link
-              href="/publicar"
-              onClick={() => elegirMarcaActiva(actual.id)}
-              className={`rounded-md px-4 py-2 text-sm ${sinGuardar ? "pointer-events-none border border-neutral-200 text-neutral-400" : "border border-neutral-300"}`}
-              title={sinGuardar ? "Confirmá o descartá los cambios antes de publicar" : undefined}
-            >
+            <Link href={`/identidad/${actual.id}`} className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
+              Ver identidad
+            </Link>
+            <Link href="/publicar" className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
               Publicar con esta marca
             </Link>
             <button type="button" onClick={() => descargarJson(actual)} className="rounded-md border border-neutral-300 px-4 py-2 text-sm">Exportar JSON</button>
@@ -107,16 +85,56 @@ export default function MarcasPage() {
               onClick={() => {
                 if (!confirm(`¿Borrar la marca ${actual.nombre}?`)) return;
                 void borrarMarca(actual.id);
-                setAbierta(null);
               }}
               className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-700"
             >
               Borrar
             </button>
           </div>
-          <FichaMarca key={actual.id} marca={actual} onChange={setBorrador} />
+          <DatosMarca marca={actual} />
         </section>
       )}
+    </div>
+  );
+}
+
+/** Datos de la marca: las respuestas del diagnóstico, sin el sistema visual (que vive en la identidad). */
+function DatosMarca({ marca }: { marca: Marca }) {
+  const d = marca.diagnostico;
+  const filas: [string, React.ReactNode][] = [
+    ["Rubro", PRESETS[marca.rubro].nombre],
+    ["Personalidad", [d.personalidad.tono, d.personalidad.valor && VALORES[d.personalidad.valor]].filter(Boolean).join(" · ") || "—"],
+    [
+      "Color previo del cliente",
+      d.color_previo_hex ? (
+        <span className="inline-flex items-center gap-2">
+          <span className="h-4 w-4 rounded border border-black/10" style={{ background: d.color_previo_hex }} />
+          <span className="font-mono">{d.color_previo_hex.toUpperCase()}</span>
+        </span>
+      ) : (
+        "No tiene"
+      ),
+    ],
+    ["Matiz que no quiere", d.excluido_H != null ? `H${Math.round(d.excluido_H)}` : "Ninguno"],
+    ["Decisión de color", d.decision_color === "heredado" ? "Se hereda el color del cliente" : "Chip optimizado"],
+    ["Tipografía previa", d.tipografia_previa ?? "No tiene"],
+    ["Fotos propias (diagnóstico)", d.tiene_fotos_propias ? "Sí" : "No"],
+    ["Creada", new Date(marca.creada).toLocaleDateString("es-AR")],
+  ];
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Datos del diagnóstico</h3>
+      <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[14rem_1fr]">
+        {filas.map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt className="text-neutral-500">{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-xs text-neutral-500">
+        Color, tipografía, logo, recursos gráficos y fotografía se ajustan en la identidad de la marca.
+      </p>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { Marca } from "@/engine/diagnostico";
+import { esMarcaV1, migrarMarca, type MarcaV1 } from "@/engine/identidad";
 import { supabase } from "./supabase";
 
 // Almacenamiento de marcas. Con Supabase configurado, las marcas viven en la base (compartidas por el equipo y
@@ -22,13 +23,27 @@ function leerRaw(): string | null {
   }
 }
 
-/** Marcas guardadas en este navegador (también se usa para importarlas a Supabase). */
+/**
+ * Marcas guardadas en este navegador (también se usa para importarlas a Supabase). Las guardadas antes de E1 se migran
+ * al formato con `identidad` y se reescriben una sola vez, así el almacenamiento queda en el formato nuevo.
+ */
 export function marcasDelNavegador(): Marca[] {
   const raw = leerRaw();
   if (raw !== cacheRaw) {
     cacheRaw = raw;
     try {
-      cacheLocal = raw ? (JSON.parse(raw) as Marca[]) : VACIO;
+      const guardadas = raw ? (JSON.parse(raw) as (Marca | MarcaV1)[]) : VACIO;
+      cacheLocal = guardadas.map(migrarMarca);
+      if (guardadas.some(esMarcaV1)) {
+        // Sin evento: la caché ya tiene las marcas migradas y la nueva cadena pasa a ser la de referencia.
+        const migrado = JSON.stringify(cacheLocal);
+        try {
+          localStorage.setItem(CLAVE, migrado);
+          cacheRaw = migrado;
+        } catch {
+          // Sin espacio o sin permiso: la caché migrada vale para esta sesión.
+        }
+      }
     } catch {
       cacheLocal = VACIO;
     }
@@ -71,7 +86,8 @@ async function cargarRemotas(): Promise<void> {
   errorRemoto =
     marcas.error?.message ??
     (organizacion ? null : "Tu email no está asociado a ninguna organización (tabla miembros).");
-  cacheRemota = (marcas.data ?? []).map((f) => f.datos as Marca);
+  // Las filas guardadas antes de E1 se migran al leer; quedan en el formato nuevo la próxima vez que se guarden.
+  cacheRemota = (marcas.data ?? []).map((f) => migrarMarca(f.datos as Marca | MarcaV1));
   emitir();
 }
 

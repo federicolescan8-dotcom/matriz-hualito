@@ -205,8 +205,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const sugerir = (bloque: Bloque, control: string, cumple: boolean, detalle: string, sugerencia: string) =>
     controles.push({ bloque, control, ok: true, detalle, accion: "—", ...(cumple ? {} : { aviso: sugerencia }) });
   const f = FORMATOS[pieza.formato];
-  const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato, marca.tipografia.familia_variable) : undefined;
-  const p = marca.paleta;
+  const plantilla = PLANTILLAS[pieza.variante] ? plantillaPara(pieza.variante, pieza.formato, marca.identidad.tipografia.familia_variable) : undefined;
+  const p = marca.identidad.paleta;
   const c = coloresModo(p, pieza.modo);
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const r = (v: number) => `${v.toFixed(1)}:1`;
@@ -257,7 +257,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   add("Color y contraste", "Tono de apoyo no usado en texto ni íconos", true, "el texto usa marca, funcional o neutro", "reasignar a color de marca");
 
   // ── Bloque 2: tipografía ──
-  const pesoEsperado = pesoH1(pieza.contenido.h1, marca.tipografia.familia_variable);
+  const pesoEsperado = pesoH1(pieza.contenido.h1, marca.identidad.tipografia.familia_variable);
   add("Tipografía", "Peso del H1 según largo", m.h1.peso === pesoEsperado, `${m.h1.peso} (esperado ${pesoEsperado})`, "corregir token");
   if (plantilla?.h1.maxLineas) {
     const n = m.h1.lineas.length;
@@ -302,7 +302,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   add("Tipografía", "Itálica nunca en H1", !m.h1.italica, m.h1.italica ? "H1 en itálica" : "sin itálica", "quitar itálica");
   if (m.cta) add("Tipografía", "Itálica nunca en el CTA", !m.cta.italica, m.cta.italica ? "CTA en itálica" : "sin itálica", "quitar itálica");
   if (m.body?.italica) {
-    add("Tipografía", "Itálica solo en rubros y familias habilitados", marca.tipografia.italic_habilitado, marca.tipografia.familia_variable, "quitar itálica");
+    add("Tipografía", "Itálica solo en rubros y familias habilitados", marca.identidad.tipografia.italic_habilitado, marca.identidad.tipografia.familia_variable, "quitar itálica");
   }
 
   // ── Bloque 3: composición ──
@@ -469,7 +469,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   // Excepción v1.1 (decisión del cliente): con colores ajustados a mano o con el color heredado sin versión funcional,
   // los contrastes que no cumplen se aceptan con aviso.
-  if ((marca.ajustes_manuales ?? []).length > 0 || marca.color.solo_heredado) {
+  if ((marca.identidad.ajustes_manuales ?? []).length > 0 || marca.identidad.color.solo_heredado) {
     for (const k of controles) if (!k.ok && k.bloque === "Color y contraste") k.aceptado = true;
   }
 

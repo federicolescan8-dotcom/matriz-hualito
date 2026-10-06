@@ -3,8 +3,9 @@
 import { hexToHsl, normalizarH, type HSL } from "./color";
 import { ajustarRol, derivarPaleta, type CtaModoB, enBandaProhibida, type Paleta, type ResultadoPaleta, type RolPaleta } from "./palette";
 import { PRESETS, type Rubro, type Tono, type ValorMarca } from "./presets";
-import { resolverTipografia, type Tipografia } from "./typography";
-import { BIBLIOTECA_RUBRO, type EstiloIconos } from "./biblioteca";
+import { resolverTipografia } from "./typography";
+import { BIBLIOTECA_RUBRO } from "./biblioteca";
+import type { Identidad } from "./identidad";
 
 export interface Diagnostico {
   nombre: string;
@@ -43,29 +44,10 @@ export interface Marca {
   organizacion_id: string;
   nombre: string;
   rubro: Rubro;
-  /** Respuestas del diagnóstico. El logo se guarda una sola vez, en `logo`. */
+  /** Respuestas del diagnóstico. El logo se guarda una sola vez, en `identidad.logo`. */
   diagnostico: Omit<Diagnostico, "logo">;
-  color: {
-    modo: "optimizado" | "heredado";
-    base: HSL;
-    version_funcional: HSL | null;
-    banda_prohibida: [number, number] | null;
-    /**
-     * Heredado que no alcanza como texto y el cliente eligió no usar versión funcional (v1.1). Los controles de color
-     * que no cumplen se aceptan con aviso.
-     */
-    solo_heredado?: boolean;
-  };
-  paleta: Paleta;
-  /** Paleta tal como la calculó la fórmula, antes de ajustes manuales en la ficha. */
-  paleta_calculada?: Paleta;
-  /** Roles que se modificaron a mano después del cálculo. */
-  ajustes_manuales?: RolPaleta[];
-  logo: Diagnostico["logo"];
-  tipografia: Tipografia;
-  /** Biblioteca gráfica: un solo estilo de íconos por marca (cap. 5). Si falta, el del rubro. */
-  graficos?: { estilo_iconos: EstiloIconos };
-  fotos_habilitadas: boolean;
+  /** Sistema visual de la marca (E1): color, tipografía, logo, recursos gráficos y fotografía. */
+  identidad: Identidad;
   version_manual: "1.1";
   creada: string;
 }
@@ -152,18 +134,20 @@ export function construirMarca(d: Diagnostico, chip: Chip, organizacion_id = "hu
       matiz_elegido: chip.H,
       decision_color: chip.modo === "heredado" ? "heredado" : "chip_optimizado",
     },
-    color: {
-      modo: chip.modo,
-      base: paleta.color_marca,
-      version_funcional: paleta.version_funcional,
-      banda_prohibida: paleta.banda_prohibida,
-      ...(chip.funcional === false ? { solo_heredado: true } : {}),
+    identidad: {
+      color: {
+        modo: chip.modo,
+        base: paleta.color_marca,
+        version_funcional: paleta.version_funcional,
+        banda_prohibida: paleta.banda_prohibida,
+        ...(chip.funcional === false ? { solo_heredado: true } : {}),
+      },
+      paleta,
+      tipografia: resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa),
+      logo: d.logo,
+      graficos: { estilo_iconos: BIBLIOTECA_RUBRO[d.rubro].estiloIconos },
+      fotos_habilitadas: d.tiene_fotos_propias,
     },
-    paleta,
-    logo: d.logo,
-    tipografia: resolverTipografia(d.rubro, d.personalidad.tono, d.tipografia_previa),
-    graficos: { estilo_iconos: BIBLIOTECA_RUBRO[d.rubro].estiloIconos },
-    fotos_habilitadas: d.tiene_fotos_propias,
     version_manual: "1.1",
     creada: new Date().toISOString(),
   };
@@ -188,44 +172,52 @@ export function pendientesMarca(logo: Diagnostico["logo"]): string[] {
   return p;
 }
 
-function conPaleta(m: Marca, paleta: Paleta, ajustes: RolPaleta[]): Marca {
-  return {
-    ...m,
-    paleta,
-    paleta_calculada: m.paleta_calculada ?? m.paleta,
-    ajustes_manuales: ajustes,
-    color: { ...m.color, base: paleta.color_marca, version_funcional: paleta.version_funcional },
-  };
+/** Devuelve la marca con la identidad modificada. */
+function conIdentidad(m: Marca, cambios: Partial<Identidad>): Marca {
+  return { ...m, identidad: { ...m.identidad, ...cambios } };
 }
 
-/** Ajuste manual de un color de la paleta desde la ficha. Se conserva la paleta calculada para poder volver. */
+function conPaleta(m: Marca, paleta: Paleta, ajustes: RolPaleta[]): Marca {
+  const id = m.identidad;
+  return conIdentidad(m, {
+    paleta,
+    paleta_calculada: id.paleta_calculada ?? id.paleta,
+    ajustes_manuales: ajustes,
+    color: { ...id.color, base: paleta.color_marca, version_funcional: paleta.version_funcional },
+  });
+}
+
+/** Ajuste manual de un color de la paleta desde la identidad. Se conserva la paleta calculada para poder volver. */
 export function ajustarColorMarca(m: Marca, rol: RolPaleta, color: HSL): Marca {
-  const ajustes = [...new Set([...(m.ajustes_manuales ?? []), rol])];
-  return conPaleta(m, ajustarRol(m.paleta, rol, color), ajustes);
+  const ajustes = [...new Set([...(m.identidad.ajustes_manuales ?? []), rol])];
+  return conPaleta(m, ajustarRol(m.identidad.paleta, rol, color), ajustes);
 }
 
 /** Vuelve un rol (o toda la paleta, si no se indica) al valor calculado por la fórmula. */
 export function restaurarColorMarca(m: Marca, rol?: RolPaleta): Marca {
-  const calc = m.paleta_calculada;
+  const calc = m.identidad.paleta_calculada;
   if (!calc) return m;
-  if (!rol) return { ...conPaleta(m, calc, []), paleta_calculada: undefined, ajustes_manuales: [] };
+  if (!rol) {
+    const r = conPaleta(m, calc, []);
+    return conIdentidad(r, { paleta_calculada: undefined });
+  }
   const valor = calc[rol];
   if (valor == null) return m;
-  const ajustes = (m.ajustes_manuales ?? []).filter((r) => r !== rol);
-  return conPaleta(m, ajustarRol(m.paleta, rol, valor), ajustes);
+  const ajustes = (m.identidad.ajustes_manuales ?? []).filter((r) => r !== rol);
+  return conPaleta(m, ajustarRol(m.identidad.paleta, rol, valor), ajustes);
 }
 
 /** Fija a mano cómo va el CTA en Modo B, o lo vuelve a automático con null. */
 export function elegirCtaModoB(m: Marca, modo: CtaModoB | null): Marca {
-  const paleta = { ...m.paleta };
+  const paleta = { ...m.identidad.paleta };
   if (modo) paleta.cta_modo_b = modo;
   else delete paleta.cta_modo_b;
-  return { ...m, paleta };
+  return conIdentidad(m, { paleta });
 }
 
 /** Color heredado del cliente tal como se eligió (antes de ajustes manuales). */
 function colorHeredado(m: Marca): HSL {
-  return (m.paleta_calculada ?? m.paleta).color_marca;
+  return (m.identidad.paleta_calculada ?? m.identidad.paleta).color_marca;
 }
 
 /** Recalcula la paleta de una marca heredada con o sin versión funcional. */
@@ -242,7 +234,7 @@ export function paletaHeredada(m: Marca, funcional: boolean): ResultadoPaleta {
 
 /** La marca es heredada y su color no alcanza como texto: se puede elegir con o sin versión funcional. */
 export function puedeElegirFuncional(m: Marca): boolean {
-  return m.color.modo === "heredado" && paletaHeredada(m, true).requiere_funcional === true;
+  return m.identidad.color.modo === "heredado" && paletaHeredada(m, true).requiere_funcional === true;
 }
 
 /**
@@ -252,16 +244,15 @@ export function puedeElegirFuncional(m: Marca): boolean {
 export function elegirVersionFuncional(m: Marca, funcional: boolean): Marca {
   const r = paletaHeredada(m, funcional);
   if (!r.paleta) return m;
-  return {
-    ...m,
+  return conIdentidad(m, {
     paleta: r.paleta,
     paleta_calculada: undefined,
     ajustes_manuales: [],
     color: {
-      ...m.color,
+      ...m.identidad.color,
       base: r.paleta.color_marca,
       version_funcional: r.paleta.version_funcional,
       solo_heredado: funcional ? undefined : true,
     },
-  };
+  });
 }

@@ -29,10 +29,10 @@ const CAJA = "flex h-11 w-11 items-center justify-center rounded border";
  *   - Figura y patrón: una forma geométrica de la biblioteca rellena con un patrón.
  */
 export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
-  const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
+  const disponibles = rellenosDisponibles(marca.rubro, marca.identidad.fotos_habilitadas);
   const efectiva = decoEfectiva(marca, pieza);
   const lib = BIBLIOTECA_RUBRO[marca.rubro];
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const estilo = estiloIconos(marca);
   const set = (d: Partial<Deco>) => onChange({ deco: { ...efectiva, ...pieza.deco, ...d } });
   // El relleno pedido (puede ser foto aunque todavía no haya foto cargada).
@@ -94,7 +94,7 @@ export function EditorDeco({ marca, pieza, onChange }: { marca: Marca; pieza: Pi
           </div>
         </>
       )}
-      {modo === "imagen" && !marca.fotos_habilitadas && (
+      {modo === "imagen" && !marca.identidad.fotos_habilitadas && (
         <p className="text-xs text-neutral-500">Foto: la marca no tiene fotos propias habilitadas (se activa en la ficha de marca).</p>
       )}
 
@@ -141,7 +141,7 @@ export function EditorDecoracion({ marca, pieza, onChange }: { marca: Marca; pie
   const opciones = decoracionesPara(pieza.variante);
   if (!opciones.length) return null;
   const f = FORMATOS["4:5"];
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const elegida = opciones.find((d) => d.id === pieza.decoracion)?.id ?? null;
   const miniatura = (id: string | null) => {
     const d = opciones.find((o) => o.id === id);
@@ -226,7 +226,7 @@ export function EditorCatalogo({ marca, pieza, onChange }: { marca: Marca; pieza
               <option value="">Sin ícono</option>
               {iconos.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
-            {marca.fotos_habilitadas &&
+            {marca.identidad.fotos_habilitadas &&
               (it.foto ? (
                 <button type="button" onClick={() => set(i, { foto: null })} className="underline">Quitar foto</button>
               ) : (

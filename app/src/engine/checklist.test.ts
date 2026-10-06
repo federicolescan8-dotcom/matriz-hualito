@@ -20,7 +20,7 @@ function pieza(p: Partial<Pieza> = {}): Pieza {
 // Medición típica de la variante 1 en 4:5, todo dentro de la zona segura (margen 11%).
 function medicion(m: Partial<Medicion> = {}): Medicion {
   return {
-    h1: { lineas: [{ x: 119, y: 420, w: 700, h: 110 }, { x: 119, y: 530, w: 400, h: 110 }], px: 100, peso: pesoH1("Tu contabilidad, en orden", marca.tipografia.familia_variable), italica: false },
+    h1: { lineas: [{ x: 119, y: 420, w: 700, h: 110 }, { x: 119, y: 530, w: 400, h: 110 }], px: 100, peso: pesoH1("Tu contabilidad, en orden", marca.identidad.tipografia.familia_variable), italica: false },
     body: { lineas: [{ x: 119, y: 680, w: 650, h: 44 }], px: 32, peso: 400, italica: false },
     cta: { lineas: [], caja: { x: 119, y: 1100, w: 380, h: 90 }, px: 34, peso: 600, italica: false },
     logo: { x: 119, y: 149, w: 300, h: 110 },
@@ -63,7 +63,7 @@ describe("checklist de pieza", () => {
 
   it("un color ajustado a mano que no cumple se acepta con aviso y no bloquea", () => {
     const gris = { H: 0, S: 0, L: 60 };
-    const r0 = evaluarPieza({ ...marca, paleta: { ...marca.paleta, fondo_neutro: gris } }, pieza(), medicion());
+    const r0 = evaluarPieza({ ...marca, identidad: { ...marca.identidad, paleta: { ...marca.identidad.paleta, fondo_neutro: gris } } }, pieza(), medicion());
     expect(r0.estado).toBe("rechazado");
     const ajustada = ajustarColorMarca(marca, "fondo_neutro", gris);
     const r = evaluarPieza(ajustada, pieza(), medicion());
@@ -112,7 +112,7 @@ describe("areaCubierta", () => {
 describe("CTA en Modo A", () => {
   it("un acento claro sobre fondo neutro claro lleva contorno y pasa", async () => {
     const { ctaModoA, controlesCtaModoA, cumple } = await import("./palette");
-    const p = marca.paleta;
+    const p = marca.identidad.paleta;
     const r = evaluarPieza(marca, pieza(), medicion());
     const modo = ctaModoA(p);
     expect(cumple(controlesCtaModoA(p, modo))).toBe(true);
@@ -203,7 +203,7 @@ describe("reglas por formato", () => {
     const p2bl = pieza({ variante: "2B-L", deco: { forma: "blob-1", relleno: "patron", patron: "ondas" } });
     // Un rombo con su caja en x 600-1000: la esquina superior izquierda de la caja queda fuera de la forma.
     const contorno = [{ x: 800, y: 300 }, { x: 1000, y: 700 }, { x: 800, y: 1100 }, { x: 600, y: 700 }];
-    const deco = { tipo: "patron" as const, caja: { x: 600, y: 300, w: 400, h: 800 }, opacidad: 0.16, overlay: null, color: marca.paleta.color_marca, contorno };
+    const deco = { tipo: "patron" as const, caja: { x: 600, y: 300, w: 400, h: 800 }, opacidad: 0.16, overlay: null, color: marca.identidad.paleta.color_marca, contorno };
     const control = (h1x: number) =>
       evaluarPieza(marca, p2bl, medicion({ deco, body: null, h1: { ...medicion().h1, lineas: [{ x: 119, y: 320, w: h1x - 119, h: 100 }] } })).controles.find((c) => c.control.startsWith("Capa decorativa sin tapar"))!;
     expect(control(660).ok).toBe(true); // dentro de la caja, fuera del rombo
@@ -221,7 +221,7 @@ describe("reglas por formato", () => {
     expect(tapado.detalle).toBe("logo");
     // Sin decoración compatible (variante 1), el control no aparece.
     expect(evaluarPieza(marca, pieza({ decoracion: "esquinas-diagonal" }), medicion()).controles.some((c) => c.control.startsWith("Decoración"))).toBe(false);
-    const soporte = { fondo: marca.paleta.fondo_neutro, icono: marca.paleta.color_marca };
+    const soporte = { fondo: marca.identidad.paleta.fondo_neutro, icono: marca.identidad.paleta.color_marca };
     const conSoporte = evaluarPieza(marca, p3, { ...base, contacto: [{ icono: { x: 119, y: 800, w: 58, h: 58 }, texto: { lineas: [{ x: 200, y: 810, w: 300, h: 40 }], px: 30, peso: 400, italica: false }, soporte }] });
     expect(conSoporte.controles.find((c) => c.control === "Íconos sobre su soporte")!.ok).toBe(true);
   });
