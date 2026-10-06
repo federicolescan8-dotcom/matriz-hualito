@@ -75,6 +75,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 39. **Rescate de marca existente (E11)**: para clientes que ya tienen marca, se acuerda un grado de cambio (rescate, refresco o evolución) y se cargan varias referencias (logos, capturas, fotos de cartel). Los colores de todas se agrupan por ΔE < 10 y el informe dice, por ejemplo, "Tu verde aparece en 4 tonos". Cada grupo tiene un color canónico según el grado y se puede asignar a un rol de la paleta o a un secundario. La herramienta arma el brief para el diseñador (logo y tipografía no se vectorizan ni se detectan) y guarda "el antes" para compararlo con la identidad nueva y descargarlo como HTML. *(Cap. 9)*
 40. **Exploración de caminos (E5)**: para una marca nueva, el diagnóstico suma referencias del cliente (colores sacados de las imágenes de su moodboard y colores de la competencia) y propone 3 caminos visiblemente distintos: "Fiel a lo que contaste", "Más expresivo", "Más sobrio y clásico" y, con moodboard, uno inspirado en su color dominante. Cada camino trae ejes, color, par tipográfico y forma propia; difieren en matiz (20° o más) o en familia tipográfica, y el cliente elige uno. Los colores de la competencia extienden la banda prohibida del color de marca (±25° cada uno). *(Cap. 2, Cap. 3, Cap. 9)*
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
+42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 
 ---
 
@@ -766,6 +767,26 @@ Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6
 | Zona limpia | Sin capa: el texto va en la zona elegida a mano (arriba o abajo). No hay detección automática de la zona más pareja |
 
 El bloque ocupa el 58% de la zona segura en los formatos verticales. El contraste se mide sobre la imagen real (cap. 8).
+
+### Plantillas por tipo de contenido *(v1.1, E7)*
+
+Publicaciones arranca por el tipo de contenido. Cada tipo pide sus campos, se arma en 4:5 de Instagram y usa la primera variante de su lista que la marca tenga habilitada; si no tiene ninguna, la variante sugerida del rubro.
+
+| Tipo | Variante (en orden) | Campos (máx. de caracteres) |
+|---|---|---|
+| Promoción | 2, 4 | Oferta o precio (32), Vigencia (60) |
+| Testimonio | 2, 1 | Cita (44), Autor (40) |
+| Tip o educativo | 1 | Título (48), El consejo (100), Llamado a la acción (28) |
+| Lanzamiento | 1 | Qué se lanza (40), Detalle (100), Llamado a la acción (28) |
+| Evento | 3, 1 | Nombre (44), Fecha (30), Hora (14), Lugar (44) |
+| Pregunta frecuente | 1 | Pregunta (48), Respuesta (100), Llamado a la acción (28) |
+| Antes y después | 4 | Título (40), Antes (16), Después (16), Qué cambió (60), Llamado a la acción (28) |
+
+- **Texto sugerido.** Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) y lo recorta, sin cortar palabras, para que entre en los límites. El H1 sugerido tiene hasta 6 palabras en la variante 2 y hasta 9 en las demás. Lo que el cliente no cargó cae al ejemplo del tipo.
+- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 no llevan CTA.
+- **Antes y después** lleva el campo "Qué cambió" en el body aunque el catálogo no lo dibuje: con el body vacío, el ajuste de texto da revisión manual ("el texto no entra").
+- **Edición.** Al cambiar un campo se reescribe solo contenido, contacto e ítems; el resto de la pieza (modo, decoración, elementos gráficos) no se toca. "Sin tipo" mantiene la edición libre. El tip ofrece pasar al carrusel.
+- **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas.
 
 ### Carrusel 4:5 *(v1.1)*
 

@@ -214,7 +214,8 @@ manuales.
   - **dirección de arte**: qué fotos sí y cuáles no (luz, encuadre, fondo), para el manual de marca (E8).
 - **Aceptación:** una foto cargada sale con el mismo tratamiento en todas las piezas, y el texto sobre foto cumple 4,5:1 medido sobre la imagen real.
 
-### E7 · Plantillas por tipo de contenido · [ ] pendiente · depende de E6
+### E7 · Plantillas por tipo de contenido · [x] hecha · depende de E6
+> Quedó: `engine/contenidos.ts` con los 7 tipos (campos propios con límite, variante sugerida y respaldo por marca), `textoSugerido` con el contenido real del cliente y `armarPieza`. Publicaciones arranca por tarjetas de tipo, con campos prellenados y "Sin tipo" para el modo anterior; el tip ofrece el carrusel. Pestaña "Grilla del feed" (pieza actual más 8 de `piezasDeGrilla`) con `PiezaEscalada`. Los 7 tipos aprueban con sus textos sugeridos en dos marcas. Observación: la variante 4 da revisión manual ("el texto no entra") si el body es null, por eso antes y después lleva "Qué cambió" en el body. No se hizo: grilla con piezas ya exportadas ni persistencia del tipo y sus campos.
 - **Alcance:** Publicaciones arranca por el tipo de contenido:
   - promoción (con precio y vigencia);
   - testimonio;

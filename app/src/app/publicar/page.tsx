@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Guias } from "@/components/Guias";
 import { Pieza } from "@/components/Pieza";
+import { PiezaEscalada } from "@/components/PiezaEscalada";
 import { textosPara } from "@/components/PiezaMuestra";
 import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
 import { descargar, renderizar, slug } from "@/lib/exportar";
+import { armarPieza, ORDEN_TIPOS, textoSugerido, TIPOS_CONTENIDO, type CamposContenido, type TipoContenido } from "@/engine/contenidos";
 import { registrarEnHistorial, type Marca } from "@/engine/diagnostico";
 import { marcaParaPublicar, versionAprobada } from "@/engine/versiones";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
@@ -17,6 +19,7 @@ import {
   alineacionesPermitidas,
   formatoDeCanal,
   piezaNueva,
+  piezasDeGrilla,
   PLANTILLAS,
   quitarAceptacion,
   secuenciaModo,
@@ -71,6 +74,10 @@ export default function PublicarPage() {
   const [exportando, setExportando] = useState(false);
   const [errorExport, setErrorExport] = useState<string | null>(null);
   const [tipo, setTipo] = useState<"simple" | "carrusel">("simple");
+  // Tipo de contenido (E7): null es el modo libre de siempre. Los campos son los del tipo elegido.
+  const [contenidoTipo, setContenidoTipo] = useState<TipoContenido | null>(null);
+  const [campos, setCampos] = useState<CamposContenido>({});
+  const [vista, setVista] = useState<"pieza" | "grilla">("pieza");
   const sesion = useSesion();
 
   if (!marca || !actual) {
@@ -93,7 +100,29 @@ export default function PublicarPage() {
   const f = FORMATOS[actual.formato];
   const permitidas = alineacionesPermitidas(marca.rubro, actual.variante);
   const secuencia = secuenciaModo(marca);
+  const plantillaTipo = contenidoTipo ? TIPOS_CONTENIDO[contenidoTipo] : null;
   const escala = Math.min(VISTA_MAX.ancho / f.ancho, VISTA_MAX.alto / f.alto);
+
+  /** Elegir un tipo arma la pieza con su variante, su formato y los textos sugeridos; después todo sigue editable. */
+  function elegirTipo(t: TipoContenido | null) {
+    setContenidoTipo(t);
+    setResultado(null);
+    if (!t) return;
+    const sugeridos = textoSugerido(t, marca!);
+    setCampos(sugeridos);
+    const armada = armarPieza(t, sugeridos, marca!);
+    setPieza({ ...armada, modo: actual!.modo });
+    setErrorExport(null);
+  }
+
+  /** Editar un campo del tipo reescribe solo el contenido de la pieza: la variante y el resto quedan como están. */
+  function editarCampo(id: string, valor: string) {
+    const nuevos = { ...campos, [id]: valor };
+    setCampos(nuevos);
+    const armada = armarPieza(contenidoTipo!, nuevos, marca!);
+    const conCta = { ...armada.contenido, cta: PLANTILLAS[actual!.variante]!.tieneCta ? armada.contenido.cta ?? actual!.contenido.cta : null };
+    set({ contenido: conCta, contacto: armada.contacto ?? actual!.contacto, items: armada.items ?? actual!.items });
+  }
 
   async function exportar() {
     setExportando(true);
@@ -187,6 +216,7 @@ export default function PublicarPage() {
             onChange={(e) => {
               elegirMarcaActiva(e.target.value);
               setPieza(null);
+              setContenidoTipo(null);
               setResultado(null);
             }}
             className="rounded-md border border-neutral-300 px-3 py-2"
@@ -194,6 +224,47 @@ export default function PublicarPage() {
             {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
           </select>
         </label>
+        <div className="flex flex-col gap-2">
+          <span className="font-medium">¿Qué querés publicar?</span>
+          <div className="grid grid-cols-2 gap-2">
+            {ORDEN_TIPOS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                title={TIPOS_CONTENIDO[t].descripcion}
+                onClick={() => elegirTipo(t)}
+                className={`rounded-lg border px-3 py-2 text-left text-xs ${contenidoTipo === t ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
+              >
+                <span className="font-medium">{TIPOS_CONTENIDO[t].nombre}</span>
+              </button>
+            ))}
+            <button type="button" onClick={() => elegirTipo(null)} className={`rounded-lg border px-3 py-2 text-left text-xs ${contenidoTipo === null ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}>
+              <span className="font-medium">Sin tipo</span>
+            </button>
+          </div>
+          {plantillaTipo && (
+            <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-xs text-neutral-600">{plantillaTipo.descripcion}</p>
+              {plantillaTipo.campos.map((c) => (
+                <label key={c.id} className="flex flex-col gap-1">
+                  <span className="text-xs font-medium">{c.etiqueta}</span>
+                  {c.multilinea ? (
+                    <textarea rows={2} maxLength={c.max} placeholder={c.ejemplo} value={campos[c.id] ?? ""} onChange={(e) => editarCampo(c.id, e.target.value)} className="resize-none rounded-md border border-neutral-300 px-3 py-2" />
+                  ) : (
+                    <input maxLength={c.max} placeholder={c.ejemplo} value={campos[c.id] ?? ""} onChange={(e) => editarCampo(c.id, e.target.value)} className="rounded-md border border-neutral-300 px-3 py-2" />
+                  )}
+                  <span className="text-right text-[11px] text-neutral-500">{(campos[c.id] ?? "").length}/{c.max}</span>
+                </label>
+              ))}
+              {plantillaTipo.carrusel && (
+                <button type="button" onClick={() => setTipo("carrusel")} className="self-start text-xs underline underline-offset-2">
+                  Contarlo en varios slides: ir al carrusel
+                </button>
+              )}
+              <p className="text-xs text-neutral-500">Todo sigue editable más abajo: variante, formato y textos.</p>
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
             <span className="font-medium">Canal</span>
@@ -312,6 +383,26 @@ export default function PublicarPage() {
 
       {/* Vista previa */}
       <section className="flex flex-col gap-3">
+        <div className="flex self-start overflow-hidden rounded-md border border-neutral-300 text-sm">
+          {([["pieza", "Pieza"], ["grilla", "Grilla del feed"]] as const).map(([v, etiqueta]) => (
+            <button key={v} type="button" onClick={() => setVista(v)} className={`px-4 py-1.5 ${vista === v ? "bg-neutral-900 text-white" : "bg-white"}`}>
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+        {vista === "grilla" && (
+          <div className="flex flex-col gap-2">
+            <div className="grid w-fit grid-cols-3 gap-1 rounded-xl bg-white p-1 shadow-md">
+              {[{ ...actual, canal: "feed_ig" as Canal, formato: "4:5" as Formato }, ...piezasDeGrilla(marca, actual.contenido, 9).slice(1)].map((pz, i) => (
+                <div key={pz.id} className={i === 0 ? "outline outline-2 outline-offset-[-2px] outline-neutral-900" : ""}>
+                  <PiezaEscalada marca={marca} pieza={pz} ancho={150} />
+                </div>
+              ))}
+            </div>
+            <p className="max-w-[460px] text-xs text-neutral-500">La pieza actual (marcada) en la primera celda y las 8 siguientes con el ritmo de variantes y modos de la marca.</p>
+          </div>
+        )}
+        <div className={vista === "grilla" ? "h-0 overflow-hidden" : "flex flex-col gap-3"}>
         <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
           <span>
             {f.nombre} · {PRESETS[marca.rubro].nombre} · {marca.identidad.tipografia.familia_variable}
@@ -356,6 +447,7 @@ export default function PublicarPage() {
         <button type="button" onClick={() => setHoja(!hoja)} className="self-start text-xs underline underline-offset-2">
           {hoja ? "Cerrar la hoja de contactos" : "Ver hoja de contactos (los 4 formatos grandes, con guías)"}
         </button>
+        </div>
       </section>
 
       {/* Checklist */}

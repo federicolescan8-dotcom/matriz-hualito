@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { hslCss, hslToHex, type HSL } from "@/engine/color";
-import type { Marca } from "@/engine/diagnostico";
 import { coloresModo, estiloCta } from "@/engine/palette";
-import { piezaNueva, piezasDeGrilla, type Pieza as TPieza } from "@/engine/pieza";
+import { piezaNueva, piezasDeGrilla } from "@/engine/pieza";
 import { familiaTexto } from "@/engine/typography";
 import { aprobarVersion, comentarVersion, guardarVersion, versionAprobada, type VersionIdentidad } from "@/engine/versiones";
-import { FORMATOS } from "@/engine/formatos";
-import { Pieza } from "@/components/Pieza";
+import { PiezaEscalada } from "@/components/PiezaEscalada";
 import { textosPara } from "@/components/PiezaMuestra";
 import { guardarMarca, useMarcas } from "@/lib/marcas";
 import { cargarFuentePropia, fontFamily } from "@/lib/fuentes";
@@ -18,19 +16,6 @@ import { cargarFuentePropia, fontFamily } from "@/lib/fuentes";
 // ratios): la marca puesta en contexto. Se avanza con las flechas del teclado.
 
 const DIAPOSITIVAS = ["Portada", "Colores", "Tipografía", "Feed", "Story", "Tarjeta", "Cartel", "Aprobación"] as const;
-
-/** Una pieza real dibujada a tamaño completo y escalada con CSS (lo que se ve es lo que se exporta). */
-function PiezaEscalada({ marca, pieza, ancho }: { marca: Marca; pieza: TPieza; ancho: number }) {
-  const f = FORMATOS[pieza.formato];
-  const k = ancho / f.ancho;
-  return (
-    <div style={{ width: ancho, height: f.alto * k, overflow: "hidden", position: "relative" }}>
-      <div style={{ transform: `scale(${k})`, transformOrigin: "top left", position: "absolute", left: 0, top: 0 }}>
-        <Pieza marca={marca} pieza={pieza} />
-      </div>
-    </div>
-  );
-}
 
 export function Presentacion({ id, version }: { id: string; version: string | null }) {
   const marcas = useMarcas();
