@@ -69,6 +69,47 @@ manuales.
   - el checklist mide el área de seguridad.
 - **Aceptación:** cada pieza elige la versión correcta según el espacio y el fondo, y el checklist lo verifica.
 
+### E11 · Rescate de marca existente · [ ] pendiente · depende de E3 y E4
+- **Por qué:** la mayoría de los clientes ya tiene logo y colores, pero mal resueltos. Aparecen:
+  - logos en baja resolución, distintos en cada red o hechos con IA con detalles que no escalan;
+  - el "mismo" color en varios tonos (Instagram, cartel, Canva, imprenta);
+  - tipografías mezcladas.
+
+  Piden un rebranding que no se aleje de lo que ya tienen. No se crea una identidad nueva: se **audita, se normaliza y
+  se evoluciona** lo existente.
+- **Grado de cambio**, que se acuerda con el cliente y define cuánto puede mover la fórmula:
+
+  | Grado | Qué cambia | Libertad de la fórmula |
+  |---|---|---|
+  | **Rescate** | Nada visible: se limpia y se fija lo que existe | Todo heredado. Lo que no cumple queda como aviso |
+  | **Refresco** | Ajustes finos: color más preciso, tipografía de apoyo, logo redibujado fiel | Sugerencias del color válido más próximo dentro del grupo de tonos del cliente |
+  | **Evolución** | Cambios notorios pero reconocibles: logo simplificado, otro color, otra tipografía | Sugerencias libres, siempre comparadas contra lo actual |
+
+- **Alcance:**
+  - **carga múltiple de referencias:** logos en todas sus versiones, capturas de redes y fotos de cartel, packaging o tarjetas;
+  - **auditoría de color:** se muestrean los colores de todas las fuentes y se agrupan por ΔE (`distanciaColor`). Los tonos a menos de ~10 se toman como el mismo color que se fue corriendo. El informe dice, por ejemplo, "tu verde aparece en 4 tonos";
+  - **color canónico por grupo:**
+    - en rescate, el más usado o el del logo original;
+    - en refresco, el más cercano al grupo que cumpla los contrastes (`colorValidoCercano`).
+
+    Si la marca usa de verdad 2 o 3 colores distintos, se respetan todos con roles: marca, apoyo y acento (paleta extendida de E3);
+  - **logo:**
+    - se elige la versión de referencia comparando las que circulan;
+    - se vectoriza de forma asistida (PNG → SVG) con limpieza de defectos: curvas irregulares, letras deformadas por IA, degradados que no escalan;
+    - se detecta la tipografía más parecida para rearmar el texto del logo;
+    - se arma el sistema completo de E4.
+
+    La regla del refresco: puestos lado a lado, el logo nuevo y el viejo tienen que leerse como el mismo, pero más prolijo;
+  - **tipografía:** la del logo, o la más parecida, pasa a ser la display para títulos, en par con una de texto del catálogo (E3). Si el cliente ya usa una de Canva en todas partes, en rescate se mantiene o se reemplaza por su equivalente web; en refresco, por la más parecida con buen rango de pesos;
+  - **antes y después:** las piezas actuales del cliente al lado de las nuevas, como herramienta de venta y de aprobación.
+- **Aceptación:**
+  - con referencias inconsistentes, el sistema detecta los grupos de color y propone un canónico por grupo;
+  - el grado elegido limita cuánto se aleja la identidad final de lo actual;
+  - el logo de referencia sale vectorizado con su sistema de versiones;
+  - el antes y después se puede exportar.
+- **Relación con E5:** en una marca existente, la exploración de caminos pasa a ser la elección del grado de cambio.
+  E5 queda para marcas nuevas.
+
 ### E5 · Exploración de caminos en el diagnóstico · [ ] pendiente · depende de E2, E3 y E4
 - **Alcance:**
   - moodboard: el cliente sube referencias o elige entre opciones;
@@ -119,4 +160,5 @@ manuales.
 - **Aceptación:** cada formato nuevo tiene zonas seguras, checklist y render verificados.
 
 ## Orden sugerido
-E1 → E2 → E3 → E4 → E5 → E6 → E7 → E8 → E9 → E10. E9 es independiente y se puede hacer en cualquier momento.
+E1 → E2 → E3 → E4 → **E11** → E5 → E6 → E7 → E8 → E9 → E10. E11 va antes de E5 porque la mayoría de los clientes
+ya tiene una marca: el rescate es el caso más frecuente. E9 es independiente y se puede hacer en cualquier momento.
