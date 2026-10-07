@@ -10,7 +10,9 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import { hslCss, type HSL } from "@/engine/color";
-import { formaPorId, type EstiloIconos, type Patron } from "@/engine/biblioteca";
+import { encuadre, valoresSvg, type FiltroFoto, type Foco } from "@/engine/fotografia";
+import { dimensionesCacheadas } from "@/lib/imagen";
+import { resolverForma, type EstiloIconos, type Forma, type Patron } from "@/engine/biblioteca";
 
 // Componentes de la biblioteca gráfica (cap. 5). Todos reciben el color desde afuera: ninguno tiene color propio.
 
@@ -58,8 +60,11 @@ export function FormaSvg({
   style,
   slot,
   grosor = 6,
+  formas,
 }: {
   id: string;
+  /** Formas propias de la marca (E2), para resolver su id. */
+  formas?: Forma[];
   color: HSL;
   opacidad?: number;
   style?: React.CSSProperties;
@@ -67,7 +72,7 @@ export function FormaSvg({
   /** Grosor del trazo de las formas lineales, en unidades del viewBox (0-100). */
   grosor?: number;
 }) {
-  const f = formaPorId(id);
+  const f = resolverForma(id, formas);
   if (!f) return null;
   return (
     <svg data-slot={slot} data-forma={id} viewBox="-2 -2 104 104" style={{ display: "block", opacity: opacidad, overflow: "visible", ...style }}>
@@ -85,7 +90,7 @@ export function FormaSvg({
 }
 
 /** Dibujo de una celda de patrón de lado `s`, en el color `c`. El ruido no tiene celda: usa un filtro. */
-function celdaPatron(id: Patron, s: number, c: string): React.ReactNode {
+function celdaPatron(id: Patron, s: number, c: string, forma?: Forma): React.ReactNode {
   const dibujo: Record<Patron, React.ReactNode> = {
     puntos: <circle cx={s / 2} cy={s / 2} r={s * 0.12} fill={c} />,
     diagonales: <path d={`M0 ${s}L${s} 0M${-s / 2} ${s / 2}L${s / 2} ${-s / 2}M${s / 2} ${s * 1.5}L${s * 1.5} ${s / 2}`} stroke={c} strokeWidth={s * 0.08} />,
@@ -93,12 +98,14 @@ function celdaPatron(id: Patron, s: number, c: string): React.ReactNode {
     grilla: <path d={`M${s} 0V${s}M0 ${s}H${s}`} stroke={c} strokeWidth={s * 0.05} />,
     cruces: <path d={`M${s / 2} ${s * 0.3}V${s * 0.7}M${s * 0.3} ${s / 2}H${s * 0.7}`} stroke={c} strokeWidth={s * 0.07} strokeLinecap="round" />,
     ruido: null,
+    // Patrón propio (E2): la forma propia de la marca, al 60% de la celda.
+    propio: forma ? <path d={forma.d} transform={`translate(${s * 0.2} ${s * 0.2}) scale(${(s * 0.6) / 100})`} fill={c} /> : null,
   };
   return dibujo[id];
 }
 
 /** Defs de un patrón (o del filtro de ruido) y el relleno que hay que usar para pintarlo. */
-function defsPatron(id: Patron, uid: string, s: number, c: string, frecuenciaRuido = 0.8) {
+function defsPatron(id: Patron, uid: string, s: number, c: string, frecuenciaRuido = 0.8, forma?: Forma) {
   if (id === "ruido") {
     // El ruido solo define la transparencia; el color es el que recibe el patrón.
     return {
@@ -119,7 +126,7 @@ function defsPatron(id: Patron, uid: string, s: number, c: string, frecuenciaRui
   return {
     defs: (
       <pattern id={`p${uid}`} width={s} height={s} patternUnits="userSpaceOnUse">
-        {celdaPatron(id, s, c)}
+        {celdaPatron(id, s, c, forma)}
       </pattern>
     ),
     pintar: (props: React.SVGProps<SVGRectElement>) => <rect {...props} fill={`url(#p${uid})`} />,
@@ -133,15 +140,18 @@ export function PatronSvg({
   opacidad,
   celda = 48,
   slot,
+  forma,
 }: {
   id: Patron;
+  /** Forma que repite el patrón propio (E2). */
+  forma?: Forma;
   color: HSL;
   opacidad: number;
   celda?: number;
   slot?: string;
 }) {
   const uid = useId().replace(/:/g, "");
-  const { defs, pintar } = defsPatron(id, uid, celda, hslCss(color));
+  const { defs, pintar } = defsPatron(id, uid, celda, hslCss(color), 0.8, forma);
   return (
     <svg data-slot={slot} data-patron={id} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: opacidad }}>
       <defs>{defs}</defs>
@@ -160,24 +170,32 @@ export function FotoEnForma({
   overlay,
   style,
   slot,
+  formas,
+  filtro,
+  foco,
 }: {
   foto: string;
   formaId: string;
+  formas?: Forma[];
   overlay?: { color: HSL; opacidad: number } | null;
   style?: React.CSSProperties;
   slot?: string;
+  /** Tratamiento de la marca (E6) y punto focal del encuadre. */
+  filtro?: FiltroFoto | null;
+  foco?: Foco;
 }) {
   const uid = useId().replace(/:/g, "");
-  const f = formaPorId(formaId) ?? formaPorId("circulo")!;
+  const f = resolverForma(formaId, formas) ?? resolverForma("circulo")!;
   return (
     <svg data-slot={slot} data-foto data-overlay={overlay?.opacidad ?? 0} viewBox="0 0 100 100" style={{ display: "block", ...style }}>
       <defs>
         <clipPath id={`c${uid}`}>
           <path d={f.d} />
         </clipPath>
+        <FiltroSvg id={`f${uid}`} filtro={filtro} />
       </defs>
       <g clipPath={`url(#c${uid})`}>
-        <image href={foto} x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" />
+        <ImagenFoco src={foto} foco={foco} x={0} y={0} w={100} h={100} filtroId={filtro ? `f${uid}` : undefined} />
         {overlay && <rect x="0" y="0" width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
       </g>
     </svg>
@@ -205,8 +223,16 @@ export function FormaRellena({
   visible = { x: 0, y: 0, w: 100, h: 100 },
   zonaIcono,
   tamanoPx,
+  formas,
+  filtro,
+  foco,
 }: {
+  /** Tratamiento de la marca (E6) y punto focal del encuadre de la foto. */
+  filtro?: FiltroFoto | null;
+  foco?: Foco;
   formaId: string;
+  /** Formas propias de la marca (E2): resuelven el id y la primera es la del patrón propio. */
+  formas?: Forma[];
   relleno: "foto" | "patron" | "icono";
   fondo: HSL;
   foto?: string | null;
@@ -228,9 +254,9 @@ export function FormaRellena({
   tamanoPx: number;
 }) {
   const uid = useId().replace(/:/g, "");
-  const f = formaPorId(formaId) ?? formaPorId("circulo")!;
+  const f = resolverForma(formaId, formas) ?? resolverForma("circulo")!;
   const celda = (100 * 44) / Math.max(tamanoPx, 1);
-  const pat = patron && colorPatron ? defsPatron(patron, uid, celda, hslCss(colorPatron), (0.33 * tamanoPx) / 100) : null;
+  const pat = patron && colorPatron ? defsPatron(patron, uid, celda, hslCss(colorPatron), (0.33 * tamanoPx) / 100, formas?.[0]) : null;
   const IconoC = icono ? (ICONOS[icono] ?? Star) : null;
   const zi = zonaIcono ?? visible;
   const ladoIcono = Math.min(42, zi.w * 0.84, zi.h * 0.84);
@@ -242,11 +268,12 @@ export function FormaRellena({
           <path d={f.d} />
         </clipPath>
         {pat?.defs}
+        <FiltroSvg id={`f${uid}`} filtro={filtro} />
       </defs>
       <g clipPath={`url(#c${uid})`}>
         {relleno === "foto" && foto ? (
           <>
-            <image href={foto} x={visible.x} y={visible.y} width={visible.w} height={visible.h} preserveAspectRatio="xMidYMid slice" />
+            <ImagenFoco src={foto} foco={foco} x={visible.x} y={visible.y} w={visible.w} h={visible.h} filtroId={filtro ? `f${uid}` : undefined} />
             {overlay && <rect width="100" height="100" fill={hslCss(overlay.color)} opacity={overlay.opacidad} />}
           </>
         ) : (
@@ -261,6 +288,53 @@ export function FormaRellena({
           </>
         )}
       </g>
+    </svg>
+  );
+}
+
+/** Filtro de color del tratamiento de la marca (E6): la misma matriz que se aplica al medir el contraste. */
+export function FiltroSvg({ id, filtro }: { id: string; filtro?: FiltroFoto | null }) {
+  if (!filtro) return null;
+  // sRGB: el mismo espacio en el que se calcula la matriz (el predeterminado, linearRGB, daría otro resultado).
+  return (
+    <filter id={id} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+      <feColorMatrix type="matrix" values={valoresSvg(filtro)} />
+    </filter>
+  );
+}
+
+/**
+ * Foto que llena una caja del SVG. Sin punto focal (o mientras no se conoce el tamaño de la foto) se centra, como
+ * `slice`; con foco, el encuadre lo deja cerca del centro de la caja (`encuadre`, E6).
+ */
+export function ImagenFoco({
+  src,
+  foco,
+  x,
+  y,
+  w,
+  h,
+  filtroId,
+  fondo,
+}: {
+  src: string;
+  foco?: Foco;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  filtroId?: string;
+  fondo?: boolean;
+}) {
+  const dim = foco ? dimensionesCacheadas(src) : undefined;
+  const filtro = filtroId ? `url(#${filtroId})` : undefined;
+  if (!foco || !dim) {
+    return <image data-foto-fondo={fondo ? "" : undefined} href={src} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid slice" filter={filtro} />;
+  }
+  const r = encuadre(foco, dim, { w, h });
+  return (
+    <svg x={x} y={y} width={w} height={h} viewBox={`0 0 ${w} ${h}`} overflow="hidden">
+      <image data-foto-fondo={fondo ? "" : undefined} href={src} x={r.x} y={r.y} width={r.w} height={r.h} preserveAspectRatio="none" filter={filtro} />
     </svg>
   );
 }

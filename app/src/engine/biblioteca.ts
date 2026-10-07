@@ -5,7 +5,7 @@ import type { Rubro } from "./presets";
 
 // ── Formas (17, en viewBox 0 0 100 100) ──
 
-export type CategoriaForma = "geometricas" | "organicas" | "lineales" | "contenedores";
+export type CategoriaForma = "geometricas" | "organicas" | "lineales" | "contenedores" | "propias";
 
 export interface Forma {
   id: string;
@@ -52,9 +52,13 @@ export const FORMAS: Forma[] = [
 
 export const formaPorId = (id: string) => FORMAS.find((f) => f.id === id);
 
+/** Forma por id entre las propias de la marca (E2) y las de la biblioteca. */
+export const resolverForma = (id: string, propias?: Forma[]) => propias?.find((f) => f.id === id) ?? formaPorId(id);
+
 // ── Patrones (6, generados por código) ──
 
-export type Patron = "puntos" | "diagonales" | "ondas" | "grilla" | "ruido" | "cruces";
+/** "propio" repite la forma propia de la marca (E2); no está en el catálogo del rubro. */
+export type Patron = "puntos" | "diagonales" | "ondas" | "grilla" | "ruido" | "cruces" | "propio";
 export const PATRONES: { id: Patron; nombre: string }[] = [
   { id: "puntos", nombre: "Puntos" },
   { id: "diagonales", nombre: "Líneas diagonales" },

@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { rangoMatiz } from "./ejes";
 import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips, restaurarColorMarca } from "./diagnostico";
 import { hexToHsl } from "./color";
 import { enBandaProhibida } from "./palette";
 
 describe("chips del diagnóstico", () => {
-  it("genera 4 chips dentro del rango del rubro", () => {
+  it("genera 4 chips dentro del rango de matiz que sale de los ejes (E12)", () => {
     const d = { ...diagnosticoVacio(), rubro: "servicios" as const };
+    const [a, b] = rangoMatiz(d.ejes, d.rubro);
     const chips = generarChips(d);
     expect(chips).toHaveLength(4);
     for (const c of chips) {
-      expect(c.H).toBeGreaterThanOrEqual(200);
-      expect(c.H).toBeLessThanOrEqual(230);
+      expect(c.H).toBeGreaterThanOrEqual(a);
+      expect(c.H).toBeLessThanOrEqual(b);
       expect(c.resultado.estado).toBe("ok");
     }
   });
@@ -32,7 +34,7 @@ describe("chips del diagnóstico", () => {
     const chip = generarChips(d).at(-1)!;
     const m = construirMarca(d, chip);
     expect(m.diagnostico.decision_color).toBe("heredado");
-    expect(m.tipografia.familia_variable).toBe("Inter");
+    expect(m.identidad.tipografia.familia_variable).toBe("Inter");
   });
 });
 
@@ -42,26 +44,26 @@ describe("ajustes manuales de paleta", () => {
 
   it("cambia el rol, registra el ajuste y conserva la paleta calculada", () => {
     const m = ajustarColorMarca(base, "acento", hexToHsl("#ffcc00")!);
-    expect(m.paleta.acento).toMatchObject(hexToHsl("#ffcc00")!);
-    expect(m.ajustes_manuales).toEqual(["acento"]);
-    expect(m.paleta_calculada).toEqual(base.paleta);
+    expect(m.identidad.paleta.acento).toMatchObject(hexToHsl("#ffcc00")!);
+    expect(m.identidad.ajustes_manuales).toEqual(["acento"]);
+    expect(m.identidad.paleta_calculada).toEqual(base.identidad.paleta);
     // Amarillo claro: el texto sobre el acento pasa a ser oscuro.
-    expect(m.paleta.acento.texto).not.toBe("blanco");
+    expect(m.identidad.paleta.acento.texto).not.toBe("blanco");
   });
 
   it("al cambiar la marca se vuelve a elegir el texto sobre el acento y se actualiza color.base", () => {
     const m = ajustarColorMarca(base, "color_marca", hexToHsl("#111111")!);
-    expect(m.color.base).toEqual(hexToHsl("#111111"));
+    expect(m.identidad.color.base).toEqual(hexToHsl("#111111"));
   });
 
   it("restaura un rol o toda la paleta", () => {
     const m = ajustarColorMarca(ajustarColorMarca(base, "acento", hexToHsl("#ffcc00")!), "tono_apoyo", hexToHsl("#cccccc")!);
     const r1 = restaurarColorMarca(m, "acento");
-    expect(r1.paleta.acento).toMatchObject({ H: base.paleta.acento.H, S: base.paleta.acento.S, L: base.paleta.acento.L });
-    expect(r1.ajustes_manuales).toEqual(["tono_apoyo"]);
+    expect(r1.identidad.paleta.acento).toMatchObject({ H: base.identidad.paleta.acento.H, S: base.identidad.paleta.acento.S, L: base.identidad.paleta.acento.L });
+    expect(r1.identidad.ajustes_manuales).toEqual(["tono_apoyo"]);
     const r2 = restaurarColorMarca(m);
-    expect(r2.paleta).toEqual(base.paleta);
-    expect(r2.ajustes_manuales).toEqual([]);
+    expect(r2.identidad.paleta).toEqual(base.identidad.paleta);
+    expect(r2.identidad.ajustes_manuales).toEqual([]);
   });
 });
 
@@ -73,12 +75,12 @@ describe("versión funcional como opción (v1.1)", () => {
     const solo = chips.find((c) => c.id === "previo-heredado-solo")!;
     expect(chips.find((c) => c.id === "previo-heredado")!.etiqueta).toContain("versión funcional");
     const m = construirMarca(d, solo);
-    expect(m.color.solo_heredado).toBe(true);
-    expect(m.paleta.version_funcional).toBeNull();
+    expect(m.identidad.color.solo_heredado).toBe(true);
+    expect(m.identidad.paleta.version_funcional).toBeNull();
     expect(puedeElegirFuncional(m)).toBe(true);
     const con = elegirVersionFuncional(m, true);
-    expect(con.paleta.version_funcional).not.toBeNull();
-    expect(con.color.solo_heredado).toBeUndefined();
-    expect(elegirVersionFuncional(con, false).paleta).toEqual(m.paleta);
+    expect(con.identidad.paleta.version_funcional).not.toBeNull();
+    expect(con.identidad.color.solo_heredado).toBeUndefined();
+    expect(elegirVersionFuncional(con, false).identidad.paleta).toEqual(m.identidad.paleta);
   });
 });

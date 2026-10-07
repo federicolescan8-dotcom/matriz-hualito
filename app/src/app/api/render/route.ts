@@ -1,36 +1,25 @@
-import { chromium, type Browser } from "playwright-core";
+import type { Browser } from "playwright-core";
+import { abrirNavegador } from "@/lib/navegador";
 import { FORMATOS } from "@/engine/formatos";
 import type { Marca } from "@/engine/diagnostico";
+import { migrarMarca, type MarcaV1 } from "@/engine/identidad";
 import type { Pieza } from "@/engine/pieza";
 import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 
-// Render a PNG con el navegador instalado en la máquina (Edge, o Chrome como alternativa). Donde no hay ninguno (Linux,
-// sesiones en la nube) usa el Chromium de Playwright: `npx playwright-core install chromium`.
+// Render a PNG con el navegador sin ventana de lib/navegador.ts.
 // Abre /render con la marca y la pieza, espera a que el texto se ajuste y el checklist corra, y solo devuelve el PNG
 // si la pieza aprueba: el automatizador nunca publica con una advertencia pendiente (cap. 8).
 
 export const runtime = "nodejs";
 
-let navegador: Promise<Browser> | null = null;
-
-function abrirNavegador(): Promise<Browser> {
-  if (!navegador) {
-    navegador = chromium
-      .launch({ channel: "msedge" })
-      .catch(() => chromium.launch({ channel: "chrome" }))
-      .catch(() => chromium.launch())
-      .catch((e) => {
-        navegador = null;
-        throw e;
-      });
-  }
-  return navegador;
-}
-
 export async function POST(request: Request) {
-  const { marca, pieza } = (await request.json()) as { marca: Marca; pieza: Pieza };
+  const datos = (await request.json()) as { marca: Marca | MarcaV1; pieza: Pieza };
+  const pieza = datos.pieza;
   const f = FORMATOS[pieza?.formato];
-  if (!marca || !pieza || !f) return Response.json({ error: "Faltan la marca o la pieza" }, { status: 400 });
+  if (!datos.marca || !pieza || !f) return Response.json({ error: "Faltan la marca o la pieza" }, { status: 400 });
+
+  // Un JSON de marca anterior a E1 (exportado o de una pestaña vieja) se migra antes de renderizar.
+  const marca = migrarMarca(datos.marca);
 
   let browser: Browser;
   try {

@@ -1,8 +1,8 @@
 import { hslCss } from "@/engine/color";
 import { coloresModo, estiloCta, opacidadSegura, type Paleta } from "@/engine/palette";
 import type { Rubro } from "@/engine/presets";
-import { pesoH1, type Tipografia } from "@/engine/typography";
-import type { Diagnostico } from "@/engine/diagnostico";
+import { familiaTexto, pesoH1, type Tipografia } from "@/engine/typography";
+import type { ContenidoCliente, Diagnostico } from "@/engine/diagnostico";
 import { fontFamily } from "@/lib/fuentes";
 
 // Pieza de ejemplo, variante 1 (logo → H1 → body → CTA) en feed 4:5. Sirve para que el cliente elija viendo el
@@ -21,6 +21,16 @@ export const TEXTOS_EJEMPLO: Record<Rubro, TextosPieza> = {
   belleza: { h1: "Tu momento de pausa", body: "Tratamientos faciales personalizados en un espacio tranquilo.", cta: "Pedí tu turno" },
   tech: { h1: "Tu tienda online en 7 días", body: "Catálogo, pagos y envíos integrados en una sola plataforma.", cta: "Probala gratis" },
 };
+
+/** Textos para las vistas previas: el contenido real del cliente (E12) y, donde falte, el ejemplo del rubro. */
+export function textosPara(rubro: Rubro, contenido?: ContenidoCliente | null): TextosPieza {
+  const ej = TEXTOS_EJEMPLO[rubro];
+  return {
+    h1: contenido?.mensaje.trim() || ej.h1,
+    body: contenido?.apoyo.trim() || ej.body,
+    cta: contenido?.cta.trim() || ej.cta,
+  };
+}
 
 /** Aproximación hasta que exista el ajuste de texto al slot (fase 2): H1 más chico cuanto más largo, sin bajar de 56. */
 function tamanoH1(h1: string): number {
@@ -51,6 +61,7 @@ export function PiezaMuestra({
   const t = textos ?? TEXTOS_EJEMPLO[rubro];
   const logoSrc = logo?.[c.logo] ?? null;
   const familia = fontFamily(tipografia.familia_variable);
+  const deTexto = fontFamily(familiaTexto(tipografia));
   const margen = "11%";
   // CTA: con contorno o invertido cuando el acento no contrasta con su fondo (cap. 3, paso 8b).
   const cta = estiloCta(paleta, modo);
@@ -95,6 +106,7 @@ export function PiezaMuestra({
               color: hslCss(c.texto),
               fontSize: px(34),
               fontWeight: 400,
+              fontFamily: deTexto,
               lineHeight: 1.35,
               fontStyle: tipografia.italic_habilitado ? "italic" : "normal",
               maxWidth: "85%",
@@ -113,6 +125,7 @@ export function PiezaMuestra({
               boxShadow: cta.anillo ? `0 0 0 ${px(cta.anillo.px)} ${hslCss(cta.anillo.color)}` : undefined,
               fontSize: px(32),
               fontWeight: 600,
+              fontFamily: deTexto,
               padding: `${px(20)} ${px(40)}`,
               borderRadius: px(999),
             }}

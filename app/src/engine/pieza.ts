@@ -10,9 +10,11 @@ import {
   type TipoContacto,
 } from "./biblioteca";
 import type { IdDecoracion } from "./decoraciones";
+import type { RecursosPropios } from "./recursos";
 import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
+import type { Foco, LadoTexto, Proteccion } from "./fotografia";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -40,8 +42,41 @@ export interface Pieza {
   contacto?: DatoContacto[];
   /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
   items?: ItemCatalogo[];
+  /** Variante F (texto sobre foto, E6): foto a sangre de fondo, como data URL. */
+  foto_fondo?: string | null;
+  /** Punto focal de la foto (0-1): el encuadre lo deja cerca del centro de su caja (E6). */
+  foto_foco?: Foco;
+  /** Variante F: cómo se protege el contraste del texto sobre la foto. Por defecto, degradado. */
+  proteccion?: Proteccion;
+  /** Variante F: de qué lado va el bloque de texto (en formatos verticales). Por defecto, abajo. */
+  foto_texto?: LadoTexto;
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
+  /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
+  color_decoracion?: number | null;
+  /** Avisos del checklist aceptados a mano, con su justificación (E9). */
+  aceptaciones?: Aceptacion[];
+}
+
+/** Un aviso del checklist aceptado a propósito: qué control, por qué, quién y cuándo (E9). */
+export interface Aceptacion {
+  /** Nombre del control, tal como lo muestra el checklist. */
+  control: string;
+  motivo: string;
+  autor: string;
+  /** ISO 8601. */
+  fecha: string;
+}
+
+/** Acepta un aviso del checklist con su justificación. Reemplaza una aceptación anterior del mismo control. */
+export function aceptarControl(pieza: Pieza, control: string, motivo: string, autor: string, fecha = new Date().toISOString()): Pieza {
+  const otras = (pieza.aceptaciones ?? []).filter((a) => a.control !== control);
+  return { ...pieza, aceptaciones: [...otras, { control, motivo: motivo.trim(), autor, fecha }] };
+}
+
+/** Quita la aceptación de un control: vuelve a frenar la pieza si sigue fallando. */
+export function quitarAceptacion(pieza: Pieza, control: string): Pieza {
+  return { ...pieza, aceptaciones: (pieza.aceptaciones ?? []).filter((a) => a.control !== control) };
 }
 
 /** Capa decorativa 2B: una forma sangrada y su relleno. */
@@ -159,6 +194,16 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     logoPx: 80,
     bloque: "catalogo",
   },
+  F: {
+    nombre: "F · Texto sobre foto",
+    descripcion: "Foto a sangre con el mensaje encima, protegido con degradado, placa o zona limpia. Pide fotos propias.",
+    orden: ["logo", "H1", "body", "cta"],
+    tieneCta: true,
+    h1: { min: 56, max: 104, altoMax: 0.3 },
+    body: { min: 26, max: 34 },
+    cta: 34,
+    logoPx: 90,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -183,6 +228,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { max: 96, altoMax: 0.3, maxLineas: 2 }, logoPx: 76 },
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
+    F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -192,6 +238,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { altoMax: 0.3 } },
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
+    F: { h1: { altoMax: 0.3 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -200,6 +247,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "2B-S": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
     "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
+    F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
   },
 };
 
@@ -228,6 +276,11 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
 
+/** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
+export function variantesDisponibles(marca: Marca): Variante[] {
+  return VARIANTES_HABILITADAS.filter((v) => v !== "F" || marca.identidad.fotos_habilitadas);
+}
+
 /**
  * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2 y 3 se permite centrado
  * según el rubro; el resto de las variantes va a la izquierda.
@@ -239,7 +292,7 @@ export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alinea
 /** Secuencia de modo del rubro, invertida si el color heredado es claro (cap. 3 paso 8). */
 export function secuenciaModo(marca: Marca): Modo[] {
   const s = PRESETS[marca.rubro].secuencia;
-  return marca.paleta.invertir_modo ? s.map((m) => (m === "A" ? "B" : "A")) : s;
+  return marca.identidad.paleta.invertir_modo ? s.map((m) => (m === "A" ? "B" : "A")) : s;
 }
 
 /** Variante sugerida: la primera prioritaria del rubro que esté habilitada. */
@@ -261,13 +314,24 @@ export function maxIconos(variante: Variante, items: number): number {
 }
 
 export function estiloIconos(marca: Marca): EstiloIconos {
-  return marca.graficos?.estilo_iconos ?? BIBLIOTECA_RUBRO[marca.rubro].estiloIconos;
+  return marca.identidad.graficos.estilo_iconos;
 }
 
-/** Capa decorativa por defecto del rubro con un relleno dado. */
-export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
+/** Capa decorativa por defecto con un relleno dado: primero la forma y el patrón propios de la marca (E2). */
+export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco, recursos?: RecursosPropios): Deco {
   const lib = BIBLIOTECA_RUBRO[rubro];
-  return { forma: lib.formasDeco[0], relleno, patron: lib.patrones[0], icono: ICONOS[lib.iconosSugeridos[0]][0], foto: null };
+  return { forma: formasDeco(rubro, recursos)[0], relleno, patron: patronesDeco(rubro, recursos)[0], icono: ICONOS[lib.iconosSugeridos[0]][0], foto: null };
+}
+
+/** Formas de la capa decorativa: las propias primero, después las del rubro. */
+export function formasDeco(rubro: Rubro, recursos?: RecursosPropios): string[] {
+  return [...(recursos?.formas.map((f) => f.id) ?? []), ...BIBLIOTECA_RUBRO[rubro].formasDeco];
+}
+
+/** Patrones de la capa decorativa: el propio primero (si la marca lo usa), después los del rubro. */
+export function patronesDeco(rubro: Rubro, recursos?: RecursosPropios): Patron[] {
+  const propio: Patron[] = recursos?.patron_propio && recursos.formas.length ? ["propio"] : [];
+  return [...propio, ...BIBLIOTECA_RUBRO[rubro].patrones];
 }
 
 /**
@@ -275,12 +339,12 @@ export function decoPorDefecto(rubro: Rubro, relleno: RellenoDeco): Deco {
  * siguiente relleno del rubro con la misma forma (la pieza tiene que funcionar completa sin foto, cap. 5).
  */
 export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
-  const lib = BIBLIOTECA_RUBRO[marca.rubro];
-  const disponibles = rellenosDisponibles(marca.rubro, marca.fotos_habilitadas);
-  const base = decoPorDefecto(marca.rubro, disponibles[0]);
+  const recursos = marca.identidad.recursos;
+  const disponibles = rellenosDisponibles(marca.rubro, marca.identidad.fotos_habilitadas);
+  const base = decoPorDefecto(marca.rubro, disponibles[0], recursos);
   const elegida = { ...base, ...pieza.deco };
-  if (!lib.formasDeco.includes(elegida.forma)) elegida.forma = base.forma;
-  if (!elegida.patron || !lib.patrones.includes(elegida.patron)) elegida.patron = base.patron;
+  if (!formasDeco(marca.rubro, recursos).includes(elegida.forma)) elegida.forma = base.forma;
+  if (!elegida.patron || !patronesDeco(marca.rubro, recursos).includes(elegida.patron)) elegida.patron = base.patron;
   const valido = disponibles.includes(elegida.relleno) && (elegida.relleno !== "foto" || !!elegida.foto);
   // Sin foto, el respaldo se queda en el mismo modo: una foto pasa a ícono (imagen), no a patrón.
   if (!valido) {
@@ -294,6 +358,7 @@ export function decoEfectiva(marca: Marca, pieza: Pieza): Deco {
 
 export function piezaNueva(marca: Marca): Pieza {
   const variante = varianteSugerida(marca.rubro);
+  const oferta = (marca.diagnostico.contenido?.oferta ?? []).map((o) => o.trim()).filter(Boolean);
   return {
     id: crypto.randomUUID(),
     marca_id: marca.id,
@@ -312,10 +377,11 @@ export function piezaNueva(marca: Marca): Pieza {
       { tipo: "instagram", valor: "@" + marca.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "") },
       { tipo: "direccion", valor: "Av. Siempre Viva 742" },
     ],
+    // La oferta real del cliente (E12) nombra los ítems del catálogo.
     items: [
-      { texto: "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
-      { texto: "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
-      { texto: "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
+      { texto: oferta[0] ?? "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
+      { texto: oferta[1] ?? "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
+      { texto: oferta[2] ?? "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
     ],
   };
 }
@@ -379,4 +445,33 @@ export function geometria2BLImagen(formato: Formato): {
     textoArriba: Math.max(zonaArriba + 16, arriba),
     logoAbajo: Math.min(zonaAbajo, arriba + diametro),
   };
+}
+
+/**
+ * Piezas para la grilla del feed en la presentación (E13): la variante va rotando (primero las prioritarias del rubro)
+ * y el modo sigue la secuencia de la marca (cap. 7), así el cliente ve el ritmo real del perfil.
+ */
+export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
+  const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
+  const secuencia = secuenciaModo(marca);
+  const base = piezaNueva(marca);
+  return Array.from({ length: n }, (_, i) => {
+    const variante = variantes[i % variantes.length];
+    return {
+      ...base,
+      id: `${base.id}-${i}`,
+      canal: "feed_ig",
+      formato: "4:5",
+      variante,
+      modo: secuencia[i % secuencia.length],
+      alineacion: "izquierda",
+      contenido: {
+        h1: contenido.h1,
+        // El catálogo (4) necesita body aunque no lo nombre en su orden: sin él, el texto no entra en el slot.
+        body: PLANTILLAS[variante]?.orden.includes("body") || variante === "4" ? contenido.body : null,
+        cta: PLANTILLAS[variante]?.tieneCta ? contenido.cta : null,
+      },
+    };
+  });
 }

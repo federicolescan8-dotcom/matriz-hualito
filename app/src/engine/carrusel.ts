@@ -139,7 +139,7 @@ export function evaluarCarrusel(
 ): ResultadoChecklist {
   const controles: Control[] = [];
   const add = (bloque: Bloque, control: string, ok: boolean, detalle: string, accion: string) =>
-    controles.push({ bloque, control, ok, detalle, accion });
+    controles.push({ bloque, control, ok, detalle, accion, nivel: "aviso" });
   const n = c.slides.length;
   add("Contenido", `Entre ${MIN_SLIDES} y ${MAX_SLIDES} slides`, n >= MIN_SLIDES && n <= MAX_SLIDES, `${n}`, "agregar o quitar slides");
   const estructura =

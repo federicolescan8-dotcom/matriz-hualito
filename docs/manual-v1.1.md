@@ -64,6 +64,19 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 28. **2B-L con figura y patrón con la misma estructura que imagen o ícono**: en 4:5, 9:16 y 1:1 la forma del rubro ocupa el lugar del círculo y el mensaje se ajusta a su contorno real. *(Cap. 5, Cap. 8)*
 29. **Decoración de plantilla**: figuras opcionales que forman parte del diseño, con sombra mínima: arco lateral para H1 protagonista y esquinas en diagonal para Contacto, medidas sobre los ejemplos de referencia. Reemplazan a la forma de fondo automática, y sumar una nueva es agregar una entrada al catálogo. Aparte, en Contacto los íconos pueden ir sobre un soporte (cuadrado redondeado). *(Cap. 6, Cap. 8, A.8)*
 30. **Carrusel 4:5 y Facebook en vertical**: se suma el carrusel (2 a 10 slides) con portada, contenido y cierre, la variante P (Punto) para el contenido, el ritmo de modos y el control de la serie. El feed orgánico de Facebook pasa al 4:5 y al 1:1, y el 1200×630 queda como vista previa de links y anuncios. *(Cap. 1, Cap. 6, Cap. 8)*
+31. **Marca → Identidad → Publicaciones**: la aplicación cuenta el proceso en tres pasos. *Marca* (diagnóstico y datos), *Identidad* (vista dedicada `/identidad/[marca]`, que reemplaza a la ficha de la marca) y *Publicaciones* (lo que era Publicar). La identidad se ordena en secciones: prueba Modo A / Modo B, Color, Tipografía, Logo, Recursos gráficos (antes biblioteca gráfica) y Fotografía (el check de fotos propias). Lo visual de la marca se agrupa en un campo `identidad`, y Publicaciones lee solo de la identidad confirmada. No cambia ninguna regla de diseño ni del checklist, y las marcas guardadas antes se migran sin perder datos. *(Cap. 2, Cap. 3, Cap. 5, Cap. 9)*
+32. **Niveles de regla y aceptación con justificación**: cada control del checklist tiene un nivel: *bloqueante* (legibilidad crítica, nunca se acepta), *aviso* (se puede aceptar con justificación) o *sugerencia* (lo que fija el rubro, no frena). Un aviso aceptado queda registrado con motivo, autor y fecha, viaja con la pieza (la exportación lo respeta) y se guarda en el historial de decisiones de la marca. La alineación del mensaje y la itálica pasan a ser sugerencias: ya no rechazan la pieza. La excepción de los ajustes manuales de color (cambio 19) no alcanza a los bloqueantes: un texto bajo 3:1 ya no se acepta por esa vía. *(Cap. 8, Cap. 3 paso 9, Cap. 9)*
+33. **Diagnóstico abierto con ejes continuos**: la personalidad deja de ser un menú cerrado (tono y valor) y pasa a seis ejes de 0 a 100: clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico, cálido↔frío, accesible↔premium, serio↔lúdico. El rubro es una semilla de los ejes, se puede mezclar con otro (promedio) y el cliente puede escribir su rubro libre. De los ejes salen la familia tipográfica, el rango de matiz de los chips y el tipo de acento; los presets del rubro quedan como valor por defecto. El cliente carga su contenido real (oferta, mensaje, apoyo, CTA) y las vistas previas lo usan. El diagnóstico se puede editar después y se recorre sin orden fijo. Las marcas anteriores se migran a ejes equivalentes a su tono y valor, sin cambiar su identidad. *(Cap. 2, Cap. 3, Cap. 4, Cap. 7, Cap. 9)*
+34. **Laboratorio de color y paleta extendida (E3a)**: la sección Color de la identidad suma un laboratorio para explorar más allá de la fórmula: bloquear roles y pedir otras opciones, tomar colores de un logo, una foto o la pantalla, y ver la identidad con simulación de daltonismo. Se suma además una paleta extendida opcional, con 2 secundarios armónicos y un neutro oscuro, con reglas de rol: un secundario nunca va como texto si no alcanza 4,5:1. La decoración de plantilla puede dibujarse en un secundario. La tipografía en par se resolvió en E3b (cambio 35). *(Cap. 3, Cap. 6, Cap. 9)*
+35. **Tipografía en par, catálogo ampliado y fuente propia (E3b)**: el catálogo suma 6 familias variables (Playfair Display, Literata, DM Sans, Work Sans, Outfit y Bricolage Grotesque) y cada familia tiene una clase (serif, geométrica, grotesca, humanista). La marca puede usar una familia display (H1 y H2) y otra de texto (body, CTA, datos de contacto e ítems del catálogo), con una regla de combinación que se muestra en vivo y sugiere sin bloquear. La itálica y la compensación óptica del body salen de la familia de texto. Se puede subir una fuente propia (WOFF2, WOFF, TTF u OTF) con su clase. Con esto el principio de una sola familia pasa a ser el caso por defecto, no una obligación. *(Cap. 4, Cap. 9, A.4)*
+37. **Rasgos propios de la marca (E2)**: la marca puede tener formas propias (SVG del diseñador o paramétricas derivadas de los ejes), un patrón propio y un detalle recurrente (subrayado o marco). La capa decorativa 2B, el patrón y la forma de fondo usan primero lo propio, y el checklist mide su contorno real igual que el de las formas de la biblioteca. Dos marcas del mismo rubro con recursos propios distintos dan piezas distintas. *(Cap. 5, Cap. 6, Cap. 9)*
+36. **Versiones, modo presentación y aprobación (E13)**: la identidad se puede guardar como versiones con nombre (con favorita y comentarios), restaurar, comparar de a 2 o 3 en Modo A y B con la lista de diferencias, y el borrador tiene deshacer y rehacer (hasta 50 pasos). La identidad se presenta al cliente en pantalla completa y sin jerga (sin ratios ni HSL): portada, colores, tipografía, feed de 9 piezas, story en un teléfono, tarjeta y cartel, con piezas reales y el contenido del cliente. El cliente aprueba una versión, con autor, fecha y comentario. **Publicaciones usa la versión aprobada**, no la identidad en edición, y avisa si hay cambios sin aprobar. La marca tiene un estado: en diagnóstico, en identidad, aprobada o en producción. *(Cap. 9)*
+38. **Logo como sistema (E4)**: el diseñador entrega el logo en versiones (horizontal, vertical, solo símbolo y monograma, además de la principal y sus monocromos) y cada pieza elige la que se ve más grande en el lugar del logo; si empatan, la más completa. Sobre foto el logo va en mono, sobre una placa o con sombra, a elección de la marca. El espacio entre bloques del mensaje nunca es menor que el área de seguridad del logo más 12 px. El checklist suma tres avisos, solo con un logo cargado: tamaño mínimo, área de seguridad y contraste del logo con su fondo. La herramienta arma el brief para el diseñador y exporta la paleta en ASE, CSS y JSON. *(Cap. 2 paso 4, Cap. 6, Cap. 8, Cap. 9)*
+39. **Rescate de marca existente (E11)**: para clientes que ya tienen marca, se acuerda un grado de cambio (rescate, refresco o evolución) y se cargan varias referencias (logos, capturas, fotos de cartel). Los colores de todas se agrupan por ΔE < 10 y el informe dice, por ejemplo, "Tu verde aparece en 4 tonos". Cada grupo tiene un color canónico según el grado y se puede asignar a un rol de la paleta o a un secundario. La herramienta arma el brief para el diseñador (logo y tipografía no se vectorizan ni se detectan) y guarda "el antes" para compararlo con la identidad nueva y descargarlo como HTML. *(Cap. 9)*
+40. **Exploración de caminos (E5)**: para una marca nueva, el diagnóstico suma referencias del cliente (colores sacados de las imágenes de su moodboard y colores de la competencia) y propone 3 caminos visiblemente distintos: "Fiel a lo que contaste", "Más expresivo", "Más sobrio y clásico" y, con moodboard, uno inspirado en su color dominante. Cada camino trae ejes, color, par tipográfico y forma propia; difieren en matiz (20° o más) o en familia tipográfica, y el cliente elige uno. Los colores de la competencia extienden la banda prohibida del color de marca (±25° cada uno). *(Cap. 2, Cap. 3, Cap. 9)*
+41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
+42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
+43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 
 ---
 
@@ -135,9 +148,20 @@ Antes de cualquier pregunta de gusto o personalidad, se clasifica al cliente en 
 
 Esta clasificación predetermina rangos de color, criterio de dependencia de imagen y estilo de layout, que se usan como punto de partida (capítulo 7). El diagnóstico posterior ajusta dentro de ese marco, no lo reemplaza.
 
+*(v1.1)* El rubro es una **semilla**, no una jaula: precarga los ejes de personalidad del paso 2. Se puede **mezclar con un segundo rubro** (los ejes de partida son el promedio de los dos) y el cliente puede escribir su **rubro libre** (la base sigue siendo uno de los cuatro). Cambiar de rubro vuelve los ejes a la semilla. En este paso también se carga el **contenido real**: nombre, oferta (hasta 4 productos o servicios), mensaje, dato de apoyo y CTA. Todas las vistas previas lo usan y completan con el ejemplo del rubro lo que falte.
+
 ### Paso 2 — Preguntas de personalidad de marca
 
-Máximo tres preguntas, sin excepción. Cada una alimenta directamente una variable del sistema, no queda como dato descriptivo suelto: *(v1.1)*
+*(v1.1)* La personalidad se define con **seis ejes continuos de 0 a 100**, que el cliente mueve con sliders partiendo de la semilla del rubro: clásico ↔ moderno, sobrio ↔ expresivo, artesanal ↔ tecnológico, cálido ↔ frío, accesible ↔ premium, serio ↔ lúdico. De los ejes salen:
+
+- **Familia tipográfica**: la más cercana en el espacio clásico↔moderno, sobrio↔expresivo, artesanal↔tecnológico (capítulo 4, paso 1).
+- **Rango de matiz** de los chips (capítulo 3, paso 1): parte del centro del rango del rubro (promedio circular si hay mezcla) y se corre hacia 30° (cálido) o 210° (frío) según cuánto se movió el eje cálido↔frío respecto de la semilla (×1,5, hasta 1). El ancho va de 25° (sobrio) a 80° (expresivo).
+- **Tipo de acento** (valor): innovación si tecnológico ≥70 y moderno ≥65; energía si expresivo ≥60 o lúdico ≥65; calma si sobrio ≤35 y cálido ≤50; si no, confianza. Innovación y energía eligen complementario; confianza y calma, análogo (capítulo 3, paso 4).
+- **Tono** (seria o cercana): cercana si lúdico ≥50 o accesible ≤35.
+
+Tono y valor se siguen guardando en `personalidad`, derivados de los ejes, por compatibilidad. Las tres preguntas siguientes quedan como la forma corta equivalente: *(v1.1)*
+
+Máximo tres preguntas, sin excepción. Cada una alimenta directamente una variable del sistema, no queda como dato descriptivo suelto:
 
 1. **¿Si tu marca fuera una persona, es más seria o más cercana?** Define, junto con el rubro, cuál de las dos familias tipográficas del par asignado se usa (capítulo 4, paso 1). *(v1.1)*
 2. **¿Querés transmitir confianza, energía, calma o innovación?** Define el tipo de acento: energía o innovación eligen complementario; confianza o calma eligen análogo (capítulo 3, paso 4). *(v1.1)*
@@ -151,6 +175,24 @@ En vez de seguir preguntando en abstracto, se le muestran al cliente cuatro chip
 
 Los chips no se muestran como muestras de color sueltas: se muestran aplicados sobre una pieza de ejemplo (título, fondo, acento), porque en modo optimizado los amarillos, verdes y turquesas quedan con L25 y, vistos como chip aislado, se perciben mucho más oscuros de lo que después rinden dentro de una pieza real. Si el cliente ya tiene un color previo, junto a la pieza en modo optimizado se muestra también la versión en modo heredado, para que la comparación sea directa. *(v1.1)*
 
+### Referencias del cliente y caminos *(v1.1, E5)*
+
+En el paso de personalidad el diagnóstico acepta dos referencias opcionales:
+
+- **Moodboard.** El cliente sube imágenes y de cada una se extraen sus colores; se guardan solo los colores con su peso, nunca las imágenes.
+- **Competencia.** Colores de marcas competidoras que conviene evitar. Extienden la banda prohibida del color de marca (capítulo 3, paso 2).
+
+En el paso de color, "Ver caminos" propone hasta 3 caminos deterministas (el mismo diagnóstico da siempre los mismos). Cada uno trae ejes, color, par tipográfico y una forma propia paramétrica:
+
+| Camino | Cómo se arma |
+|---|---|
+| Fiel a lo que contaste | Los ejes tal cual; toma el color previo del cliente o el chip del medio del rango |
+| Más expresivo | Sobrio ↔ expresivo +35, serio ↔ lúdico +30, cálido ↔ frío −20 |
+| Más sobrio y clásico | Sobrio ↔ expresivo −35, serio ↔ lúdico −30, clásico ↔ moderno −25, cálido ↔ frío +20 |
+| Inspirado en tus referencias | Solo con moodboard: parte del matiz dominante (el color más presente con S ≥ 20 y L entre 15 y 90) y ocupa el segundo lugar |
+
+Todos respetan la banda prohibida y la competencia, y difieren entre sí: el matiz está a 20° o más, o la familia tipográfica es otra. Si dos salen parecidos, se empujan los ejes del segundo hasta que se separen. Cada tarjeta muestra la forma, el nombre, una descripción sin jerga, las familias y muestras en Modo A y B. "Elegir este camino" lleva sus ejes, su color, su par y su forma al resultado. Cambiar después los ejes, el color o el chip descarta el camino.
+
 ### Paso 4 — Confirmar insumos existentes
 
 **Logo.** No se registra como dato binario sino como un set de versiones. Se le piden al cliente tres:
@@ -163,6 +205,8 @@ Los chips no se muestran como muestras de color sueltas: se muestran aplicados s
 
 Si el cliente solo tiene la versión color, se genera el par monocromo a partir de ella antes de habilitar la marca en el sistema. Es un trabajo de una sola vez por cliente, y sin él la marca no puede operar en Modo B.
 
+**Versiones del logo** *(v1.1, E4)*. Además de esas tres, el diseñador puede entregar cuatro versiones, cada una con su proporción (ancho / alto): **horizontal** (lugares anchos), **vertical** (lugares altos o angostos), **solo símbolo** (espacios chicos y cuadrados) y **monograma** (avatar, íconos y sellos). La herramienta no las genera: las pide con un brief y las recibe en la sección Logo de la identidad. El monocromo de una versión SVG se deriva solo (blanco `#FFFFFF` o tinta `#1A1A1A`); un PNG no se recolorea y usa el monocromo cargado. El brief del logo (Markdown) lista las versiones cargadas y las faltantes, los colores en HEX y RGB, los monocromos, el área de seguridad, el tamaño mínimo, el formato (SVG con contornos y fondo transparente) y el uso sobre foto. La paleta se descarga en ASE (Adobe Swatch Exchange), CSS (variables `--color-…`) y JSON (HEX y HSL).
+
 **Formato del archivo.** Se requiere vectorial, SVG o PDF. Si el cliente solo tiene un PNG, se acepta con un mínimo de 1000 px de lado mayor y fondo transparente, y se anota como deuda técnica para vectorizar.
 
 **Color corporativo.** Si el cliente ya tiene un color de marca, se registra su valor HEX y se deja asentada la decisión que tome en el capítulo 3: usar el chip optimizado del sistema o conservar su color tal cual.
@@ -171,7 +215,9 @@ Si el cliente solo tiene la versión color, se genera el par monocromo a partir 
 
 ### Salida del diagnóstico
 
-Al terminar los cuatro pasos deben quedar registrados: rubro, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa. El esquema exacto está en el anexo A.2.
+*(v1.1)* El diagnóstico es **editable** después de guardado (se reabre desde los datos de la marca): conserva id, historial y gráficos, y vuelve a aplicar los colores ajustados a mano. Los pasos se recorren sin orden fijo, con el nombre cargado; el resultado pide un color elegido.
+
+Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa, y, opcionales, el moodboard (colores) y los colores de la competencia. El esquema exacto está en el anexo A.2.
 
 ---
 
@@ -192,7 +238,7 @@ Generar, a partir de una sola elección del cliente, una paleta completa de cuat
 
 ### Paso 1 — Matiz base
 
-Se le muestran al cliente los cuatro chips anclados al rango de matiz de su personalidad de marca, según la tabla del capítulo 7. El matiz elegido (H) es la única variable libre del sistema.
+Se le muestran al cliente los cuatro chips anclados al rango de matiz de su personalidad de marca. *(v1.1)* Ese rango ya no es el fijo del rubro (tabla del capítulo 7) sino el que resulta de los ejes de personalidad (capítulo 2, paso 2); con los ejes en la semilla del rubro, coincide con el de la tabla. El matiz elegido (H) es la única variable libre del sistema.
 
 Si el cliente ya tiene un color corporativo, el procedimiento es el mismo: primero se le presentan los chips optimizados, mostrándole la versión de su matiz ya ajustada por el sistema. El modo por defecto es siempre el chip optimizado, porque garantiza legibilidad y rendimiento en pantalla sin trabajo adicional. El modo heredado (paso 8) se activa solo si, después de ver la propuesta optimizada, el cliente decide expresamente conservar su color tal cual.
 
@@ -200,7 +246,7 @@ Como se describe en el capítulo 2, paso 3, los chips no se muestran como muestr
 
 ### Paso 2 — Bandas prohibidas
 
-Si el cliente excluyó un color, se registra como una banda de 50°: el matiz mencionado, más y menos 25°. Esta banda se valida sobre el acento en el paso 5.
+Si el cliente excluyó un color, se registra como una banda de 50°: el matiz mencionado, más y menos 25°. Esta banda se valida sobre el acento en el paso 5. *(v1.1, E5)* Cada color de la competencia suma otra banda igual (±25°) que el color de marca también evita: los chips y los caminos quedan fuera de todas. El acento todavía evita solo el matiz excluido por el cliente.
 
 ### Paso 3 — Luminosidad del color de marca según banda de matiz
 
@@ -285,14 +331,14 @@ La secuencia de uso de cada modo la define el capítulo 7, con conteo independie
 **Cascada de validación de contraste.** El color heredado no se modifica: se ajusta lo que lo rodea. *(v1.1 — numeración corregida)*
 
 1. Ajustar la luminosidad del fondo neutro dentro del rango 85-100%. Resuelve los casos límite, entre 3,5:1 y 4,5:1.
-2. **La versión funcional es una opción, no un paso automático** *(v1.1, decisión del cliente)*. Si el color heredado no alcanza 4,5:1 como texto después del paso 1, el cliente elige entre dos caminos. En el diagnóstico se muestran como dos chips: "Tu color con versión funcional" y "Tu color tal cual, sin versión funcional". En la ficha de la marca se puede cambiar la elección, y la paleta se recalcula desde el color heredado.
+2. **La versión funcional es una opción, no un paso automático** *(v1.1, decisión del cliente)*. Si el color heredado no alcanza 4,5:1 como texto después del paso 1, el cliente elige entre dos caminos. En el diagnóstico se muestran como dos chips: "Tu color con versión funcional" y "Tu color tal cual, sin versión funcional". En la sección Color de la identidad de la marca se puede cambiar la elección, y la paleta se recalcula desde el color heredado.
    - **Con versión funcional:** se siguen los pasos 2a y 2b.
    - **Solo el color heredado:** el color del cliente es el color de marca y también el texto. Fondo neutro, tono de apoyo y acento se generan desde él, lo más apegados posible a la fórmula:
      - el fondo neutro es el de S30 con la L entre 85 y 100 que más contraste dé con el heredado;
      - el tono de apoyo sale de la fórmula del paso 4;
      - el acento sigue la cascada normal y, si nada cumple, se toma el que más se acerca a los mínimos.
 
-     Lo que no llegue a los mínimos no se fuerza cambiando el color de marca: queda como **aviso**. Los controles de color del capítulo 8 lo aceptan sin bloquear la publicación. La ficha sugiere los colores que cumplen (el más próximo y el de su mismo matiz, paso 9) solo para el tono de apoyo, el fondo neutro y el acento, cada uno dentro de su rango de la fórmula: fondo L85-100 y tono de apoyo hasta L67. El color de marca no recibe sugerencia porque ya lo eligió el cliente.
+     Lo que no llegue a los mínimos no se fuerza cambiando el color de marca: queda como **aviso**. Los controles de color del capítulo 8 lo aceptan sin bloquear la publicación. La identidad sugiere los colores que cumplen (el más próximo y el de su mismo matiz, paso 9) solo para el tono de apoyo, el fondo neutro y el acento, cada uno dentro de su rango de la fórmula: fondo L85-100 y tono de apoyo hasta L67. El color de marca no recibe sugerencia porque ya lo eligió el cliente.
 2a. Generar una versión funcional del color de marca: mismo matiz y saturación, con la luminosidad de la tabla del paso 3. Se usa en texto, íconos y elementos finos. El color original se reserva para logo, masas grandes, badges y fondo de Modo B, donde el mínimo exigido es 3:1.
 2b. **Profundizar la versión funcional** *(v1.1)*. Si ni el fondo neutro ni la versión funcional alcanzan 4,5:1 como texto sobre el color original (Modo B), se baja la L de la versión funcional de a 2 puntos, hasta L6 como mínimo. Se elige la primera L que dé 4,5:1 contra el original; si ninguna llega, la primera que dé 3:1. Resuelve sin intervención los colores de tono medio (ej. turquesa #0B9EBF), que antes no servían ni como texto ni como fondo: el original queda para masas y fondos, y la versión funcional hace de texto sobre el neutro y sobre el original. En Modo B el texto usa el que más contraste dé entre el fondo neutro y la versión funcional.
 3. Si la luminosidad del color heredado supera el 70%, invertir el modo predominante de esa marca: el Modo B pasa a ser el principal y la secuencia del capítulo 7 se invierte, porque un color claro rinde mejor como fondo que como texto.
@@ -320,7 +366,7 @@ El mínimo de 3:1 del acento sobre el color de marca existe para que el CTA se v
 | Con contorno | botón en acento con un anillo de fondo neutro (8 px en lienzo de 1080) | texto sobre acento ≥ 4,5:1; acento vs. neutro ≥ 3:1; neutro vs. marca ≥ 3:1 |
 | Invertido | botón en fondo neutro con el texto en acento | acento vs. neutro ≥ 4,5:1; neutro vs. marca ≥ 3:1 |
 
-Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la ficha de marca (`cta_modo_b`).
+Se usa el primero que cumpla todos sus controles, y se puede fijar otro a mano desde la identidad de la marca (`cta_modo_b`).
 
 **Modo A** *(v1.1)*. El mismo problema aparece al revés con los acentos claros (amarillos, cianes): el texto sobre el botón se lee bien, pero el botón se funde con el fondo neutro claro. Si el acento no alcanza 3:1 contra el fondo neutro, el CTA de Modo A lleva un contorno fino (4 px en lienzo de 1080) en el color de texto de la marca, que sí contrasta con el neutro. Es el recurso de los botones claros con borde de las marcas reales.
 
@@ -333,7 +379,7 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 - La paleta calculada por la fórmula se guarda aparte, junto con la lista de roles ajustados a mano (`paleta_calculada`, `ajustes_manuales`). Cada rol se puede volver al valor calculado, o toda la paleta de una vez.
 - El texto sobre el acento se vuelve a elegir con el criterio del paso 4b cada vez que cambia el acento o la marca.
 - Los colores ajustados no pasan por la fórmula: los contrastes se muestran en vivo y los que no alcanzan el mínimo quedan marcados.
-- **Excepción por decisión del cliente.** Hay clientes que quieren respetar más de un color heredado aunque no cumpla los mínimos. Por eso, un color ajustado a mano *después* del cálculo de la fórmula no bloquea la publicación. Los controles de color del capítulo 8 que fallen en esa marca se registran como **aceptados con aviso**, y la pieza se exporta. La excepción no alcanza a una paleta sin ajustes manuales: ahí el checklist sigue siendo binario. Tampoco alcanza a los controles de tipografía, composición, zonas seguras o contenido.
+- **Excepción por decisión del cliente.** Hay clientes que quieren respetar más de un color heredado aunque no cumpla los mínimos. Por eso, un color ajustado a mano *después* del cálculo de la fórmula no bloquea la publicación. Los controles de color del capítulo 8 que fallen en esa marca se registran como **aceptados con aviso**, y la pieza se exporta, salvo los bloqueantes: un texto bajo 3:1 no se acepta por esta vía *(v1.1, E9)*. La excepción no alcanza a una paleta sin ajustes manuales: ahí el checklist sigue siendo binario. Tampoco alcanza a los controles de tipografía, composición, zonas seguras o contenido.
 - **Sugerencia del color válido más próximo.** Para cada rol ajustado que no cumple, salvo el color de marca (elección del cliente), se muestra el color más próximo al elegido que sí cumple todos los controles de paleta en los que interviene ese rol, con el resto de la paleta como está. Esos controles son:
   - texto de marca sobre el fondo neutro, 4,5:1;
   - texto sobre la marca en Modo B, 3:1;
@@ -344,7 +390,35 @@ Si en la reunión algún color del resultado no convence, se puede corregir cual
 
   La cercanía se mide como diferencia perceptual (ΔE en CIELAB). El matiz se aleja a lo sumo 40° del elegido y, para color de marca y acento, nunca cae en la banda prohibida. Aplicar la sugerencia es opcional.
 - **Variante por contraste.** Junto a la sugerencia anterior se muestra una segunda, tomada de la técnica de Adobe Leonardo: conserva el matiz y el croma del color elegido medidos en OKLCH, un espacio donde a igual luminosidad los colores se perciben igual de claros, y recorre solo la luminosidad, del cambio más chico al más grande, hasta cumplir los mismos controles. Si a esa luminosidad el croma no entra en sRGB, se baja. El resultado es el mismo color más claro o más oscuro, sin el desvío de matiz que puede tener la sugerencia por ΔE. Respeta los mismos rangos por rol y la banda prohibida. Si las dos sugerencias coinciden, se muestra una sola. Aplicarla es opcional.
-- Los ejemplos de Modo A y Modo B de la ficha muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
+- Los ejemplos de Modo A y Modo B de la identidad muestran los cambios al instante. Los cambios se aplican a las publicaciones recién al confirmarlos.
+
+### Paleta extendida y laboratorio de color *(v1.1, E3a)*
+
+**Paleta extendida (opcional).** Suma a los cuatro roles dos secundarios y un neutro oscuro, según una armonía elegida sobre el matiz de la marca:
+
+| Armonía | Matices de los secundarios (° respecto de la marca) |
+|---|---|
+| Análoga | +30, −30 |
+| Complementaria | 180, 150 |
+| Triádica | 120, 240 |
+| Complementaria dividida | 150, 210 |
+
+- **Secundario:** S 55 y la L más clara (desde 60, de a 2) que alcanza 3:1 contra el fondo neutro, de modo que sirve como masa (decoración, formas). Es **texto** (`texto: true`) solo si además llega a 4,5:1; si no, **nunca** va como texto.
+- **Neutro oscuro:** el matiz de la marca con S ≤ 20 y L 14.
+- Si cambia el fondo neutro (ajuste manual o alternativa aplicada), la marca de `texto` de los secundarios se recalcula.
+- Se suma, reemplaza o quita desde la identidad; es opcional y no altera la paleta base ni el checklist.
+- **En las piezas:** la decoración de plantilla (cap. 6) puede dibujarse en un secundario, con la misma opacidad segura del Modo A que protege el texto.
+
+**Bloquear y regenerar.** Se bloquean uno o más roles (marca, apoyo, fondo, acento) y se piden 3 alternativas para el resto:
+- Con la marca bloqueada, el resto se deriva en modo heredado con ese color exacto (respeta la elección de solo heredado); si no, el matiz se mueve ±70° en modo optimizado.
+- El acento corre ±15° y el valor alterna entre energía y calma, salvo que el diagnóstico fije uno.
+- Los roles bloqueados se imponen tal cual; si difieren de la fórmula, cuentan como ajuste manual (paso 9).
+- Las alternativas que cumplen todos los controles van primero. Se descartan las repetidas (ΔE < 4). El resultado es reproducible con la misma semilla.
+- Aplicar una alternativa reemplaza paleta, paleta calculada y ajustes; si cambió el color de marca, la marca pasa a modo optimizado.
+
+**Tomar colores.** Del logo, de una foto o referencia, o de la pantalla (cuentagotas, donde el navegador lo permita), para usarlos como marca o acento. Al extraer de una imagen (reducida a 72 px) se agrupan 5 colores; se ignoran los transparentes, casi blancos (> 240) y casi negros (< 18), se descartan grupos de menos del 2% y se fusionan los que están a ΔE < 8.
+
+**Daltonismo.** "Ver la identidad como" simula visión típica, protanopía, deuteranopía o tritanopía (matrices de Machado, Oliveira y Fernandes 2009, severidad 1, en RGB lineal). Se avisa de los pares acento/marca, acento/fondo y marca/apoyo que con visión típica se distinguen pero simulados quedan a ΔE < 12. Es un aviso: no bloquea ni cambia la paleta.
 
 ---
 
@@ -356,7 +430,7 @@ Definir cómo se elige y aplica la tipografía de cada marca con el mismo criter
 
 ### Principio base: una sola familia variable
 
-El sistema usa una única familia tipográfica variable por marca, donde la jerarquía se resuelve exclusivamente por el eje de peso, nunca mezclando familias distintas. Esto reduce el diseño tipográfico a una sola decisión y elimina el riesgo de incompatibilidad visual entre título y texto.
+El sistema usa por defecto una única familia tipográfica variable por marca, donde la jerarquía se resuelve exclusivamente por el eje de peso. Esto reduce el diseño tipográfico a una sola decisión y elimina el riesgo de incompatibilidad visual entre título y texto. *(v1.1)* Una marca puede sumar una segunda familia para el texto (ver "Tipografía en par"); la jerarquía sigue resolviéndose por peso y tamaño dentro de cada familia.
 
 ### Paso 1 — Selección de familia por rubro
 
@@ -370,6 +444,45 @@ Cada rubro tiene un par de familias variables. Cuál de las dos se usa lo decide
 | Tech / digital | Sora Variable | Space Grotesk Variable | geométrico, moderno |
 
 Si el cliente tiene tipografía previa y existe en versión variable, se prioriza esa sobre la tabla.
+
+*(v1.1)* Con los ejes de personalidad (capítulo 2, paso 2), la tabla es el valor por defecto: la familia sugerida es la más cercana a la posición de la marca en clásico↔moderno, sobrio↔expresivo y artesanal↔tecnológico, entre las familias del catálogo, cada una ubicada en ese espacio. Prioridad: tipografía previa del cliente, luego la sugerida por los ejes, luego la tabla según el tono.
+
+### Catálogo, clases y tipografía en par *(v1.1, E3b)*
+
+**Catálogo.** Doce familias variables. Las seis originales y seis sumadas en E3b, que se bajan solo cuando una pieza las usa:
+
+| Familia | Clase | Itálica | Peso máx. | Altura de x |
+|---|---|---|---|---|
+| Fraunces | serif | sí | 900 | 47% |
+| Newsreader | serif | sí | 800 | 44% |
+| Playfair Display | serif | sí | 900 | 52% |
+| Literata | serif | sí | 900 | 51% |
+| Sora | geométrica | no | 800 | 54% |
+| DM Sans | geométrica | sí | 900 | 51% |
+| Outfit | geométrica | no | 900 | 48% |
+| Inter | grotesca | sí | 900 | 55% |
+| Space Grotesk | grotesca | no | 700 | 49% |
+| Work Sans | grotesca | sí | 900 | 50% |
+| Manrope | humanista | no | 800 | 54% |
+| Bricolage Grotesque | humanista | no | 800 | 52% |
+
+Las alturas de x de las seis nuevas se midieron en el navegador sobre la fuente real (canvas, `actualBoundingBoxAscent` de "x"), con el mismo método que las originales. Ninguna queda por debajo del 48%, así que no se compensan.
+
+**Par display + texto.** La familia *display* (la de la marca) se usa en H1 y H2; la familia de *texto*, opcional, en body, CTA, datos de contacto e ítems del catálogo. Sin familia de texto, todo va en la display. La regla de combinación es una sugerencia visible, no bloquea:
+
+| Combinación | Resultado |
+|---|---|
+| Una sola familia | ok |
+| Serif + sans (cualquier clase) | ok |
+| Sans de clases distintas | ok |
+| Dos serif distintas | no: compiten |
+| Dos sans de la misma clase | no: se parecen sin contrastar |
+
+Se sugieren hasta 4 pares para la display elegida, con las sans primero. La jerarquía del H1 (el doble del body y del CTA) se cumple igual, porque se mide sobre las cajas reales de cada familia.
+
+**Por familia de texto.** El peso del H1 y su tope siguen por la display. La itálica se habilita según la familia de texto (que es donde se usa) y el rubro. La compensación óptica del body (paso 2) usa la altura de x de la familia de texto.
+
+**Fuente propia.** El cliente puede subir una fuente (WOFF2, WOFF, TTF u OTF) y elegir su clase. Queda como opción "Propia" en la display y en la de texto, con las mismas reglas de par según su clase. Si se la quita y estaba en uso, la marca vuelve a la familia sugerida por los ejes. Antes de medir el texto, el sistema espera a que la fuente (propia o del catálogo) esté cargada, así el ajuste y el checklist trabajan con la fuente real.
 
 ### Paso 2 — Jerarquía y pesos
 
@@ -398,7 +511,7 @@ En formato story y estado, todos los tamaños se escalan entre 15% y 20% respect
 - el body llega como máximo a la mitad del H1;
 - el CTA también llega como máximo a la mitad del H1, y nunca baja de 24 px en feed.
 
-**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44%. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
+**Compensación óptica del texto secundario *(v1.1)*.** Las familias serif de belleza/lifestyle tienen la x más baja: a igual tamaño en px se ven más chicas. Alturas de x medidas sobre la fuente real: Inter 55%, Manrope y Sora 54%, Space Grotesk 49%, Fraunces 47%, Newsreader 44% (las de las familias de E3b están en la tabla del catálogo). *(v1.1, E3b)* Se aplica a la familia de texto. Si la altura de x es menor al 48%, el body y los datos de contacto se agrandan hasta igualar la de una sans (54%), con un tope del 20%. Newsreader queda ×1,2 y Fraunces ×1,15; las demás no cambian. La jerarquía del H1 (el doble del body) se sigue cumpliendo sobre el tamaño compensado.
 
 El H1 del 2B-L tiene un mínimo más alto (64 px en feed), porque su columna es angosta. Si ni así entra, la pieza va a revisión manual: hay que acortar el texto o usar la opción figura y patrón.
 
@@ -410,7 +523,7 @@ La itálica se habilita solo en belleza/lifestyle y gastronomía/retail, y adem�
 italic_habilitado = rubro_lo_permite AND familia_tiene_italica
 ```
 
-Sora, Manrope y Space Grotesk no tienen itálica. En consecuencia, una marca de gastronomía a la que la pregunta de personalidad 1 le asignó Sora (respuesta "seria") queda sin itálica habilitada, aunque el rubro en general sí la permita. *(v1.1)*
+Sora, Manrope, Space Grotesk, Outfit y Bricolage Grotesque no tienen itálica. *(v1.1, E3b)* La condición se evalúa sobre la familia de texto, que es donde se usa la itálica. En consecuencia, una marca de gastronomía a la que la pregunta de personalidad 1 le asignó Sora (respuesta "seria") queda sin itálica habilitada, aunque el rubro en general sí la permita. *(v1.1)*
 
 Reglas de uso dentro de los rubros y familias habilitadas:
 
@@ -471,10 +584,24 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 ### Reglas de fotografía
 
 - La dependencia de foto la define el rubro. La habilitación la define el cliente. Con fotos disponibles se puede usar foto en cualquier rubro, incluso en los de dependencia nula.
-- Toda foto va dentro de una forma de contención de la biblioteca.
+- Toda foto va dentro de una forma de contención de la biblioteca. *(v1.1)* Excepción: la foto de fondo de la variante F va a sangre.
 - En uso decorativo lleva overlay de color de marca al 60-70%.
 - En uso informativo va sin overlay, recortada en la forma del ítem.
 - Fallback: toda pieza se genera completa sin foto. La foto es siempre una capa opcional.
+
+**Tratamiento de la fotografía** *(v1.1, E6)*. Es un rasgo de la marca (`identidad.fotografia`) y se aplica igual a todas sus fotos, en la pieza, en el PNG y al medir el contraste. Se genera de la paleta y tiene intensidad de 0 a 1 (por defecto 0,6):
+
+| Tratamiento | Qué hace |
+|---|---|
+| Natural | La foto tal como es. Es lo que pasa si la marca no define `fotografia` |
+| Gradación | Las luces y sombras se mezclan hacia el color de marca (sombras al 35% de la marca, luces en la marca) |
+| Duotono | La luminancia de la foto recorre el degradado entre el color de marca oscuro (L ≤ 22) y el fondo neutro |
+
+**Punto focal** *(v1.1, E6)*. `foto_foco` (de 0 a 1 en cada eje) es el punto de la foto que el recorte mantiene lo más cerca posible del centro de su caja, sin dejar vacío. Se fija con un clic sobre la miniatura. Se usa en la variante F y en la capa decorativa; no en las fotos de los ítems del catálogo.
+
+**Dirección de arte** *(v1.1, E6)*. Guía de qué fotos sirven: luz natural y suave, con una dirección clara (no flash directo ni sombras duras); un sujeto claro con aire alrededor para el texto (no escenas recargadas ni sujetos pegados al borde); fondos simples y parejos, cerca de la paleta (no fondos con ruido ni carteles ajenos). Queda en la identidad como guía para el manual de marca.
+
+No se resuelve todavía el recorte de fondo de las fotos.
 
 ---
 
@@ -484,7 +611,7 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 
 **Patrones (6).** Puntos, líneas diagonales, ondas, grilla, ruido sutil y cruces, generados por código.
 
-**Íconos (60).** Phosphor, en seis grupos: contacto, comercio, gastronomía, belleza, servicios y tech. Estilo por marca: lineal (peso regular) o sólido (peso fill). El valor por defecto sale del rubro (sólido en gastronomía, lineal en el resto) y se cambia en la ficha de marca.
+**Íconos (60).** Phosphor, en seis grupos: contacto, comercio, gastronomía, belleza, servicios y tech. Estilo por marca: lineal (peso regular) o sólido (peso fill). El valor por defecto sale del rubro (sólido en gastronomía, lineal en el resto) y se cambia en la sección Recursos gráficos de la identidad.
 
 **Qué habilita cada rubro:**
 
@@ -537,6 +664,14 @@ En la cúpula, el CTA y el logo van sobre la capa decorativa y se validan contra
 - Patrón: color de marca (Modo A) o tono de apoyo (Modo B), al 16%.
 - Foto decorativa: overlay de color de marca al 65%.
 - Íconos informativos (contacto y catálogo): en Modo A, color de marca. En Modo B el fondo es la marca, así que van en acento si contrasta 3:1 con ella; si no, en fondo neutro.
+
+**Rasgos propios de la marca *(v1.1, E2)*.** Cada marca puede tener recursos que solo tiene ella, en `identidad.recursos`. Se editan al inicio de la sección Recursos gráficos de la identidad.
+
+- **Formas propias.** Las dibuja el diseñador y se cargan como SVG. La herramienta toma la figura de mayor superficie del archivo (path, polígono, círculo, elipse o rectángulo, con sus transformaciones), la muestrea en 360 puntos y la lleva a un trazado en la caja 0-100 de la biblioteca (escala uniforme, centrada). No vectoriza ni simplifica el logo: la forma la decide el diseñador. Como queda en la misma caja que las formas de la biblioteca, se dibuja y se mide igual: el ajuste de texto y el checklist usan su contorno real. La primera forma es la **principal**; se puede cambiar o quitar.
+- **Formas paramétricas (atajo opcional).** "Generar con los ejes" crea una forma con semilla derivada de los ejes: cuanto más artesanal y lúdica, una mancha orgánica de 3 a 6 lóbulos con más irregularidad; cuanto más tecnológica, un cuadrado redondeado (superelipse). La misma semilla da siempre la misma forma.
+- **Patrón propio.** Repite la primera forma propia al 60% de la celda, con las mismas reglas de color y opacidad que los patrones de la biblioteca.
+- **Prioridad.** En la capa decorativa 2B (formas y rellenos) y en los patrones, lo propio va primero y lo del rubro después. Sin recursos propios, todo funciona como antes. La **forma de fondo** usa la forma propia principal; si no hay, el círculo de siempre, con la misma opacidad segura.
+- **Detalle recurrente.** Elemento fijo que se repite en todas las piezas, con una de dos opciones. *Subrayado*: subraya el H1 con grosor de 0,07 em, desplazado 0,12 em, así va debajo de las letras y no detrás. *Marco*: línea fina de 6 px a la mitad de la zona mínima de cada lado, nunca sobre el contenido. Color: el acento si contrasta 3:1 con el fondo; si no, el color del texto.
 
 **Forma de fondo.** El círculo de fondo (función estructural) no se usa cuando la pieza tiene capa decorativa (2B) ni en el catálogo (4), donde los ítems ya tienen su forma: así nunca hay dos formas protagonistas.
 
@@ -591,11 +726,11 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 
 ### Decoración de plantilla *(v1.1)*
 
-Figuras que forman parte del diseño de la pieza. No son un relleno como la capa decorativa de las 2B. Son opcionales y se eligen en Publicar, en el selector **Decoración**. Una pieza usa una sola de estas tres cosas: la capa decorativa (2B), una decoración de plantilla o la forma de fondo automática. Si se elige una decoración, la forma de fondo automática (el círculo de abajo a la derecha) no va.
+Figuras que forman parte del diseño de la pieza. No son un relleno como la capa decorativa de las 2B. Son opcionales y se eligen en Publicar, en el selector **Decoración**. Una pieza usa una sola de estas tres cosas: la capa decorativa (2B), una decoración de plantilla o la forma de fondo automática. Si se elige una decoración, la forma de fondo automática (el círculo de abajo a la derecha, o la forma propia principal de la marca, *v1.1 E2*) no va.
 
 Reglas comunes:
 
-- Las figuras van en tono de apoyo. En Modo B van opacas sobre el color de marca. En Modo A van sobre el fondo neutro, con la opacidad segura de la forma de fondo (35% o menos).
+- Las figuras van en tono de apoyo o, si la marca tiene paleta extendida, en un secundario a elección (`color_decoracion`, *v1.1*). En Modo B van opacas sobre el color de marca. En Modo A van sobre el fondo neutro, con la opacidad segura de la forma de fondo (35% o menos). El secundario usa esa misma opacidad segura, que protege el texto.
 - Llevan una sombra mínima hacia el fondo, medida del ejemplo de referencia: oscurece ~8% junto al borde y se desvanece en ~30 px (desenfoque 12 px, opacidad 20%).
 - Van sobre el fondo y debajo del texto. Ninguna figura pasa por debajo de un texto ni del logo. El texto se aleja 40 px de su contorno y, si lo toca, se achica.
 - Pueden pasar por debajo de la interfaz de stories y del recorte de la grilla: son decoración, no contenido.
@@ -611,6 +746,8 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 
 ### Las seis variantes de layout
 
+Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla.
+
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
 | 1 · Base | logo → H1 → body → CTA | H1 hasta 50% del alto | pieza estándar |
@@ -621,6 +758,36 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 | 4 · Catálogo | logo + H1 → ítems → CTA | hasta 3-4 ítems en feed y story | varios productos o servicios |
 
 **Regla de cierre.** El CTA es el último elemento en las variantes 1 y 4. En las variantes 2B el logo cierra la pieza y el CTA va inmediatamente antes.
+
+**Variante F · Texto sobre foto** *(v1.1, E6)*. Solo está disponible si la marca tiene las fotos habilitadas y no entra en la grilla de la presentación. La foto (`foto_fondo`) va a sangre, con el tratamiento y el punto focal de la marca, y el bloque de logo, mensaje y CTA va arriba o abajo (`foto_texto`); en 1200×630 ocupa la columna izquierda. Sin foto, el fondo es el del modo. La protección del contraste (`proteccion`) es una de tres:
+
+| Protección | Qué dibuja |
+|---|---|
+| Degradado (por defecto) | Fondo del modo al 95% detrás del bloque, que se desvanece hacia el centro de la foto en un tramo del 40% del bloque |
+| Placa | Rectángulo con el fondo del modo al 95% detrás del texto, con 28 px de aire |
+| Zona limpia | Sin capa: el texto va en la zona elegida a mano (arriba o abajo). No hay detección automática de la zona más pareja |
+
+El bloque ocupa el 58% de la zona segura en los formatos verticales. El contraste se mide sobre la imagen real (cap. 8).
+
+### Plantillas por tipo de contenido *(v1.1, E7)*
+
+Publicaciones arranca por el tipo de contenido. Cada tipo pide sus campos, se arma en 4:5 de Instagram y usa la primera variante de su lista que la marca tenga habilitada; si no tiene ninguna, la variante sugerida del rubro.
+
+| Tipo | Variante (en orden) | Campos (máx. de caracteres) |
+|---|---|---|
+| Promoción | 2, 4 | Oferta o precio (32), Vigencia (60) |
+| Testimonio | 2, 1 | Cita (44), Autor (40) |
+| Tip o educativo | 1 | Título (48), El consejo (100), Llamado a la acción (28) |
+| Lanzamiento | 1 | Qué se lanza (40), Detalle (100), Llamado a la acción (28) |
+| Evento | 3, 1 | Nombre (44), Fecha (30), Hora (14), Lugar (44) |
+| Pregunta frecuente | 1 | Pregunta (48), Respuesta (100), Llamado a la acción (28) |
+| Antes y después | 4 | Título (40), Antes (16), Después (16), Qué cambió (60), Llamado a la acción (28) |
+
+- **Texto sugerido.** Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) y lo recorta, sin cortar palabras, para que entre en los límites. El H1 sugerido tiene hasta 6 palabras en la variante 2 y hasta 9 en las demás. Lo que el cliente no cargó cae al ejemplo del tipo.
+- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 no llevan CTA.
+- **Antes y después** lleva el campo "Qué cambió" en el body aunque el catálogo no lo dibuje: con el body vacío, el ajuste de texto da revisión manual ("el texto no entra").
+- **Edición.** Al cambiar un campo se reescribe solo contenido, contacto e ítems; el resto de la pieza (modo, decoración, elementos gráficos) no se toca. "Sin tipo" mantiene la edición libre. El tip ofrece pasar al carrusel.
+- **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas.
 
 ### Carrusel 4:5 *(v1.1)*
 
@@ -685,6 +852,12 @@ No es una decisión de diseño por pieza: se deriva del modo de paleta y del ele
 
 El logo se valida con el mismo mínimo que los elementos gráficos, 3:1 contra el fondo inmediato. Si ninguna de las tres versiones alcanza ese mínimo, se ubica el logo sobre una forma de contención del color que sí contrasta, y solo si eso tampoco es viable se eleva a revisión manual.
 
+**Versión según el lugar** *(v1.1, E4)*. Si la marca cargó versiones, el lugar del logo es el 70% del ancho del contenedor del mensaje por el alto de su slot, y se usa la versión que se ve más grande ahí (alto visible con la imagen contenida). Si dos empatan (±5%), gana la más completa: principal, horizontal, vertical, símbolo, monograma. Sin versiones cargadas, se usa la principal como antes. La versión de color o monocromo sigue la tabla de arriba.
+
+**Logo sobre foto** *(v1.1, E4)*. La marca elige cómo va el logo sobre la cúpula del 2B-S con foto: **mono** (por defecto, la regla de la tabla), **placa** (logo en color sobre una placa de fondo neutro) o **sombra** (mono claro con sombra proyectada).
+
+**Aire del logo** *(v1.1, E4)*. El espacio entre bloques de la columna del mensaje es al menos el área de seguridad del logo (25% de su alto) más 12 px, porque las cajas de las letras del H1 sobresalen de su línea. En vertical no cambia (36 px); en 1200×630 pasa de 20 a unos 27 px.
+
 ### Regla de coherencia entre formatos
 
 La variante elegida para una pieza mantiene su orden de lectura en todos los formatos. Solo cambian las proporciones de cada zona, nunca el orden de los slots.
@@ -698,6 +871,8 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 Reunir en una ficha por rubro los valores por defecto de los capítulos 3 a 6. El rubro no agrega reglas nuevas: selecciona qué opciones quedan habilitadas y cuáles son prioritarias. Todo lo que no figura como habilitado para un rubro queda prohibido para ese rubro.
 
 ### Fichas por rubro
+
+*(v1.1)* Las fichas son la **semilla**: el rango de H, la familia y el tipo de acento de la tabla son los valores por defecto del rubro y la sugerencia de partida. Cada rubro tiene además una posición inicial en los seis ejes de personalidad (capítulo 2, paso 2); cuando el cliente los mueve o mezcla dos rubros, la familia, el rango de matiz y el acento salen de los ejes.
 
 | Token | Servicios / B2B | Gastronomía / retail | Belleza / lifestyle | Tech / digital |
 |---|---|---|---|---|
@@ -740,9 +915,24 @@ Cada canal lleva su propia secuencia independiente: feed de Instagram, stories d
 
 Reunir en un solo lugar todas las validaciones que una pieza debe pasar antes de darse por publicable. El checklist no introduce criterios nuevos: formaliza las reglas de los capítulos 3 a 7 como controles verificables, con un resultado binario y una acción definida para cada falla.
 
-Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente. Única excepción *(v1.1)*: los controles de color de una marca con colores ajustados a mano, o con el color heredado sin versión funcional, por decisión del cliente, se registran como aceptados con aviso y no bloquean (cap. 3, pasos 8 y 9).
+Toda validación se ejecuta automáticamente y devuelve aprobado o rechazado. Una pieza rechazada nunca se publica: se corrige con la acción asociada al control, y si la corrección no es posible, se eleva a revisión manual. El automatizador nunca publica con una advertencia pendiente. Excepciones *(v1.1)*: un aviso aceptado con justificación (ver "Niveles de regla") y los controles de color de una marca con colores ajustados a mano, o con el color heredado sin versión funcional, por decisión del cliente, que se registran como aceptados con aviso y no bloquean (cap. 3, pasos 8 y 9). Ninguna de las dos alcanza a los controles bloqueantes.
 
 Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de oficio que no son reglas duras. Una sugerencia nunca bloquea la exportación; se muestra en ámbar con su recomendación.
+
+### Niveles de regla y aceptación con justificación *(v1.1)*
+
+Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
+
+| Nivel | Qué es | Qué pasa si falla |
+|---|---|---|
+| Bloqueante | Legibilidad crítica: contraste de texto bajo 3:1 (H1, body, contacto, ítems y los textos de los CTA), capa decorativa o decoración que tapa texto o logo, contenido fuera del margen, nada tapado por la interfaz de la plataforma, un solo mensaje principal | La pieza se rechaza y no se puede aceptar |
+| Aviso | Todo el resto: contraste de texto entre 3:1 y 4,5:1, reglas de estilo, controles del carrusel | Rechaza hasta que se corrige o se acepta con justificación |
+| Sugerencia | Lo que fija el rubro (alineación del mensaje, itálica en rubros y familias habilitados) y las mejoras de oficio | Se muestra, no frena |
+
+- **Aceptar con justificación.** Un aviso que falla se acepta escribiendo el motivo. Queda registrado quién, cuándo y por qué (`control`, `motivo`, `autor`, `fecha`), la justificación se muestra en el checklist y se puede quitar. La aceptación viaja con la pieza, así que la exportación la respeta. Cada aceptación se suma al historial de decisiones de la marca.
+- **Estado de la pieza.** Es aprobada si cada control cumple, está aceptado o es una sugerencia.
+- **Excepción de color (cap. 3, paso 9).** Sigue aceptando los controles de color que fallan, salvo los bloqueantes.
+- El carrusel todavía no permite aceptar avisos.
 
 ### Bloque 1 — Color y contraste
 
@@ -750,12 +940,17 @@ Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de o
 |---|---|---|
 | Texto body y caption sobre su fondo | 4,5:1 | función de ajuste (cap. 3, paso 6) |
 | H1 y H2 grandes (≥36 px, bold) sobre su fondo | 3:1 | función de ajuste |
+| H1 grande sobre la foto *(v1.1, E6, variante F)* | 3:1, medido sobre la imagen real | cambiar la protección, mover el bloque o usar otra foto |
+| Body sobre la foto *(v1.1, E6, variante F)* | 4,5:1, medido sobre la imagen real | ídem |
+| Logo contrasta con su fondo *(v1.1, E4, aviso, solo con logo cargado y si se conocen el color del logo y su fondo)* | 3:1 | usar la versión monocromo o una placa detrás |
 | Acento como fondo de botón con su texto (blanco o color de marca) | 4,5:1 | ajustar L del acento (cap. 3, paso 4b) *(v1.1)* |
 | Acento sobre color de marca en Modo B | 3:1 | recalcular matiz (cap. 3, paso 5) |
 | Acento fuera de la banda prohibida | — | cascada de recálculo |
 | Tono de apoyo no usado en texto ni íconos | — | reasignar a color de marca |
 | Patrón de fondo con opacidad 10-20% | — | corregir opacidad |
 | Color heredado: versión funcional en texto | — | generar versión funcional |
+
+**Contraste sobre la foto** *(v1.1, E6)*. En la variante F el contraste no se calcula contra un color plano: se dibuja la foto con su encuadre, su tratamiento y su protección en un lienzo a mitad de tamaño, y se muestrean los píxeles que quedan bajo cada línea del H1 y del body. Se toma el percentil 5% (el "peor" contraste, que ignora el 5% de píxeles más extremos), no el promedio, porque una sola zona clara ya vuelve ilegible una palabra. Por debajo de 3:1 es bloqueante; entre 3:1 y 4,5:1 es aviso (cap. 8, niveles).
 
 ### Bloque 2 — Tipografía
 
@@ -766,7 +961,7 @@ Además de los controles, el checklist da **sugerencias** *(v1.1)*: mejoras de o
 | Sin contraste de peso dentro de una pieza | prohibido | rechazo |
 | Tamaño mínimo del elemento | menor 18 px caption, 24 px body | escalar o recortar texto |
 | Escala en story y estado | +15-20% sobre feed | recalcular |
-| Itálica solo en rubros y familias habilitados | belleza y gastronomía, solo si la familia tiene itálica (cap. 4, paso 3) *(v1.1)* | quitar itálica |
+| Itálica solo en rubros y familias habilitados *(sugerencia)* | belleza y gastronomía, solo si la familia tiene itálica (cap. 4, paso 3) *(v1.1)* | quitar itálica |
 | Itálica en peso regular y nivel permitido | máximo 1 bloque por pieza | quitar itálica |
 | Itálica ausente en precios, fechas y CTA | sin excepción | rechazo |
 | H1 con margen sobre su tamaño mínimo *(v1.1)* | el ajuste no lo dejó en el piso de su rango | sugerencia: recortar palabras antes que achicar la letra |
@@ -785,10 +980,11 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Orden de capas | fondo, forma, deco o foto, texto e íconos | reordenar |
 | Logo dentro del margen seguro | sin excepción | reubicar |
 | Orden de slots según variante | el definido en el capítulo 6 | rechazo |
-| Alineación del mensaje | izquierda o centrado según rubro | corregir |
+| Alineación del mensaje *(sugerencia)* | izquierda o centrado según rubro | corregir |
 | Líneas de body en centrado | máximo 4 | recortar texto |
 | Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
 | Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
+| Área de seguridad del logo *(v1.1, E4, aviso, solo con logo cargado)* | ningún otro elemento informativo toca la caja del logo agrandada 25% de su alto por lado | separar el logo de los otros elementos |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -801,6 +997,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Story y estado 9:16 | nada que informe debajo de la interfaz: 250 px arriba y 340 px abajo *(v1.1)* |
 | Feed 1:1 | H1 máximo 2 líneas, catálogo máximo 3 ítems |
 | Facebook 1200×630 | mensaje máximo 50% del ancho |
+| Todos | logo de tamaño mínimo: 48 px de alto visible (56 px en story y estado), solo con logo cargado *(v1.1, E4, aviso)* |
 
 ### Bloque 5 — Contenido
 
@@ -809,7 +1006,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Un solo mensaje principal por pieza | 1 H1, 1 dato de apoyo, 1 CTA como máximo |
 | Fallback sin foto | la pieza se genera completa sin imagen |
 | Fallback sin capa decorativa | la pieza sigue siendo legible si se quita |
-| Foto dentro de forma de contención | sin excepción |
+| Foto dentro de forma de contención | sin excepción, salvo la foto de fondo de la variante F, que va a sangre *(v1.1, E6)* |
 | Foto decorativa | con overlay 60-70% de opacidad en color de marca |
 
 ### Bloque 6 — Coherencia de serie
@@ -873,19 +1070,72 @@ La separación es lo que permite que el motor no cambie nunca: un cliente nuevo 
 marca: {
   id, nombre,
   rubro: "servicios | gastronomia | belleza | tech",
-  personalidad: { tono: "seria | cercana", valor: "confianza | energia | calma | innovacion" },  // (v1.1)
-  color: {
-    modo: "optimizado | heredado",
-    H, S, L,
-    tipo_acento: "complementario | analogo",          // (v1.1)
-    version_funcional: { H, S, L },   // solo en modo heredado
-    banda_prohibida: [H_min, H_max] | null
+  personalidad: { tono: "seria | cercana", valor: "confianza | energia | calma | innovacion" },  // (v1.1) derivados de los ejes
+  ejes: { clasico_moderno, sobrio_expresivo, artesanal_tecnologico,
+          calido_frio, accesible_premium, serio_ludico },  // (E12) 0-100 cada uno
+  rubro_secundario: "servicios | gastronomia | belleza | tech" | null,  // (E12) mezcla
+  rubro_libre: string | null,                          // (E12) rubro escrito por el cliente; la base es `rubro`
+  moodboard?: [{ color: HSL, peso }],                  // (v1.1, E5) solo colores extraídos de las imágenes, no las imágenes
+  competencia?: [HSL],                                 // (v1.1, E5) colores a evitar: banda de ±25° cada uno; migración los completa vacíos
+  contenido: { oferta: [hasta 4], mensaje, apoyo, cta },  // (E12) contenido real para las vistas previas
+  identidad: {                                         // (E1) todo lo visual; Publicaciones lee solo de acá
+    color: {
+      modo: "optimizado | heredado",
+      H, S, L,
+      tipo_acento: "complementario | analogo",          // (v1.1)
+      version_funcional: { H, S, L },   // solo en modo heredado
+      banda_prohibida: [H_min, H_max] | null
+    },
+    paleta_extendida?: {                                // (v1.1, E3a) opcional
+      armonia: "analoga | complementaria | triadica | complementaria_dividida",
+      secundarios: [{ H, S: 55, L, texto: bool }, { H, S: 55, L, texto: bool }],  // texto: true solo si llega a 4,5:1
+      neutro_oscuro: { H, S: <= 20, L: 14 }
+    },
+    logo: { svg_color, svg_mono_claro, svg_mono_oscuro,
+            aspecto?, color_dominante?,                    // (v1.1, E4) proporción y color dominante del logo principal
+            versiones?: { horizontal?, vertical?, simbolo?, monograma? },  // (v1.1, E4) cada una { src, aspecto }
+            sobre_foto?: "mono" | "placa" | "sombra" },    // (v1.1, E4) por defecto "mono"
+    tipografia: { familia_variable, italic_habilitado: bool,
+                  familia_texto?: string,                // (v1.1, E3b) body, CTA, contacto e ítems; sin ella, familia_variable
+                  propia?: { nombre, archivo, clase } }, // (v1.1, E3b) fuente subida; archivo = data URL; clase: serif | geométrica | grotesca | humanista
+    graficos: { estilo_iconos },
+    recursos?: {                                        // (v1.1, E2) rasgos propios
+      formas: [{ id: "propia-…", trazado "M…L…Z" en caja 0-100 }],  // la primera es la principal
+      patron_propio?: bool,                              // repite la primera forma al 60% de la celda
+      detalle?: "subrayado" | "marco" | null
+    },
+    fotos_habilitadas: bool,
+    fotografia?: {                                      // (v1.1, E6) sin ella, las fotos van naturales
+      tratamiento: "natural | gradacion | duotono",
+      intensidad: 0-1                                   // por defecto 0,6
+    },
+    rescate?: {                                         // (v1.1, E11) solo en marcas que ya existían
+      grado: "rescate | refresco | evolucion",
+      referencias: [{ nombre, colores: [{ color: HSL, peso }] }],
+      grupos?: [{ tonos: [{ color, peso }], peso, fuentes: [nombre] }],  // última auditoría
+      antes?: Identidad                                 // la identidad al iniciar el rescate
+    }
   },
-  logo: { svg_color, svg_mono_claro, svg_mono_oscuro },
-  tipografia: { familia_variable, italic_habilitado: bool },
-  fotos_habilitadas: bool
+  versiones?: [{ id, nombre, autor, fecha, identidad, favorita?, comentarios?, aprobacion? }],  // (v1.1, E13)
+  version_aprobada?: id,                                // (v1.1, E13) la que usa Publicaciones
+  estado?: "en_diagnostico | en_identidad | aprobada | en_produccion"  // (v1.1, E13) si no se fija, es "aprobada" con versión aprobada y "en_identidad" si no
 }
 ```
+
+**Versiones y aprobación** *(v1.1, E13)*. Una versión es una instantánea de `identidad`. Restaurarla la deja en el borrador y la versión sigue guardada. Aprobar registra autor, fecha y comentario, fija `version_aprobada` y el estado "aprobada". Si hay versión aprobada, el render y Publicaciones usan su identidad en lugar de la actual; si la identidad actual difiere de la aprobada, se avisa de los cambios sin aprobar. La presentación al cliente (`/presentacion/[marca]`) muestra una versión o la identidad actual en 8 diapositivas: portada, colores, tipografía, feed (9 piezas: variantes prioritarias del rubro primero, con la secuencia de modos), story 9:16, tarjeta (frente y dorso), cartel y aprobación.
+
+**Rescate de marca existente** *(v1.1, E11)*. No se crea una identidad nueva: se audita, se normaliza y se evoluciona la que el cliente ya tiene. El grado de cambio se acuerda con el cliente y limita cuánto se mueve la fórmula:
+
+| Grado | Qué hace con el color canónico de cada grupo |
+|---|---|
+| Rescate | El tono más usado, tal cual. Lo que no cumple los controles queda como ajuste manual con aviso (cambio 19) |
+| Refresco | El color válido más próximo al más usado (`colorValidoCercano`); si no hay ninguno válido, el más usado |
+| Evolución | Propone lo mismo que el refresco; el cliente puede elegir otro, siempre comparado contra lo actual |
+
+- **Auditoría de color.** Los colores muestreados de todas las referencias se agrupan: los tonos a menos de ΔE 10 se toman como el mismo color que se fue corriendo. El informe tiene una frase por grupo ("Tu verde aparece en 4 tonos").
+- **Aplicar canónicos.** Cada grupo se asigna a un rol de paleta (marca, apoyo, acento), que pasa por el ajuste manual, o a uno de los dos secundarios de la paleta extendida (se crea si falta).
+- **Brief del diseñador.** Es el brief del logo (E4) más el grado acordado, las referencias, los canónicos con los tonos que circulan y la regla del refresco: puestos lado a lado, el logo nuevo y el viejo tienen que leerse como el mismo, pero más prolijo. El logo y la tipografía los resuelve el diseñador; la herramienta no los vectoriza ni los detecta, ni recomienda tipografía.
+- **Antes y después.** "Guardar el antes" copia la identidad a `rescate.antes`. La comparación muestra la paleta y los títulos de antes y de ahora con la lista de diferencias, y se descarga como HTML autocontenido.
 
 ### Paleta derivada (calculada, no ingresada)
 
@@ -905,7 +1155,7 @@ pieza: {
   marca_id,
   canal: "feed_ig | stories_ig | estados_wa | feed_fb",
   formato: "4:5 | 1:1 | 9:16 | 1200x630",
-  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4",
+  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | F",   // (v1.1, E6) F solo con fotos habilitadas
   contenido: {
     h1: string,
     body: string | null,
@@ -913,7 +1163,12 @@ pieza: {
     items: [{ texto, imagen_id | icono_id }] | null,   // variante 4
     contacto: [{ tipo, valor }] | null                 // variante 3
   },
-  imagen: { id, uso: "decorativa | informativa" } | null
+  imagen: { id, uso: "decorativa | informativa" } | null,
+  color_decoracion?: number | null,  // (v1.1, E3a) índice del secundario; null = tono de apoyo
+  foto_foco?: { x, y },              // (v1.1, E6) punto focal, 0-1; por defecto el centro
+  foto_fondo?: string | null,        // (v1.1, E6) variante F: foto a sangre
+  foto_texto?: "arriba | abajo",     // (v1.1, E6) variante F: lugar del bloque de texto
+  proteccion?: "degradado | placa | zona"   // (v1.1, E6) variante F; por defecto degradado
 }
 ```
 
@@ -973,6 +1228,33 @@ resultado: {
   controles_fallidos: [] | [lista con el control y la accion aplicada]
 }
 ```
+
+### Entregables de identidad *(v1.1, E8)*
+
+Con la identidad confirmada, la ficha de marca entrega dos archivos.
+
+**Manual de marca (PDF, A4 vertical, fondos incluidos).** Refleja la versión aprobada de la identidad; la portada lo indica. Secciones:
+
+| Sección | Contenido |
+|---|---|
+| Portada | Marca y versión de la identidad que se documenta |
+| Colores | HEX, RGB y rol de cada color |
+| Tipografía | Familias de display y de texto |
+| Logo | El logo y sus reglas |
+| Recursos propios y fotografía | Solo si la marca los tiene |
+| Ejemplos | 4 piezas de la grilla del feed |
+
+**Kit (ZIP).**
+
+| Carpeta o archivo | Contenido |
+|---|---|
+| `logos/` | SVG cargados, versiones y monocromos derivados, más un PNG de 1000 px de cada SVG |
+| `paleta/` | ASE, JSON, CSS y `tokens-figma.json` (formato W3C Design Tokens) |
+| `tipografias/` | `tipografias.txt` con los enlaces a Google Fonts y la fuente propia si la hay |
+| `recursos/` | Cada forma propia en SVG (0-100) y el patrón propio con `<pattern>` |
+| `brief-logo.md` y `LEEME.txt` | Brief para el diseñador e indicaciones del kit |
+
+No incluye plantillas SVG editables.
 
 ---
 
@@ -1052,14 +1334,15 @@ modo_color_heredado: {
 
 ```
 {
-  familia_variable: [segun rubro + tono de personalidad (seria|cercana), o tipografia previa del cliente],  // (v1.1)
+  familia_variable: [segun rubro + tono de personalidad (seria|cercana), o tipografia previa del cliente],  // (v1.1) display: H1 y H2
+  familia_texto: [opcional, v1.1 E3b: body, CTA, contacto e items; par valido segun cap. 4],
   pesos_fijos: {
     H1: "clamp(900 - 200*(n-15)/30, 700, 900), redondeado a multiplos de 50, n = caracteres del H1",  // (v1.1)
     H2: 600, body: 400, caption: 400
   },
   escala: { H1: "48-64px", H2: "32-40px", body: "24-28px", caption: "18-20px" },
   escala_story: "+15-20% sobre escala feed",
-  italic_habilitado: "rubro_lo_permite AND familia_tiene_italica",  // (v1.1) — Sora, Manrope y Space Grotesk no tienen italica
+  italic_habilitado: "rubro_lo_permite AND familia_tiene_italica",  // (v1.1) — la familia de texto; Sora, Manrope, Space Grotesk, Outfit y Bricolage no tienen italica
   italic_reglas: {
     peso_permitido: "regular",
     niveles_permitidos: ["body", "caption", "H2 si <6 palabras"],

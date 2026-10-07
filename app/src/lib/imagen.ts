@@ -1,5 +1,7 @@
 // Utilidades de imagen del lado del navegador.
 
+import { svgADataUrl } from "@/engine/logo";
+
 export interface ImagenRecortada {
   dataUrl: string;
   /** Lado mayor de la imagen original, antes de recortar. */
@@ -72,4 +74,129 @@ export async function reducirFoto(file: File, max = 1600): Promise<string> {
   canvas.height = Math.round(img.naturalHeight * k);
   canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+/** Píxeles de una imagen reducida a `lado` px de lado mayor, para extraer sus colores (laboratorio de color, E3). */
+export async function pixelesDeImagen(src: string, lado = 72): Promise<{ rgb: [number, number, number]; alfa: number }[]> {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const k = Math.min(1, lado / Math.max(img.naturalWidth || lado, img.naturalHeight || lado));
+  const w = Math.max(1, Math.round((img.naturalWidth || lado) * k));
+  const h = Math.max(1, Math.round((img.naturalHeight || lado) * k));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const salida: { rgb: [number, number, number]; alfa: number }[] = [];
+  for (let i = 0; i < d.length; i += 4) salida.push({ rgb: [d[i], d[i + 1], d[i + 2]], alfa: d[i + 3] });
+  return salida;
+}
+
+/**
+ * Contorno de la forma principal de un SVG (rasgos propios, E2): se dibuja fuera de pantalla, se toma la figura de
+ * mayor superficie (path, polygon, circle, ellipse o rect, con sus transformaciones) y se muestrean `n` puntos sobre
+ * su trazado. El motor lo normaliza a la caja 0-100 (`normalizarContorno`).
+ */
+export function contornoDeSvg(texto: string, n = 360): { x: number; y: number }[] {
+  const doc = new DOMParser().parseFromString(texto, "image/svg+xml");
+  const svg = doc.querySelector("svg");
+  if (!svg) return [];
+  const host = document.createElement("div");
+  host.style.cssText = "position:absolute;left:-10000px;top:0;width:400px;height:400px;visibility:hidden";
+  const vivo = document.importNode(svg, true) as SVGSVGElement;
+  vivo.setAttribute("width", "400");
+  vivo.setAttribute("height", "400");
+  host.appendChild(vivo);
+  document.body.appendChild(host);
+  try {
+    const figuras = [...vivo.querySelectorAll<SVGGeometryElement>("path, polygon, circle, ellipse, rect")];
+    const mayor = figuras
+      .map((f) => ({ f, b: f.getBBox() }))
+      .sort((a, b) => b.b.width * b.b.height - a.b.width * a.b.height)[0]?.f;
+    if (!mayor) return [];
+    const m = mayor.getCTM();
+    const largo = mayor.getTotalLength();
+    return Array.from({ length: n }, (_, i) => {
+      const p = mayor.getPointAtLength((largo * i) / n);
+      const q = m ? new DOMPoint(p.x, p.y).matrixTransform(m) : p;
+      return { x: q.x, y: q.y };
+    });
+  } finally {
+    host.remove();
+  }
+}
+
+/** Proporción (ancho / alto) de una imagen, medida en el navegador. SVG sin tamaño propio usa su viewBox. */
+export async function aspectoDeImagen(src: string): Promise<number> {
+  const img = await cargar(src);
+  const w = img.naturalWidth || 1;
+  const h = img.naturalHeight || 1;
+  return w / h;
+}
+
+/** Lee un archivo de logo (SVG o PNG) como data URL y mide su proporción (E4). */
+export async function leerArchivoLogo(file: File): Promise<{ src: string; aspecto: number; formato: "svg" | "png" }> {
+  const esSvg = file.type === "image/svg+xml" || /\.svg$/i.test(file.name);
+  const src = esSvg
+    ? svgADataUrl(await file.text())
+    : await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result));
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+  return { src, aspecto: await aspectoDeImagen(src), formato: esSvg ? "svg" : "png" };
+}
+
+// ── Dimensiones de las fotos de la pieza (E6) ──
+// El encuadre con punto focal necesita el tamaño de la foto al dibujar. Se carga una vez por foto y se guarda: el
+// dibujo lo lee de forma síncrona y la pieza espera a que esté antes de medir y marcarse lista.
+const dimensiones = new Map<string, { w: number; h: number }>();
+const cargando = new Map<string, Promise<{ w: number; h: number }>>();
+
+export const dimensionesCacheadas = (src: string) => dimensiones.get(src);
+
+export function dimensionesImagen(src: string): Promise<{ w: number; h: number }> {
+  const listo = dimensiones.get(src);
+  if (listo) return Promise.resolve(listo);
+  let promesa = cargando.get(src);
+  if (!promesa) {
+    promesa = cargar(src).then((img) => {
+      const d = { w: img.naturalWidth || 1, h: img.naturalHeight || 1 };
+      dimensiones.set(src, d);
+      return d;
+    });
+    cargando.set(src, promesa);
+  }
+  return promesa;
+}
+
+/** Foto de ejemplo generada (un SVG con zonas claras, medias y oscuras) para ver el tratamiento sin ninguna foto cargada. */
+export const MUESTRA_GENERADA =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="240" viewBox="0 0 360 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4d9a6"/><stop offset=".45" stop-color="#6fa3b8"/><stop offset="1" stop-color="#1d2a3a"/></linearGradient></defs><rect width="360" height="240" fill="url(#g)"/><circle cx="260" cy="72" r="38" fill="#fff" fill-opacity=".85"/><rect y="172" width="360" height="68" fill="#14181e" fill-opacity=".75"/></svg>',
+  );
+
+/** PNG de un SVG a `ladoMayor` px de lado mayor, con fondo transparente (kit de identidad, E8). Null si no se puede dibujar. */
+export async function svgAPng(svg: string, ladoMayor = 1000): Promise<Uint8Array | null> {
+  try {
+    const img = await cargar(svgADataUrl(svg));
+    const { naturalWidth: w, naturalHeight: h } = img;
+    if (!w || !h) return null;
+    const k = ladoMayor / Math.max(w, h);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * k);
+    canvas.height = Math.round(h * k);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  } catch {
+    return null;
+  }
 }

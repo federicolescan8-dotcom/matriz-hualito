@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useLayoutEffect, useRef } from "react";
-import { contraste, hslCss, type HSL } from "@/engine/color";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { contraste, hexToHsl, hslCss, type HSL } from "@/engine/color";
+import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
 import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
@@ -18,11 +19,13 @@ import {
   type Deco,
   type Pieza as TPieza,
 } from "@/engine/pieza";
-import { compensacionOptica, FACTOR_STORY, pesoH1 } from "@/engine/typography";
-import { fontFamily } from "@/lib/fuentes";
-import { ajustarTexto, medirPieza } from "@/lib/medicion";
+import { compensacionOptica, FACTOR_STORY, familiaTexto, pesoH1 } from "@/engine/typography";
+import { asegurarFamilias, cargarFuentePropia, fontFamily } from "@/lib/fuentes";
+import { ajustarTexto, medirContrasteSobreFoto, medirPieza } from "@/lib/medicion";
 import { decoracionEfectiva, SOMBRA_DECORACION, trazadoDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
-import { FormaRellena, FormaSvg, FotoEnForma, Icono } from "./Graficos";
+import { bloqueTexto, capaProteccion, filtroDeMarca, type Foco } from "@/engine/fotografia";
+import { dimensionesCacheadas, dimensionesImagen } from "@/lib/imagen";
+import { FiltroSvg, FormaRellena, FormaSvg, FotoEnForma, ImagenFoco, Icono } from "./Graficos";
 
 /**
  * Pieza a tamaño real de lienzo (p. ej. 1080×1350). La misma pieza se usa en la vista previa (escalada con CSS) y
@@ -42,20 +45,22 @@ export function Pieza({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
-  const plantilla = plantillaPara(pieza.variante, pieza.formato, marca.tipografia.familia_variable);
+  // El body se compensa por la familia de texto (la del par, si hay; E3).
+  const plantilla = plantillaPara(pieza.variante, pieza.formato, familiaTexto(marca.identidad.tipografia));
   // Compensación óptica de la familia para el texto secundario (los datos de contacto; el body ya viene en la plantilla).
-  const kOptico = compensacionOptica(marca.tipografia.familia_variable);
+  const kOptico = compensacionOptica(familiaTexto(marca.identidad.tipografia));
+  const fuenteTexto = fontFamily(familiaTexto(marca.identidad.tipografia));
   const horizontal = f.columnaMensaje != null;
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const px = (v: number) => Math.round(v * escala);
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const c = coloresModo(p, pieza.modo);
   const cta = estiloCta(p, pieza.modo);
   const estilo = estiloIconos(marca);
-  const logoSrc = marca.logo[c.logo];
+  const logoSrc = marca.identidad.logo[c.logo];
   const colorTextoMarca = p.version_funcional ?? p.color_marca;
   const centrado = pieza.alineacion === "centrado";
-  const italica = pieza.body_italica && marca.tipografia.italic_habilitado;
+  const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
   const ctaTexto = plantilla.tieneCta ? pieza.contenido.cta?.trim() : null;
   const deco = plantilla.deco ? decoEfectiva(marca, pieza) : null;
@@ -75,11 +80,42 @@ export function Pieza({
   // La forma de fondo va solo cuando no hay capa decorativa ni ítems con su propia forma: nunca dos formas
   // protagonistas (cap. 6).
   // Decoración de plantilla (v1.1): reemplaza a la forma de fondo automática.
-  const decoracion = decoracionEfectiva(pieza);
+  const esFoto = pieza.variante === "F";
+  const decoracion = esFoto ? null : decoracionEfectiva(pieza);
+  // Rasgos propios (E2): forma de fondo y detalle recurrente. El detalle va en el acento si se distingue del fondo; si
+  // no, en el color del texto.
+  const formaPropia = marca.identidad.recursos?.formas[0] ?? null;
+  const detalle = marca.identidad.recursos?.detalle ?? null;
+  const colorDetalle = contraste(p.acento, c.fondo) >= MIN_GRAFICO ? p.acento : c.texto;
+  // La decoración puede ir en un secundario de la paleta extendida (E3): es masa, nunca texto, y su opacidad en Modo A
+  // se limita para que el texto que pase por encima siga cumpliendo.
+  const colorDeco = (pieza.color_decoracion != null && marca.identidad.paleta_extendida?.secundarios[pieza.color_decoracion]?.color) || p.tono_apoyo;
   const geoDecoracion = decoracion?.geometria(pieza.formato) ?? null;
-  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion;
+  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion && !esFoto;
   const formaColor = pieza.modo === "A" ? c.apoyo : p.fondo_neutro;
   const formaOpacidad = opacidadSegura(c.fondo, formaColor, c.texto, pieza.modo === "A" ? 0.35 : 0.12);
+
+  // Texto sobre foto (E6): la foto a sangre, su tratamiento de marca y la protección de contraste detrás del bloque.
+  const uid = useId().replace(/:/g, "");
+  const filtro = filtroDeMarca(marca.identidad);
+  const fotoFondo = esFoto && marca.identidad.fotos_habilitadas ? (pieza.foto_fondo ?? null) : null;
+  const proteccion = pieza.proteccion ?? "degradado";
+  const ladoTexto = pieza.foto_texto ?? "abajo";
+  const bloqueFoto = esFoto ? bloqueTexto(f, ladoTexto) : null;
+  const capaFoto = fotoFondo && bloqueFoto ? capaProteccion(proteccion, bloqueFoto, f, ladoTexto) : null;
+  // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo.
+  const fotosConFoco = pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null].filter((s): s is string => !!s) : [];
+  const [dimensionesListas, setDimensionesListas] = useState(0);
+  const claveFotos = fotosConFoco.join("|");
+  useEffect(() => {
+    if (!fotosConFoco.length) return;
+    let vigente = true;
+    Promise.all(fotosConFoco.map(dimensionesImagen)).then(() => vigente && setDimensionesListas((n) => n + 1));
+    return () => {
+      vigente = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveFotos]);
 
   const onResultadoRef = useRef(onResultado);
   useLayoutEffect(() => {
@@ -87,19 +123,32 @@ export function Pieza({
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.tipografia, marca.graficos, marca.logo[c.logo]?.length]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
     let vigente = true;
     root.dataset.listo = "false";
+    if (fotosConFoco.some((s) => !dimensionesCacheadas(s))) return;
+    // Las fotos SVG también se esperan: el PNG no se saca antes de que estén dibujadas.
     const imagenes = [...root.querySelectorAll("image, img")].map((el) =>
-      el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : Promise.resolve(),
+      el instanceof HTMLImageElement ? el.decode().catch(() => undefined) : dimensionesImagen(el.getAttribute("href") ?? "").catch(() => undefined),
     );
-    Promise.all([document.fonts.ready, ...imagenes]).then(() => {
+    // La fuente propia de la marca (E3) se registra antes de medir.
+    const fuentes = cargarFuentePropia(marca.identidad.tipografia.propia)
+      .then(() => asegurarFamilias([marca.identidad.tipografia.familia_variable, familiaTexto(marca.identidad.tipografia)]))
+      .then(() => document.fonts.ready);
+    Promise.all([fuentes, ...imagenes]).then(async () => {
       if (!vigente) return;
       const desborde = ajustarTexto(root, plantilla, f.alto, escala, lateralVertical ? g.posiciones : undefined);
       const medicion = medirPieza(root, desborde);
+      // El contraste del texto sobre foto se mide sobre la imagen real, con su tratamiento y su protección.
+      if (fotoFondo) {
+        medicion.contrasteSobreFoto = await medirContrasteSobreFoto({
+          foto: fotoFondo, foco: pieza.foto_foco, filtro, capa: capaFoto, ancho: f.ancho, alto: f.alto, fondo: c.fondo, colorTexto: c.texto, medicion,
+        }).catch(() => undefined);
+        if (!vigente) return;
+      }
       const resultado = evaluarPieza(marca, pieza, medicion);
       root.dataset.listo = "true";
       onResultadoRef.current?.(resultado, medicion);
@@ -113,19 +162,64 @@ export function Pieza({
 
   const justificar = centrado ? "center" : "flex-start";
 
-  /** Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. */
-  const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL) => {
-    const src = marca.logo[version] ?? logoSrc;
+  // Lugar del logo (E4): ~70% del ancho del contenedor del mensaje (todo el ancho útil, o la columna del mensaje en
+  // 1200×630) por el alto de su slot. Con él se elige la versión que se ve más grande ahí.
+  const anchoMensaje = horizontal ? f.ancho * (f.columnaMensaje ?? 1) - f.ancho * f.zonaMinima.x : f.ancho * (1 - 2 * f.zonaMinima.x);
+  const lugarLogo = { ancho: anchoMensaje * 0.7, alto: px(plantilla.logoPx) };
+  const logoDef = marca.identidad.logo;
+  const principal = logoDef.color && logoDef.aspecto ? { src: logoDef.color, aspecto: logoDef.aspecto } : null;
+  const elegida = logoDef.versiones && Object.keys(logoDef.versiones).length ? elegirVersionLogo(principal, logoDef.versiones, lugarLogo) : null;
+  const BLANCO: HSL = { H: 0, S: 0, L: 100 };
+  const TINTA: HSL = { H: 0, S: 0, L: hexToHsl("#1a1a1a", true)?.L ?? 10 };
+
+  /**
+   * Logo en la versión que corresponde al fondo inmediato (cap. 6). Sin logo cargado, el nombre en texto. Con versiones
+   * cargadas (E4) se usa la que mejor entra en el lugar; si el fondo pide mono y la versión es SVG se recolorea, y si
+   * no se puede (PNG) se cae al mono_claro / mono_oscuro de siempre.
+   */
+  const logoCon = (version: "color" | "mono_claro" | "mono_oscuro", fondoLogo: HSL, sobreFoto = false) => {
     const colorNombre = [c.texto, p.fondo_neutro, colorTextoMarca].sort((a, b) => contraste(b, fondoLogo) - contraste(a, fondoLogo))[0];
+    const modoFoto = sobreFoto ? (logoDef.sobre_foto ?? "mono") : "mono";
+    // Sobre una placa el logo va en color y el fondo pasa a ser el neutro de la marca.
+    const conPlaca = modoFoto === "placa" && !!(logoDef.color ?? elegida);
+    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : version;
+    const fondoReal = conPlaca ? p.fondo_neutro : fondoLogo;
+    let src: string | null | undefined = logoDef[versionEfectiva] ?? logoSrc;
+    let aspecto: number | undefined = versionEfectiva === "color" ? logoDef.aspecto : undefined;
+    if (elegida) {
+      src = elegida.archivo.src;
+      aspecto = elegida.archivo.aspecto;
+      if (versionEfectiva !== "color") src = monocromoDe(src, versionEfectiva === "mono_claro") ?? logoDef[versionEfectiva] ?? src;
+    }
+    const colorLogo: HSL | null | undefined = versionEfectiva === "mono_claro" ? BLANCO : versionEfectiva === "mono_oscuro" ? TINTA : logoDef.color_dominante;
+    const img = src ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        data-slot="logo"
+        data-logo-aspecto={aspecto}
+        data-logo-color={colorLogo ? JSON.stringify(colorLogo) : undefined}
+        data-logo-fondo={JSON.stringify(fondoReal)}
+        src={src}
+        alt=""
+        style={{
+          height: "100%",
+          width: "auto",
+          maxWidth: "70%",
+          objectFit: "contain",
+          ...(modoFoto === "sombra" ? { filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.45))" } : {}),
+        }}
+      />
+    ) : (
+      <span data-slot="logo" style={{ color: hslCss(colorNombre), fontSize: px(40), fontWeight: 600, lineHeight: 1.1 }}>
+        {marca.nombre}
+      </span>
+    );
     return (
       <div style={{ display: "flex", flexShrink: 0, alignItems: "center", height: px(plantilla.logoPx), justifyContent: justificar }}>
-        {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img data-slot="logo" src={src} alt="" style={{ height: "100%", width: "auto", maxWidth: "70%", objectFit: "contain" }} />
+        {conPlaca && src ? (
+          <div style={{ height: "100%", maxWidth: "70%", boxSizing: "border-box", padding: px(10), borderRadius: px(16), background: hslCss(p.fondo_neutro), display: "flex" }}>{img}</div>
         ) : (
-          <span data-slot="logo" style={{ color: hslCss(colorNombre), fontSize: px(40), fontWeight: 600, lineHeight: 1.1 }}>
-            {marca.nombre}
-          </span>
+          img
         )}
       </div>
     );
@@ -145,6 +239,7 @@ export function Pieza({
 
   const bodyEstilo: React.CSSProperties = {
     margin: 0,
+    fontFamily: fuenteTexto,
     color: hslCss(c.texto),
     fontSize: "var(--body)",
     fontWeight: 400,
@@ -197,10 +292,14 @@ export function Pieza({
             width: "100%",
             color: hslCss(c.texto),
             fontSize: "var(--h1)",
-            fontWeight: pesoH1(h1, marca.tipografia.familia_variable),
+            fontWeight: pesoH1(h1, marca.identidad.tipografia.familia_variable),
             lineHeight: 1.04,
             letterSpacing: "-0.01em",
             overflowWrap: "normal",
+            // Detalle recurrente (E2): subrayado con la tinta de la marca. Va debajo de las letras, no detrás.
+            ...(detalle === "subrayado"
+              ? { textDecorationLine: "underline", textDecorationColor: hslCss(colorDetalle), textDecorationThickness: "0.07em", textUnderlineOffset: "0.12em", textDecorationSkipInk: "none" }
+              : {}),
           }}
         >
           {h1 || " "}
@@ -229,6 +328,7 @@ export function Pieza({
             color: hslCss(e.texto),
             fontSize: "var(--cta)",
             fontWeight: 600,
+            fontFamily: fuenteTexto,
             padding: horizontal ? `${px(14)}px ${px(32)}px` : `${px(22)}px ${px(angosto ? 32 : 46)}px`,
             whiteSpace: angosto ? "var(--cta-salto, nowrap)" : undefined,
             textAlign: "center",
@@ -270,6 +370,7 @@ export function Pieza({
     >
       <CapaDecorativa
         deco={deco}
+        foco={pieza.foto_foco}
         marca={marca}
         modo={pieza.modo}
         estilo={estilo}
@@ -298,6 +399,7 @@ export function Pieza({
     >
       <CapaDecorativa
         deco={deco}
+        foco={pieza.foto_foco}
         marca={marca}
         modo={pieza.modo}
         estilo={estilo}
@@ -324,6 +426,7 @@ export function Pieza({
       >
         <CapaDecorativa
           deco={deco}
+          foco={pieza.foto_foco}
           marca={marca}
           modo={pieza.modo}
           estilo={estilo}
@@ -362,7 +465,9 @@ export function Pieza({
     bottom: f.alto * f.zona.abajo,
     display: "flex",
     flexDirection: "column",
-    gap: horizontal ? px(20) : px(36),
+    // El espacio entre bloques nunca es menor que el área de seguridad del logo (E4), más 12 px: la caja de las letras
+    // del H1 (tildes, ascendentes) sobresale por encima de su línea.
+    gap: Math.max(horizontal ? px(20) : px(36), Math.ceil(px(plantilla.logoPx) * AREA_SEGURIDAD) + 12),
     textAlign: centrado ? "center" : "left",
   };
   // Horizontal: el mensaje ocupa la mitad izquierda; el elemento lateral (deco, contacto o ítems), la derecha.
@@ -385,7 +490,16 @@ export function Pieza({
   };
 
   let contenidoPieza: React.ReactNode;
-  if (horizontal) {
+  if (esFoto && bloqueFoto) {
+    // Texto sobre foto (E6): logo, mensaje y CTA en un solo bloque pegado arriba o abajo, sobre su protección.
+    contenidoPieza = (
+      <div data-columna style={{ ...zonaBase, left: bloqueFoto.x, top: bloqueFoto.y, bottom: "auto", width: bloqueFoto.w, height: bloqueFoto.h }}>
+        {logoCon(c.logo, c.fondo, proteccion === "zona" && !!fotoFondo)}
+        {mensaje()}
+        {botonCta}
+      </div>
+    );
+  } else if (horizontal) {
     contenidoPieza = (
       <>
         <div data-columna style={colIzq}>
@@ -445,7 +559,7 @@ export function Pieza({
           <div style={{ height: topeCupula - zonaArriba - px(36), flexShrink: 0, display: "flex", flexDirection: "column" }}>{mensaje()}</div>
           <div style={{ flex: 1 }} />
           {botonCtaCon(ctaSobreCupula!)}
-          {logoCon(logoSobreCupula, fondoCupula)}
+          {logoCon(logoSobreCupula, fondoCupula, deco?.relleno === "foto")}
         </div>
       </>
     );
@@ -458,7 +572,7 @@ export function Pieza({
             flexShrink: 0,
             color: hslCss(colorNumero),
             fontSize: px(210),
-            fontWeight: pesoH1("", marca.tipografia.familia_variable),
+            fontWeight: pesoH1("", marca.identidad.tipografia.familia_variable),
             lineHeight: 0.9,
             letterSpacing: "-0.03em",
           }}
@@ -507,13 +621,40 @@ export function Pieza({
         height: f.alto,
         overflow: "hidden",
         background: hslCss(c.fondo),
-        fontFamily: fontFamily(marca.tipografia.familia_variable),
+        fontFamily: fontFamily(marca.identidad.tipografia.familia_variable),
         ["--h1" as string]: `${px(plantilla.h1.max)}px`,
         ["--body" as string]: `${px(plantilla.body.max)}px`,
         ["--cta" as string]: `${px(plantilla.cta)}px`,
         ["--deco-izq" as string]: `${g.izquierda}px`,
       }}
     >
+      {fotoFondo && (
+        <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            <FiltroSvg id={`ff${uid}`} filtro={filtro} />
+            {capaFoto?.tipo === "degradado" && (
+              <linearGradient id={`pg${uid}`} x1={capaFoto.eje[0]} y1={capaFoto.eje[1]} x2={capaFoto.eje[2]} y2={capaFoto.eje[3]}>
+                {capaFoto.paradas.map(([o, a], i) => (
+                  <stop key={i} offset={o} stopColor={hslCss(c.fondo)} stopOpacity={a} />
+                ))}
+              </linearGradient>
+            )}
+          </defs>
+          <ImagenFoco fondo src={fotoFondo} foco={pieza.foto_foco} x={0} y={0} w={f.ancho} h={f.alto} filtroId={filtro ? `ff${uid}` : undefined} />
+          {capaFoto && (
+            <rect
+              data-slot="proteccion"
+              data-proteccion={capaFoto.tipo}
+              x={capaFoto.rect.x}
+              y={capaFoto.rect.y}
+              width={capaFoto.rect.w}
+              height={capaFoto.rect.h}
+              fill={capaFoto.tipo === "degradado" ? `url(#pg${uid})` : hslCss(c.fondo)}
+              fillOpacity={capaFoto.tipo === "placa" ? capaFoto.paradas[0][1] : 1}
+            />
+          )}
+        </svg>
+      )}
       {conFormaFondo && (
         <div
           data-slot="forma"
@@ -524,13 +665,32 @@ export function Pieza({
             ...(horizontal && !lateral
               ? { width: f.alto * 1.25, height: f.alto * 1.25, right: -f.alto * 0.1, top: -f.alto * 0.12 }
               : { width: f.ancho * 0.72, height: f.ancho * 0.72, right: -f.ancho * 0.24, bottom: -f.ancho * 0.2 }),
-            borderRadius: "50%",
-            background: hslCss(formaColor),
+            // La forma de fondo es la propia de la marca si tiene (E2); si no, un círculo.
+            ...(formaPropia ? {} : { borderRadius: "50%", background: hslCss(formaColor) }),
             opacity: horizontal && lateral ? formaOpacidad * 0.5 : formaOpacidad,
+          }}
+        >
+          {formaPropia && <FormaSvg id={formaPropia.id} formas={[formaPropia]} color={formaColor} style={{ width: "100%", height: "100%" }} />}
+        </div>
+      )}
+      {detalle === "marco" && (
+        // Detalle recurrente (E2): marco fino a mitad del margen, nunca sobre el contenido.
+        <div
+          data-slot="detalle-marco"
+          style={{
+            position: "absolute",
+            // A la mitad de la zonaMinima: el contenido siempre queda más adentro que el marco.
+            left: Math.round(f.ancho * f.zonaMinima.x * 0.5),
+            right: Math.round(f.ancho * f.zonaMinima.x * 0.5),
+            top: Math.round(f.alto * f.zonaMinima.arriba * 0.5),
+            bottom: Math.round(f.alto * f.zonaMinima.abajo * 0.5),
+            border: `${px(6)}px solid ${hslCss(colorDetalle)}`,
+            borderRadius: px(10),
+            pointerEvents: "none",
           }}
         />
       )}
-      {geoDecoracion && <CapaDecoracion geometria={geoDecoracion} ancho={f.ancho} alto={f.alto} color={p.tono_apoyo} opacidad={pieza.modo === "B" ? 1 : opacidadSegura(c.fondo, p.tono_apoyo, c.texto, 0.35)} />}
+      {geoDecoracion && <CapaDecoracion geometria={geoDecoracion} ancho={f.ancho} alto={f.alto} color={colorDeco} opacidad={pieza.modo === "B" ? 1 : opacidadSegura(c.fondo, colorDeco, c.texto, 0.35)} />}
       {contenidoPieza}
       {enCarrusel?.rol === "portada" && (
         // Portada del carrusel: la señal para deslizar, abajo a la derecha (el logo va a la izquierda).
@@ -605,7 +765,9 @@ function CapaDecorativa({
   visible,
   zonaIcono,
   sinOverlay = false,
+  foco,
 }: {
+  foco?: Foco;
   deco: Deco;
   marca: Marca;
   modo: "A" | "B";
@@ -615,7 +777,7 @@ function CapaDecorativa({
   zonaIcono?: { x: number; y: number; w: number; h: number };
   sinOverlay?: boolean;
 }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const opacidadPatron = OPACIDAD_PATRON.max - 0.02;
   const opacidadIcono = OPACIDAD_ICONO_DECO.max;
   // El valor que mide el checklist depende del relleno: opacidad y color del patrón o del ícono, u overlay de la foto.
@@ -639,9 +801,12 @@ function CapaDecorativa({
     >
       <FormaRellena
         formaId={deco.forma}
+        formas={marca.identidad.recursos?.formas}
         relleno={deco.relleno}
         fondo={p.tono_apoyo}
         foto={deco.foto}
+        filtro={filtroDeMarca(marca.identidad)}
+        foco={foco}
         overlay={sinOverlay ? undefined : { color: p.color_marca, opacidad: OVERLAY_FOTO.uso }}
         patron={deco.patron}
         colorPatron={p.color_marca}
@@ -688,7 +853,7 @@ function Catalogo({
   textoPx: number;
   centrado: boolean;
 }) {
-  const p = marca.paleta;
+  const p = marca.identidad.paleta;
   const contenedor = BIBLIOTECA_RUBRO[marca.rubro].contenedores[0];
   const lado = Math.floor(tamano);
   return (
@@ -697,7 +862,7 @@ function Catalogo({
         <div key={i} data-slot="item" style={{ width: lado, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
           <div data-slot="item-visual" style={{ width: lado, height: lado, position: "relative" }}>
             {it.foto ? (
-              <FotoEnForma foto={it.foto} formaId={contenedor} style={{ width: "100%", height: "100%" }} />
+              <FotoEnForma foto={it.foto} formaId={contenedor} filtro={filtroDeMarca(marca.identidad)} style={{ width: "100%", height: "100%" }} />
             ) : (
               <>
                 <FormaSvg id={contenedor} color={modo === "A" ? p.tono_apoyo : p.fondo_neutro} opacidad={modo === "A" ? 0.35 : 0.15} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
@@ -709,7 +874,7 @@ function Catalogo({
               </>
             )}
           </div>
-          <span data-slot="item-texto" style={{ color: hslCss(colorTexto), fontSize: textoPx, fontWeight: 400, lineHeight: 1.25, textAlign: "center" }}>
+          <span data-slot="item-texto" style={{ color: hslCss(colorTexto), fontFamily: fontFamily(familiaTexto(marca.identidad.tipografia)), fontSize: textoPx, fontWeight: 400, lineHeight: 1.25, textAlign: "center" }}>
             {it.texto}
           </span>
         </div>

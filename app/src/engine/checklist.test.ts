@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { areaCubierta, evaluarPieza, type Medicion } from "./checklist";
 import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
-import { piezaNueva, type Pieza } from "./pieza";
+import { aceptarControl, piezaNueva, quitarAceptacion, type Pieza } from "./pieza";
 import { pesoH1 } from "./typography";
 
 const d = { ...diagnosticoVacio(), nombre: "Test", personalidad: { tono: "seria" as const, valor: "calma" as const } };
@@ -20,7 +20,7 @@ function pieza(p: Partial<Pieza> = {}): Pieza {
 // Medición típica de la variante 1 en 4:5, todo dentro de la zona segura (margen 11%).
 function medicion(m: Partial<Medicion> = {}): Medicion {
   return {
-    h1: { lineas: [{ x: 119, y: 420, w: 700, h: 110 }, { x: 119, y: 530, w: 400, h: 110 }], px: 100, peso: pesoH1("Tu contabilidad, en orden", marca.tipografia.familia_variable), italica: false },
+    h1: { lineas: [{ x: 119, y: 420, w: 700, h: 110 }, { x: 119, y: 530, w: 400, h: 110 }], px: 100, peso: pesoH1("Tu contabilidad, en orden", marca.identidad.tipografia.familia_variable), italica: false },
     body: { lineas: [{ x: 119, y: 680, w: 650, h: 44 }], px: 32, peso: 400, italica: false },
     cta: { lineas: [], caja: { x: 119, y: 1100, w: 380, h: 90 }, px: 34, peso: 600, italica: false },
     logo: { x: 119, y: 149, w: 300, h: 110 },
@@ -35,6 +35,55 @@ describe("checklist de pieza", () => {
     const r = evaluarPieza(marca, pieza(), medicion());
     expect(r.controles.filter((c) => !c.ok)).toEqual([]);
     expect(r.estado).toBe("ok");
+  });
+
+  describe("logo como sistema (E4)", () => {
+    // Logo cargado (imagen): los controles del logo solo corren con un logo de verdad.
+    const ctl = (m: Partial<Medicion>, nombre: string, pz = pieza()) =>
+      evaluarPieza(marca, pz, medicion({ logoImagen: true, ...m })).controles.find((c) => c.control.startsWith(nombre))!;
+
+    it("sin logo cargado (el nombre en texto en su lugar) no se controla el logo", () => {
+      const r = evaluarPieza(marca, pieza(), medicion({ logo: { x: 119, y: 149, w: 300, h: 44 }, logoImagen: false }));
+      expect(r.controles.some((c) => /Logo de tamaño|Área de seguridad del logo/.test(c.control))).toBe(false);
+    });
+
+    it("logo de tamaño mínimo: ok y falla (avisos)", () => {
+      expect(ctl({ logo: { x: 119, y: 149, w: 100, h: 48 } }, "Logo de tamaño mínimo").ok).toBe(true);
+      const c = ctl({ logo: { x: 119, y: 149, w: 100, h: 40 } }, "Logo de tamaño mínimo");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("aviso");
+    });
+
+    it("en story el mínimo crece con el factor de escala", () => {
+      const story = pieza({ formato: "9:16" });
+      const caja = { x: 119, y: 300, w: 100, h: 50 };
+      expect(ctl({ logo: caja }, "Logo de tamaño mínimo", story).ok).toBe(false);
+      expect(ctl({ logo: { ...caja, h: 57 } }, "Logo de tamaño mínimo", story).ok).toBe(true);
+    });
+
+    it("área de seguridad: ok con aire y falla si otro elemento la invade", () => {
+      expect(ctl({}, "Área de seguridad del logo").ok).toBe(true);
+      // El H1 arranca 10 px debajo del logo (aire exigido: 27,5 px).
+      const c = ctl({ logo: { x: 119, y: 300, w: 300, h: 110 }, h1: { ...medicion().h1, lineas: [{ x: 119, y: 420, w: 700, h: 110 }] } }, "Área de seguridad del logo");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("aviso");
+      expect(c.detalle).toContain("H1");
+    });
+
+    it("contraste del logo con su fondo: ok y falla", () => {
+      const negro = { H: 0, S: 0, L: 10 };
+      const blanco = { H: 0, S: 0, L: 100 };
+      expect(ctl({ logoColor: negro, logoFondo: blanco }, "Logo contrasta").ok).toBe(true);
+      const mal = ctl({ logoColor: { H: 0, S: 0, L: 90 }, logoFondo: blanco }, "Logo contrasta");
+      expect(mal.ok).toBe(false);
+      expect(mal.nivel).toBe("aviso");
+    });
+
+    it("sin logo medido no agrega estos controles; sin colores no controla contraste", () => {
+      const r = evaluarPieza(marca, pieza(), medicion({ logo: null }));
+      expect(r.controles.some((c) => /Logo de tamaño|Área de seguridad del logo|Logo contrasta/.test(c.control))).toBe(false);
+      expect(ctl({}, "Logo contrasta")).toBeUndefined();
+    });
   });
 
   it("rechaza contenido fuera de la zona segura", () => {
@@ -62,9 +111,17 @@ describe("checklist de pieza", () => {
   });
 
   it("un color ajustado a mano que no cumple se acepta con aviso y no bloquea", () => {
-    const gris = { H: 0, S: 0, L: 60 };
-    const r0 = evaluarPieza({ ...marca, paleta: { ...marca.paleta, fondo_neutro: gris } }, pieza(), medicion());
-    expect(r0.estado).toBe("rechazado");
+    // El gris más claro que rompe algún contraste solo como aviso (entre 3:1 y 4,5:1); por debajo de 3:1 sería
+    // bloqueante (E9).
+    const sinAjuste = (L: number) =>
+      evaluarPieza({ ...marca, identidad: { ...marca.identidad, paleta: { ...marca.identidad.paleta, fondo_neutro: { H: 0, S: 0, L } } } }, pieza(), medicion());
+    const L = [90, 88, 86, 84, 82, 80, 78, 76, 74].find((l) => {
+      const r = sinAjuste(l);
+      return r.estado === "rechazado" && r.controles.every((c) => c.ok || c.nivel === "aviso");
+    })!;
+    expect(L).toBeDefined();
+    const gris = { H: 0, S: 0, L };
+    expect(sinAjuste(L).estado).toBe("rechazado");
     const ajustada = ajustarColorMarca(marca, "fondo_neutro", gris);
     const r = evaluarPieza(ajustada, pieza(), medicion());
     expect(r.estado).toBe("ok");
@@ -112,7 +169,7 @@ describe("areaCubierta", () => {
 describe("CTA en Modo A", () => {
   it("un acento claro sobre fondo neutro claro lleva contorno y pasa", async () => {
     const { ctaModoA, controlesCtaModoA, cumple } = await import("./palette");
-    const p = marca.paleta;
+    const p = marca.identidad.paleta;
     const r = evaluarPieza(marca, pieza(), medicion());
     const modo = ctaModoA(p);
     expect(cumple(controlesCtaModoA(p, modo))).toBe(true);
@@ -203,7 +260,7 @@ describe("reglas por formato", () => {
     const p2bl = pieza({ variante: "2B-L", deco: { forma: "blob-1", relleno: "patron", patron: "ondas" } });
     // Un rombo con su caja en x 600-1000: la esquina superior izquierda de la caja queda fuera de la forma.
     const contorno = [{ x: 800, y: 300 }, { x: 1000, y: 700 }, { x: 800, y: 1100 }, { x: 600, y: 700 }];
-    const deco = { tipo: "patron" as const, caja: { x: 600, y: 300, w: 400, h: 800 }, opacidad: 0.16, overlay: null, color: marca.paleta.color_marca, contorno };
+    const deco = { tipo: "patron" as const, caja: { x: 600, y: 300, w: 400, h: 800 }, opacidad: 0.16, overlay: null, color: marca.identidad.paleta.color_marca, contorno };
     const control = (h1x: number) =>
       evaluarPieza(marca, p2bl, medicion({ deco, body: null, h1: { ...medicion().h1, lineas: [{ x: 119, y: 320, w: h1x - 119, h: 100 }] } })).controles.find((c) => c.control.startsWith("Capa decorativa sin tapar"))!;
     expect(control(660).ok).toBe(true); // dentro de la caja, fuera del rombo
@@ -221,9 +278,92 @@ describe("reglas por formato", () => {
     expect(tapado.detalle).toBe("logo");
     // Sin decoración compatible (variante 1), el control no aparece.
     expect(evaluarPieza(marca, pieza({ decoracion: "esquinas-diagonal" }), medicion()).controles.some((c) => c.control.startsWith("Decoración"))).toBe(false);
-    const soporte = { fondo: marca.paleta.fondo_neutro, icono: marca.paleta.color_marca };
+    const soporte = { fondo: marca.identidad.paleta.fondo_neutro, icono: marca.identidad.paleta.color_marca };
     const conSoporte = evaluarPieza(marca, p3, { ...base, contacto: [{ icono: { x: 119, y: 800, w: 58, h: 58 }, texto: { lineas: [{ x: 200, y: 810, w: 300, h: 40 }], px: 30, peso: 400, italica: false }, soporte }] });
     expect(conSoporte.controles.find((c) => c.control === "Íconos sobre su soporte")!.ok).toBe(true);
   });
 });
 
+
+describe("niveles de regla y aceptación con justificación (E9)", () => {
+  it("cada control tiene nivel, y la alineación del rubro es sugerencia", () => {
+    const r = evaluarPieza(marca, pieza(), medicion());
+    expect(r.controles.every((c) => ["bloqueante", "aviso", "sugerencia"].includes(c.nivel))).toBe(true);
+    expect(r.controles.find((c) => c.control === "Alineación del mensaje")!.nivel).toBe("sugerencia");
+    expect(r.controles.find((c) => c.control === "Un mensaje principal")!.nivel).toBe("bloqueante");
+  });
+
+  it("una sugerencia que falla no frena la pieza", () => {
+    const r = evaluarPieza(marca, pieza({ alineacion: "centrado" }), medicion());
+    const k = r.controles.find((c) => c.control === "Alineación del mensaje")!;
+    expect(k.ok).toBe(false);
+    expect(r.estado).toBe("ok");
+  });
+
+  it("un aviso que falla frena hasta que se acepta con justificación", () => {
+    const conCuerpoChico = medicion({ body: { ...medicion().body!, px: 18 } });
+    const r0 = evaluarPieza(marca, pieza(), conCuerpoChico);
+    const k = r0.controles.find((c) => !c.ok)!;
+    expect(k.nivel).toBe("aviso");
+    expect(r0.estado).toBe("rechazado");
+    const aceptada = aceptarControl(pieza(), k.control, "Pedido del cliente: pieza para imprimir", "estudio");
+    const r1 = evaluarPieza(marca, aceptada, conCuerpoChico);
+    const k1 = r1.controles.find((c) => c.control === k.control)!;
+    expect(k1.aceptado).toBe(true);
+    expect(k1.justificacion).toMatchObject({ motivo: "Pedido del cliente: pieza para imprimir", autor: "estudio" });
+    expect(r1.estado).toBe("ok");
+    expect(evaluarPieza(marca, quitarAceptacion(aceptada, k.control), conCuerpoChico).estado).toBe("rechazado");
+  });
+
+  it("un bloqueante no se acepta aunque tenga justificación", () => {
+    const sinH1 = { ...pieza(), contenido: { ...pieza().contenido, h1: "" } };
+    const aceptada = aceptarControl(sinH1, "Un mensaje principal", "lo quiero así", "estudio");
+    const r = evaluarPieza(marca, aceptada, medicion());
+    expect(r.controles.find((c) => c.control === "Un mensaje principal")!.aceptado).toBeUndefined();
+    expect(r.estado).toBe("rechazado");
+  });
+
+  it("un texto bajo 3:1 es bloqueante aunque la paleta tenga ajustes manuales", () => {
+    const ajustada = ajustarColorMarca(marca, "fondo_neutro", { H: 0, S: 0, L: 60 });
+    const r = evaluarPieza(ajustada, pieza(), medicion());
+    const bloqueantes = r.controles.filter((c) => !c.ok && c.nivel === "bloqueante");
+    expect(bloqueantes.length).toBeGreaterThan(0);
+    expect(bloqueantes.every((c) => !c.aceptado)).toBe(true);
+    expect(r.estado).toBe("rechazado");
+  });
+  describe("texto sobre foto (E6)", () => {
+    const f = pieza({ variante: "F", foto_fondo: "data:image/jpeg;base64,xx" });
+    const ctl = (sf: Medicion["contrasteSobreFoto"], nombre: string) =>
+      evaluarPieza(marca, f, medicion({ contrasteSobreFoto: sf })).controles.find((c) => c.control === nombre)!;
+
+    it("sin medida sobre foto (pieza sin foto) no hay controles de foto", () => {
+      const r = evaluarPieza(marca, pieza({ variante: "F" }), medicion());
+      expect(r.controles.some((c) => /sobre la foto|contra la foto/.test(c.control))).toBe(false);
+    });
+
+    it("H1 sobre la foto: ok desde 3:1, bloqueante por debajo", () => {
+      expect(ctl({ h1: 3.4 }, "H1 grande sobre la foto").ok).toBe(true);
+      const c = ctl({ h1: 2.4 }, "H1 grande sobre la foto");
+      expect(c.ok).toBe(false);
+      expect(c.nivel).toBe("bloqueante");
+    });
+
+    it("body sobre la foto: ok desde 4,5:1, aviso entre 3 y 4,5, bloqueante bajo 3", () => {
+      expect(ctl({ h1: 7, body: 5.2 }, "Body sobre la foto").ok).toBe(true);
+      const aviso = ctl({ h1: 7, body: 3.8 }, "Body sobre la foto");
+      expect([aviso.ok, aviso.nivel]).toEqual([false, "aviso"]);
+      expect(aviso.detalle).toContain("3.8:1");
+      const bloq = ctl({ h1: 7, body: 2.1 }, "Body sobre la foto");
+      expect([bloq.ok, bloq.nivel]).toEqual([false, "bloqueante"]);
+    });
+
+    it("un bloqueante sobre la foto rechaza la pieza y un aviso se puede aceptar", () => {
+      expect(evaluarPieza(marca, f, medicion({ contrasteSobreFoto: { h1: 2.4 } })).estado).toBe("rechazado");
+      const conAviso = medicion({ contrasteSobreFoto: { h1: 7, body: 3.8 } });
+      expect(evaluarPieza(marca, f, conAviso).estado).toBe("rechazado");
+      const aceptada = aceptarControl(f, "Body sobre la foto", "foto de archivo del cliente", "estudio");
+      expect(evaluarPieza(marca, aceptada, conAviso).estado).toBe("ok");
+      expect(evaluarPieza(marca, f, medicion({ contrasteSobreFoto: { h1: 7, body: 5.2 } })).estado).toBe("ok");
+    });
+  });
+});

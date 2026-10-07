@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataUrlASvg, recolorearSvg, svgADataUrl } from "./logo";
+import { cajaVisible, dataUrlASvg, elegirVersionLogo, monocromoDe, recolorearSvg, svgADataUrl } from "./logo";
 
 describe("recolorearSvg", () => {
   const svg = `<svg viewBox="0 0 10 10"><rect fill="#e30613" stroke="#000"/><path fill="none" style="fill:#0f0;stroke:none"/><circle/></svg>`;
@@ -17,5 +17,44 @@ describe("recolorearSvg", () => {
 
   it("ida y vuelta por data URL", () => {
     expect(dataUrlASvg(svgADataUrl(svg))).toBe(svg);
+  });
+});
+
+describe("elegirVersionLogo", () => {
+  const principal = { src: "p", aspecto: 3 };
+  const versiones = { horizontal: { src: "h", aspecto: 4 }, vertical: { src: "v", aspecto: 0.6 }, simbolo: { src: "s", aspecto: 1 } };
+
+  it("en un lugar ancho elige el principal u horizontal", () => {
+    const e = elegirVersionLogo(principal, versiones, { ancho: 600, alto: 100 })!;
+    expect(["principal", "horizontal"]).toContain(e.version);
+  });
+
+  it("en un lugar angosto elige vertical o símbolo", () => {
+    const e = elegirVersionLogo(principal, versiones, { ancho: 100, alto: 200 })!;
+    expect(["vertical", "simbolo"]).toContain(e.version);
+    expect(e.version).toBe("vertical");
+  });
+
+  it("sin versiones devuelve el principal; sin nada, null", () => {
+    expect(elegirVersionLogo(principal, undefined, { ancho: 100, alto: 100 })!.version).toBe("principal");
+    expect(elegirVersionLogo(null, {}, { ancho: 100, alto: 100 })).toBeNull();
+  });
+});
+
+describe("monocromoDe", () => {
+  it("recolorea SVG y devuelve null para PNG", () => {
+    const src = svgADataUrl('<svg><rect fill="#f00"/></svg>');
+    expect(dataUrlASvg(monocromoDe(src, true)!)).toContain("#ffffff");
+    expect(dataUrlASvg(monocromoDe(src, false)!)).toContain("#1a1a1a");
+    expect(monocromoDe("data:image/png;base64,AAAA", true)).toBeNull();
+  });
+});
+
+describe("cajaVisible", () => {
+  it("centra la imagen contain en una caja más ancha", () => {
+    expect(cajaVisible({ x: 0, y: 0, w: 400, h: 100 }, 2)).toEqual({ x: 100, y: 0, w: 200, h: 100 });
+  });
+  it("centra en vertical en una caja más alta", () => {
+    expect(cajaVisible({ x: 10, y: 10, w: 100, h: 200 }, 1)).toEqual({ x: 10, y: 60, w: 100, h: 100 });
   });
 });
