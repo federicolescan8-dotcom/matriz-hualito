@@ -468,7 +468,8 @@ export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 
       alineacion: "izquierda",
       contenido: {
         h1: contenido.h1,
-        body: PLANTILLAS[variante]?.orden.includes("body") ? contenido.body : null,
+        // El catálogo (4) necesita body aunque no lo nombre en su orden: sin él, el texto no entra en el slot.
+        body: PLANTILLAS[variante]?.orden.includes("body") || variante === "4" ? contenido.body : null,
         cta: PLANTILLAS[variante]?.tieneCta ? contenido.cta : null,
       },
     };

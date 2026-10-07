@@ -76,6 +76,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 40. **Exploración de caminos (E5)**: para una marca nueva, el diagnóstico suma referencias del cliente (colores sacados de las imágenes de su moodboard y colores de la competencia) y propone 3 caminos visiblemente distintos: "Fiel a lo que contaste", "Más expresivo", "Más sobrio y clásico" y, con moodboard, uno inspirado en su color dominante. Cada camino trae ejes, color, par tipográfico y forma propia; difieren en matiz (20° o más) o en familia tipográfica, y el cliente elige uno. Los colores de la competencia extienden la banda prohibida del color de marca (±25° cada uno). *(Cap. 2, Cap. 3, Cap. 9)*
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
+43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 
 ---
 
@@ -1227,6 +1228,33 @@ resultado: {
   controles_fallidos: [] | [lista con el control y la accion aplicada]
 }
 ```
+
+### Entregables de identidad *(v1.1, E8)*
+
+Con la identidad confirmada, la ficha de marca entrega dos archivos.
+
+**Manual de marca (PDF, A4 vertical, fondos incluidos).** Refleja la versión aprobada de la identidad; la portada lo indica. Secciones:
+
+| Sección | Contenido |
+|---|---|
+| Portada | Marca y versión de la identidad que se documenta |
+| Colores | HEX, RGB y rol de cada color |
+| Tipografía | Familias de display y de texto |
+| Logo | El logo y sus reglas |
+| Recursos propios y fotografía | Solo si la marca los tiene |
+| Ejemplos | 4 piezas de la grilla del feed |
+
+**Kit (ZIP).**
+
+| Carpeta o archivo | Contenido |
+|---|---|
+| `logos/` | SVG cargados, versiones y monocromos derivados, más un PNG de 1000 px de cada SVG |
+| `paleta/` | ASE, JSON, CSS y `tokens-figma.json` (formato W3C Design Tokens) |
+| `tipografias/` | `tipografias.txt` con los enlaces a Google Fonts y la fuente propia si la hay |
+| `recursos/` | Cada forma propia en SVG (0-100) y el patrón propio con `<pattern>` |
+| `brief-logo.md` y `LEEME.txt` | Brief para el diseñador e indicaciones del kit |
+
+No incluye plantillas SVG editables.
 
 ---
 

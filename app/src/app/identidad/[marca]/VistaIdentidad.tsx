@@ -9,6 +9,7 @@ import { PanelVersiones } from "@/components/PanelVersiones";
 import { deshacer, deshacerNuevo, registrarPaso, rehacer, type Deshacer } from "@/engine/versiones";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { useSesion } from "@/lib/sesion";
+import { descargarKit, descargarManual } from "@/lib/kit";
 
 export function VistaIdentidad({ id }: { id: string }) {
   const marcas = useMarcas();
@@ -26,6 +27,21 @@ export function VistaIdentidad({ id }: { id: string }) {
   const puedeRehacer = !!historia && historia.pos < historia.pasos.length - 1;
   const guardar = async (m: Marca) => {
     if (await guardarMarca(m)) setHistoria(null);
+  };
+
+  // Entregables (E8): el manual en PDF y el kit en ZIP. Un solo botón trabaja a la vez.
+  const [generando, setGenerando] = useState<"manual" | "kit" | null>(null);
+  const [errorEntrega, setErrorEntrega] = useState<string | null>(null);
+  const entregar = async (cual: "manual" | "kit", tarea: () => Promise<string | null>) => {
+    setGenerando(cual);
+    setErrorEntrega(null);
+    try {
+      setErrorEntrega(await tarea());
+    } catch (e) {
+      setErrorEntrega((e as Error).message);
+    } finally {
+      setGenerando(null);
+    }
   };
 
   // Ctrl+Z / Ctrl+Shift+Z (o Cmd en Mac), salvo mientras se escribe en un campo.
@@ -88,6 +104,12 @@ export function VistaIdentidad({ id }: { id: string }) {
               </button>
             </>
           )}
+          <button type="button" disabled={!!generando} onClick={() => void entregar("manual", () => descargarManual(actual))} className="rounded-md border border-neutral-300 px-4 py-2 text-sm disabled:opacity-50" title="Usa la versión aprobada de la identidad, si hay">
+            {generando === "manual" ? "Generando PDF…" : "Descargar manual de marca (PDF)"}
+          </button>
+          <button type="button" disabled={!!generando} onClick={() => void entregar("kit", () => descargarKit(actual).then(() => null))} className="rounded-md border border-neutral-300 px-4 py-2 text-sm disabled:opacity-50" title="Usa la versión aprobada de la identidad, si hay">
+            {generando === "kit" ? "Armando kit…" : "Descargar kit (ZIP)"}
+          </button>
           <Link
             href="/publicar"
             className={`rounded-md px-4 py-2 text-sm ${sinGuardar ? "pointer-events-none border border-neutral-200 text-neutral-400" : "border border-neutral-300"}`}
@@ -96,6 +118,7 @@ export function VistaIdentidad({ id }: { id: string }) {
             Publicar con esta identidad
           </Link>
         </div>
+        {errorEntrega && <p role="alert" className="text-sm text-red-700">{errorEntrega}</p>}
         <nav aria-label="Secciones de la identidad" className="flex flex-wrap gap-4 text-sm">
           {SECCIONES_IDENTIDAD.map((s) => (
             <a key={s.id} href={`#${s.id}`} className="text-neutral-500 hover:text-neutral-900">

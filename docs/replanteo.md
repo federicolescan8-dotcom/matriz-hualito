@@ -231,7 +231,8 @@ manuales.
   modos y la coherencia entre piezas.
 - **Aceptación:** elegir un tipo arma una pieza completa con campos propios, y el texto sugerido entra en los límites de la variante.
 
-### E8 · Entregables de identidad · [ ] pendiente · depende de E2, E3, E4 y E13
+### E8 · Entregables de identidad · [x] hecha · depende de E2, E3, E4 y E13
+> Quedó: manual de marca en PDF A4 vertical (`/api/manual` fotografía `/manual/[marca]` con Playwright, mismo motor que el PNG) con portada que declara la versión aprobada, colores (HEX, RGB y roles), tipografía, logo y reglas, recursos propios y fotografía (si la marca los tiene) y 4 ejemplos de `piezasDeGrilla`. Kit ZIP con `logos/` (SVG, versiones, monocromos y PNG de 1000 px), `paleta/` (ASE, JSON, CSS y `tokens-figma.json` W3C), `tipografias/` (enlaces a Google Fonts y fuente propia), `recursos/` (formas y patrón en SVG), `brief-logo.md` y `LEEME.txt`. Botones en Identidad. No se hizo: plantillas SVG editables (opcionales) ni foto de muestra del tratamiento en el manual. Corrección de paso: `piezasDeGrilla` pasa el body a la variante 4.
 - **Alcance:**
   - **manual de marca en PDF**, generado con el mismo motor de render: portada, paleta con códigos, tipografía, logo y sus reglas, recursos y ejemplos de piezas;
   - **kit en ZIP:**

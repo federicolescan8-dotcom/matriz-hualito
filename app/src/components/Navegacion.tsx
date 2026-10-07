@@ -17,9 +17,9 @@ export function Navegacion() {
   const ruta = usePathname();
   const sesion = useSesion();
   const activa = useMarcaActiva();
-  // La página de render es la que captura el PNG, y la presentación es pantalla completa para el cliente (E13): sin
-  // navegación.
-  if (ruta.startsWith("/render") || ruta.startsWith("/presentacion")) return null;
+  // La página de render es la que captura el PNG, la presentación es pantalla completa para el cliente (E13) y el manual es la página que
+  // se imprime a PDF (E8): sin navegación.
+  if (ruta.startsWith("/render") || ruta.startsWith("/presentacion") || ruta.startsWith("/manual")) return null;
   return (
     <nav className="border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3 text-sm">

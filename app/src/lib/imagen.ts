@@ -180,3 +180,23 @@ export const MUESTRA_GENERADA =
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="240" viewBox="0 0 360 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4d9a6"/><stop offset=".45" stop-color="#6fa3b8"/><stop offset="1" stop-color="#1d2a3a"/></linearGradient></defs><rect width="360" height="240" fill="url(#g)"/><circle cx="260" cy="72" r="38" fill="#fff" fill-opacity=".85"/><rect y="172" width="360" height="68" fill="#14181e" fill-opacity=".75"/></svg>',
   );
+
+/** PNG de un SVG a `ladoMayor` px de lado mayor, con fondo transparente (kit de identidad, E8). Null si no se puede dibujar. */
+export async function svgAPng(svg: string, ladoMayor = 1000): Promise<Uint8Array | null> {
+  try {
+    const img = await cargar(svgADataUrl(svg));
+    const { naturalWidth: w, naturalHeight: h } = img;
+    if (!w || !h) return null;
+    const k = ladoMayor / Math.max(w, h);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * k);
+    canvas.height = Math.round(h * k);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+    return blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  } catch {
+    return null;
+  }
+}
