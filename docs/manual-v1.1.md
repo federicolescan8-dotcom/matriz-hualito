@@ -78,7 +78,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
-44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
+44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -917,17 +917,17 @@ Se numera 7b para no renumerar el capítulo 9, que se cita en todo el código.
 
 ### Objetivo del capítulo
 
-Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Estado: el CTA opcional de 2 y 3 ya rige; el resto se implementa en los pasos 3 a 7 de E15 (`docs/replanteo.md`).
+Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Las tablas de este capítulo viven en el motor, en `engine/marketing.ts` (`OBJETIVOS` y `OBJETIVOS_DE_TIPO`, con los ids entre paréntesis). Estado: el CTA opcional de 2 y 3 y la tabla de objetivos ya rigen; el resto se implementa en los pasos 3 a 7 de E15 (`docs/replanteo.md`).
 
 ### Los cinco objetivos
 
 | Objetivo | Pregunta al cliente | Orden de lectura | CTA | CTA por defecto |
 |---|---|---|---|---|
-| Vender ahora | ¿Querés que te compren ahora? | oferta → beneficio → vigencia → CTA | requerido, directo | "Aprovechala" |
-| Generar consultas | ¿Querés que te escriban o te pidan presupuesto? | problema → solución → CTA | requerido, de contacto | "Escribinos" |
-| Construir confianza | ¿Querés que te conozcan y te crean? | cita → autor → marca | ninguno (si se escribe uno, que sea suave) | — |
-| Educar | ¿Querés enseñar algo útil? | gancho → consejo → CTA | opcional | "Guardalo" |
-| Llenar un evento | ¿Querés que vengan a tu evento? | nombre → cuándo y dónde → CTA | requerido, de inscripción | "Sumate" |
+| Vender ahora (`vender`) | ¿Querés que te compren ahora? | oferta → beneficio → vigencia → CTA | requerido, directo | "Aprovechala" |
+| Generar consultas (`consultas`) | ¿Querés que te escriban o te pidan presupuesto? | problema → solución → CTA | requerido, de contacto | "Escribinos" |
+| Construir confianza (`confianza`) | ¿Querés que te conozcan y te crean? | cita → autor → marca | ninguno (si se escribe uno, que sea suave) | — |
+| Educar (`educar`) | ¿Querés enseñar algo útil? | gancho → consejo → CTA | opcional | "Guardalo" |
+| Llenar un evento (`evento`) | ¿Querés que vengan a tu evento? | nombre → cuándo y dónde → CTA | requerido, de inscripción | "Sumate" |
 
 Las preguntas al cliente son una propuesta de redacción.
 
