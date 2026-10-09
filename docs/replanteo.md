@@ -260,8 +260,76 @@ manuales.
   - formatos del roadmap: portada de Reel 9:16, portadas de Destacadas de Instagram, portada de Facebook (1640×624), banner de LinkedIn (1584×396) y posts de LinkedIn.
 - **Aceptación:** cada formato nuevo tiene zonas seguras, checklist y render verificados.
 
+### E15 · Capa de marketing · [ ] en curso · depende de E7 y E9; liga con E14
+- **Por qué:** las piezas digitales ya salen bien hechas; falta que vendan. Cada pieza declara qué quiere lograr y el
+  motor controla su estructura persuasiva. Solo digital (feed 4:5 y 1:1, stories 9:16, link 1200×630); no hay
+  formatos nuevos.
+- **Decisiones tomadas:**
+  - `objetivo` es un campo opcional de `Pieza` (`ObjetivoMarketing`), porque `/api/render` recibe solo
+    `{marca, pieza}` y vuelve a correr el checklist en el servidor. Las piezas no se persisten: no hay migración.
+    Sin objetivo, todo se comporta como antes y no corre ningún control de marketing.
+  - Cinco objetivos en `engine/marketing.ts` (tabla `OBJETIVOS`): vender ahora, generar consultas, construir
+    confianza, educar y llenar un evento, cada uno con su pregunta al cliente, orden de lectura, política de CTA
+    (`requerido | opcional | ninguno`) y CTA por defecto. `OBJETIVOS_DE_TIPO` asigna los compatibles a cada tipo de
+    E7; el primero es el default. La tabla completa está en el manual, capítulo 7b.
+  - Variantes 2 y 3: CTA opcional cuando el objetivo lo pide, con el orden de slots de la 2B (el CTA va justo antes
+    del logo).
+  - El CTA siempre se puede escribir a mano. Prioridad: lo escrito por el usuario > el CTA del diagnóstico > el CTA
+    por defecto del objetivo. Ningún control reescribe ni bloquea el texto del CTA.
+  - Los controles de marketing nunca son `bloqueante`: `aviso` solo para lo estructural y medible, `sugerencia` para
+    lo heurístico.
+  - Público: tres preguntas opcionales en el diagnóstico. No entran al checklist; solo alimentan el prompt de copy.
+  - Las tendencias estéticas no van en las reglas: viven en `docs/tendencias.md`, con fecha de revisión.
+- **Pasos** (uno por vez; cada uno cierra con tests, typecheck y lint limpios, manuales actualizados y un commit):
+  1. **Manual y tendencias (sin código).** Capítulo "Estructura de marketing" en el manual y `docs/tendencias.md`.
+     *Aceptación:* la tabla es coherente con los 7 tipos, las variantes prioritarias por rubro y el carrusel; el manual
+     resuelve el orden CTA/logo en 2 y 3; no hay tendencias de memoria sin marcar "a verificar".
+  2. **CTA opcional en las variantes 2 y 3.** `tieneCta: boolean` pasa a una política `"si" | "no" | "opcional"` en
+     `PlantillaVariante` (`Pieza.tsx`, `publicar/page.tsx`, `piezasDeGrilla`, el control "Variante sin CTA" solo con
+     `"no"`, `contenidos.test.ts`). *Aceptación:* 2 y 3 sin CTA se ven y miden igual que antes; con CTA pasan el
+     checklist en 4:5, 1:1, 9:16 y 1200×630 (o se documenta cuál no y por qué); `piezasDeGrilla` conserva su
+     resultado; tests de ambas variantes con y sin CTA.
+  3. **`engine/marketing.ts`.** `ObjetivoMarketing`, `OBJETIVOS`, `OBJETIVOS_DE_TIPO` y helpers puros, con un test de
+     coherencia: las variantes de cada tipo admiten la política de CTA de su objetivo por defecto. *Aceptación:* tests
+     verdes, sin React ni DOM, sin ciclos de importación con `contenidos.ts` y `checklist.ts`.
+  4. **Campo `objetivo` en `Pieza` y en `armarPieza`.** Los CTA del `switch` ("Aprovechala", "Sumate", "Conocé más")
+     pasan a la tabla; Promoción y Evento ganan un campo `cta` opcional; prioridad del CTA como arriba; el objetivo no
+     cambia el orden de variantes del tipo. *Aceptación:* sin objetivo, `armarPieza` devuelve lo mismo que hoy (test
+     de regresión); con objetivo, promoción y evento salen con CTA; lo escrito a mano pisa siempre.
+  5. **Selector en Publicaciones.** Fila "¿Qué querés lograr?" en el recuadro del tipo, con los objetivos compatibles
+     y el default marcado (texto fijo si hay uno solo) y el orden de lectura en una línea; no aparece con "Sin tipo".
+     `elegirObjetivo` actualiza `pieza.objetivo` y completa el CTA por defecto solo si está vacío y la variante lo
+     admite. El carrusel no cambia. *Aceptación:* verificado en el navegador (promoción, evento, tip, testimonio); lo
+     que se ve es lo que se exporta.
+  6. **Controles objetivos en el checklist.** Bloque nuevo "Marketing": objetivo con CTA requerido y pieza sin CTA →
+     `aviso`; tamaño relativo del H1 frente al resto, medido con las cajas reales → `sugerencia`. Solo con
+     `pieza.objetivo`. *Aceptación:* el checklist del servidor y el de pantalla dan lo mismo; la aceptación con
+     justificación (E9) funciona sobre los avisos nuevos; tests por regla.
+  7. **Controles heurísticos (todos `sugerencia`).** CTA que arranca con verbo (imperativos con voseo), oferta con
+     vigencia, un solo mensaje principal como proxy por cantidad de bloques de texto (rotulado así). Sin el control
+     "beneficio vs. característica". *Aceptación:* ninguno frena la exportación; "Pedí turno" y "Tu lugar te espera"
+     pasan sin avisos; tests con los falsos positivos documentados.
+  8. **Subagente `disenador-marketing`** (`.claude/agents/`, mismo formato que `manual.md`): lee el manual y el
+     replanteo antes de opinar; criterios: se entiende en 3 segundos, un mensaje y un CTA, jerarquía gancho >
+     beneficio > oferta > CTA, coherencia con la identidad. Nunca rompe un bloqueante; lo que choca con un aviso lo
+     propone con justificación. *Aceptación:* el archivo existe, lista qué lee y sus criterios, y se puede invocar.
+  9. **Público en el diagnóstico (opcional).** A quién le vende, qué lo mueve a comprar, qué lo frena antes de
+     contactar. `migrarMarca` tolera su ausencia; no toca el checklist. *Aceptación:* una marca guardada antes carga
+     sin errores y sin esos campos; tests en `diagnostico.test.ts` / `identidad.test.ts`.
+  10. **Capa de copy con la API de Claude.** Ruta de servidor (estilo `/api/render`) que recibe marca, objetivo y
+      brief y devuelve 2 o 3 opciones de copy en JSON con los campos de `TIPOS_CONTENIDO` y sus `max`. La IA propone,
+      `armarPieza` arma y el checklist valida. Clave en `app/.env.local`; sin clave, la app funciona completa y no
+      ofrece la función. JSON estricto validado, un reintento y error claro. Prompt armado con la tabla `OBJETIVOS`,
+      los ejes de la marca (y el tono de E14 si existe) y el público del paso 9. Modelo configurable por variable de
+      entorno, verificado en la documentación vigente. Si E14 sigue pendiente, queda el punto de enganche del tono.
+      *Aceptación:* sin clave pasan todos los tests y la app se usa completa; con clave las opciones respetan los
+      `max`; tests del validador (válida, JSON roto, campo largo, campo faltante) sin red.
+- **Fuera de alcance por ahora:** empezar por objetivo en vez de por tipo; el control "beneficio vs. característica";
+  tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
+  checklist; objetivo a nivel de marca.
+
 ## Orden sugerido
-E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10.
+E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10. E15 (capa de marketing) va después de E7 y deja el enganche para E14.
 - **E9 primero:** es chica y libera las decisiones creativas que hoy chocan contra un control que bloquea.
 - **E12 y E3 antes que E2:** el diagnóstico abierto, el color y la tipografía son lo que más diferencia a una marca y
   lo más barato de construir.

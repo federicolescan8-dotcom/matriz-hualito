@@ -21,7 +21,7 @@ app/src/
   lib/          Puente con el navegador: medición del DOM, almacenamiento, exportación, sesión
   components/   Dibujo: la pieza, sus editores, la identidad de la marca, el checklist
   app/          Rutas de Next: diagnóstico, marcas, identidad, publicar, render, manual, api/render, api/manual, login
-docs/           Manual de diseño, manual técnico, replanteo, configuración de Supabase
+docs/           Manual de diseño, manual técnico, replanteo, configuración de Supabase, tendencias de diseño (docs/tendencias.md: con fecha de revisión; nunca reglas del motor)
 supabase/       schema.sql (tablas, RLS, semilla)
 ```
 
