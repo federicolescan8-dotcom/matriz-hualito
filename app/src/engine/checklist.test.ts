@@ -427,3 +427,30 @@ describe("controles de marketing", () => {
     expect(parteDelH1(medicion())).toBeGreaterThan(AREA_H1_MIN);
   });
 });
+
+describe("heurísticas de marketing en el checklist", () => {
+  const sugerencias = (pz: Pieza) =>
+    evaluarPieza(marca, pz, medicion()).controles.filter((c) => c.bloque === "Marketing" && c.nivel === "sugerencia" && c.aviso).map((c) => c.control);
+
+  it("\"Pedí turno\" y \"Tu lugar te espera\" pasan sin avisos ni sugerencias", () => {
+    for (const cta of ["Pedí turno", "Tu lugar te espera"]) {
+      const pz = pieza({ objetivo: "consultas", contenido: { h1: "Tu contabilidad, en orden", body: "Asesoramiento para pymes.", cta } });
+      expect(sugerencias(pz), cta).toEqual([]);
+      expect(evaluarPieza(marca, pz, medicion()).estado).toBe("ok");
+    }
+  });
+
+  it("las heurísticas sugieren pero nunca frenan la exportación", () => {
+    // El H1 es el de la medición de prueba (su peso depende del largo); la oferta va en el body.
+    const pz = pieza({ objetivo: "vender", contenido: { h1: "Tu contabilidad, en orden", body: "20% off. Dos. Tres. Cuatro.", cta: "Más info" } });
+    expect(sugerencias(pz)).toEqual(
+      expect.arrayContaining(["El CTA le habla al lector", "La oferta tiene vigencia", "Un solo mensaje (aproximado por cantidad de bloques de texto)"]),
+    );
+    expect(evaluarPieza(marca, pz, medicion()).estado).toBe("ok");
+  });
+
+  it("sin objetivo no corren", () => {
+    const pz = pieza({ contenido: { h1: "Tu contabilidad, en orden", body: "20% off. Dos. Tres. Cuatro.", cta: "Más info" } });
+    expect(evaluarPieza(marca, pz, medicion()).controles.filter((c) => c.bloque === "Marketing")).toEqual([]);
+  });
+});

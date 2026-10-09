@@ -20,7 +20,7 @@ import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, pl
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
-import { OBJETIVOS } from "./marketing";
+import { bloquesDeTexto, ctaHablaAlLector, MAX_BLOQUES_TEXTO, OBJETIVOS, tieneOferta, tieneVigencia } from "./marketing";
 import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
 
 export interface Rect {
@@ -539,6 +539,23 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       parte >= AREA_H1_MIN,
       `H1 ${Math.round(parte * 100)}% del área de texto (mín. ${Math.round(AREA_H1_MIN * 100)}%)`,
       "acortar el body o el CTA para que el mensaje principal se lea primero",
+    );
+    // Heurísticas de texto (paso 7): aproximaciones, por eso solo sugieren.
+    const ctaPieza = m.cta ? pieza.contenido.cta?.trim() ?? "" : "";
+    if (ctaPieza) {
+      sugerir("Marketing", "El CTA le habla al lector", ctaHablaAlLector(ctaPieza), `"${ctaPieza}"`, "arrancar con un verbo («Reservá», «Escribinos») o hablarle de vos al lector");
+    }
+    const textoPieza = [pieza.contenido.h1, pieza.contenido.body ?? "", ctaPieza].join(" ");
+    if (tieneOferta(textoPieza)) {
+      sugerir("Marketing", "La oferta tiene vigencia", tieneVigencia(textoPieza), "", "decir hasta cuándo vale («hasta el domingo», «hasta agotar stock»)");
+    }
+    const bloques = bloquesDeTexto(pieza.contenido);
+    sugerir(
+      "Marketing",
+      "Un solo mensaje (aproximado por cantidad de bloques de texto)",
+      bloques <= MAX_BLOQUES_TEXTO,
+      `${bloques} bloques (máx. ${MAX_BLOQUES_TEXTO})`,
+      "dejar una idea por pieza: acortar el body o pasarlo a un carrusel",
     );
   }
 
