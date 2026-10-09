@@ -509,7 +509,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   // ── Bloque 5: contenido ──
   add("Contenido", "Un mensaje principal", pieza.contenido.h1.trim().length > 0, pieza.contenido.h1.trim() ? "" : "falta el H1", "completar el H1", "bloqueante");
-  if (plantilla && !plantilla.tieneCta) {
+  if (plantilla && plantilla.politicaCta === "no") {
     add("Contenido", "Variante sin CTA", !m.cta, m.cta ? "la variante no lleva CTA" : "", "quitar el CTA");
   }
   const fotoPedida = pieza.deco?.relleno === "foto";

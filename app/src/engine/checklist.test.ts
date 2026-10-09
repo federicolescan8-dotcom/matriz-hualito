@@ -151,8 +151,16 @@ describe("checklist de pieza", () => {
     expect(r.estado).toBe("revision_manual");
   });
 
-  it("la variante 2 no lleva CTA", () => {
-    const r = evaluarPieza(marca, pieza({ variante: "2" }), medicion());
+  it("las variantes 2 y 3 admiten CTA opcional (cap. 7b): no corre el control de variante sin CTA", () => {
+    for (const variante of ["2", "3"] as const) {
+      const r = evaluarPieza(marca, pieza({ variante }), medicion());
+      expect(r.controles.find((c) => c.control === "Variante sin CTA")).toBeUndefined();
+    }
+    expect(evaluarPieza(marca, pieza({ variante: "2" }), medicion()).estado).toBe("ok");
+  });
+
+  it("la variante P (carrusel) no lleva CTA", () => {
+    const r = evaluarPieza(marca, pieza({ variante: "P" }), medicion());
     expect(r.estado).toBe("rechazado");
     expect(r.controles.find((c) => c.control === "Variante sin CTA")!.ok).toBe(false);
   });

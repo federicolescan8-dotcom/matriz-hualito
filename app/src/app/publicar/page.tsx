@@ -16,6 +16,7 @@ import { marcaParaPublicar, versionAprobada } from "@/engine/versiones";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
   aceptarControl,
+  admiteCta,
   alineacionesPermitidas,
   formatoDeCanal,
   piezaNueva,
@@ -120,7 +121,7 @@ export default function PublicarPage() {
     const nuevos = { ...campos, [id]: valor };
     setCampos(nuevos);
     const armada = armarPieza(contenidoTipo!, nuevos, marca!);
-    const conCta = { ...armada.contenido, cta: PLANTILLAS[actual!.variante]!.tieneCta ? armada.contenido.cta ?? actual!.contenido.cta : null };
+    const conCta = { ...armada.contenido, cta: admiteCta(actual!.variante) ? armada.contenido.cta ?? actual!.contenido.cta : null };
     set({ contenido: conCta, contacto: armada.contacto ?? actual!.contacto, items: armada.items ?? actual!.items });
   }
 
@@ -368,7 +369,7 @@ export default function PublicarPage() {
             Dato de apoyo en itálica (tono, no jerarquía)
           </label>
         )}
-        {plantilla.tieneCta && (
+        {plantilla.politicaCta !== "no" && (
           <label className="flex flex-col gap-1">
             <span className="font-medium">Llamado a la acción</span>
             <input value={actual.contenido.cta ?? ""} onChange={(e) => setContenido({ cta: e.target.value || null })} className="rounded-md border border-neutral-300 px-3 py-2" />

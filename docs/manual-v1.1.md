@@ -78,7 +78,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
-44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B, y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
+44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -698,7 +698,7 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 | H1 | mensaje principal | todas |
 | Body | dato de apoyo o texto secundario | todas |
 | Capa decorativa | ícono grande, forma o patrón protagonista, o foto con overlay | 2B-L, 2B-S |
-| CTA | llamado a la acción, precio u oferta | 1, 2B-L, 2B-S, 4 |
+| CTA | llamado a la acción, precio u oferta | 1, 2B-L, 2B-S, 4, F; opcional en 2 y 3 *(v1.1, E15)* |
 | Contacto | íconos y datos de ubicación, teléfono y redes | 3 |
 | Ítem | foto o ícono más dato corto, repetible | 4 |
 
@@ -753,13 +753,13 @@ Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
 | 1 · Base | logo → H1 → body → CTA | H1 hasta 50% del alto | pieza estándar |
-| 2 · H1 protagonista | H1 → body → logo | H1 60-70% | frase o dato de alto impacto, sin CTA |
+| 2 · H1 protagonista | H1 → body → (CTA) → logo | H1 60-70% | frase o dato de alto impacto; CTA opcional *(E15)* |
 | 2B-L · Deco lateral | [H1 + body \| deco] → CTA → logo | sector mensaje: H1 65% / body 35%; mensaje a la izquierda, deco a la derecha | impacto con refuerzo visual |
 | 2B-S · Deco inferior | [H1 + body / deco] → CTA → logo | sector mensaje: H1 65% / body 35%; deco debajo del mensaje | impacto con refuerzo visual |
-| 3 · Contacto | H1 → body → contacto → logo en bloque | contacto con hasta 3-4 íconos | ficha institucional, sin CTA |
+| 3 · Contacto | H1 → body → contacto → (CTA) → logo en bloque | contacto con hasta 3-4 íconos | ficha institucional; CTA opcional *(E15)* |
 | 4 · Catálogo | logo + H1 → ítems → CTA | hasta 3-4 ítems en feed y story | varios productos o servicios |
 
-**Regla de cierre.** El CTA es el último elemento en las variantes 1 y 4. En las variantes 2B el logo cierra la pieza y el CTA va inmediatamente antes. Con el CTA opcional de E15, las variantes 2 y 3 siguen el orden de la 2B (cap. 7b).
+**Regla de cierre.** El CTA es el último elemento en las variantes 1 y 4. En las variantes 2B el logo cierra la pieza y el CTA va inmediatamente antes. Con el CTA opcional de E15 *(v1.1)*, las variantes 2 y 3 siguen el orden de la 2B cuando llevan CTA (cap. 7b).
 
 **Variante F · Texto sobre foto** *(v1.1, E6)*. Solo está disponible si la marca tiene las fotos habilitadas y no entra en la grilla de la presentación. La foto (`foto_fondo`) va a sangre, con el tratamiento y el punto focal de la marca, y el bloque de logo, mensaje y CTA va arriba o abajo (`foto_texto`); en 1200×630 ocupa la columna izquierda. Sin foto, el fondo es el del modo. La protección del contraste (`proteccion`) es una de tres:
 
@@ -786,7 +786,7 @@ Publicaciones arranca por el tipo de contenido. Cada tipo pide sus campos, se ar
 | Antes y después | 4 | Título (40), Antes (16), Después (16), Qué cambió (60), Llamado a la acción (28) |
 
 - **Texto sugerido.** Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) y lo recorta, sin cortar palabras, para que entre en los límites. El H1 sugerido tiene hasta 6 palabras en la variante 2 y hasta 9 en las demás. Lo que el cliente no cargó cae al ejemplo del tipo.
-- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 no llevan CTA (E15 las pasa a CTA opcional cuando el objetivo lo pide; ver cap. 7b).
+- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 admiten CTA opcional (E15, cap. 7b), pero las plantillas por tipo todavía las arman sin CTA (hasta el paso 4 de E15); se puede escribir a mano en el campo "Llamado a la acción".
 - **Antes y después** lleva el campo "Qué cambió" en el body aunque el catálogo no lo dibuje: con el body vacío, el ajuste de texto da revisión manual ("el texto no entra").
 - **Edición.** Al cambiar un campo se reescribe solo contenido, contacto e ítems; el resto de la pieza (modo, decoración, elementos gráficos) no se toca. "Sin tipo" mantiene la edición libre. El tip ofrece pasar al carrusel.
 - **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas.
@@ -917,7 +917,7 @@ Se numera 7b para no renumerar el capítulo 9, que se cita en todo el código.
 
 ### Objetivo del capítulo
 
-Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Estado: especificación; se implementa en los pasos 2 a 7 de E15 (`docs/replanteo.md`).
+Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Estado: el CTA opcional de 2 y 3 ya rige; el resto se implementa en los pasos 3 a 7 de E15 (`docs/replanteo.md`).
 
 ### Los cinco objetivos
 
@@ -968,10 +968,15 @@ El orden de lectura es narrativo; en la pieza cae en los slots que ya existen:
 Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcional en 2 y 3; no lleva ("no") en P (Punto, solo carrusel).
 
 - Sin CTA, las variantes 2 y 3 se dibujan y se miden exactamente como antes.
-- Con CTA se sigue el precedente de la 2B. Variante 2: H1 → body → CTA → logo. Variante 3: H1 → body → contacto → CTA → logo.
+- El botón se dibuja solo si el CTA tiene texto. Con CTA se sigue el precedente de la 2B. Variante 2: H1 → body → CTA → logo. Variante 3: H1 → body → contacto → CTA → logo.
+- Con la decoración "Arco lateral" (bloque centrado), en la variante 2 el CTA y el logo van dentro del bloque centrado.
+- En 1200×630 la variante 3 mantiene el contacto en la columna derecha y el CTA va en la columna izquierda, antes del logo.
+- En Publicaciones el campo "Llamado a la acción" aparece en toda variante que admite CTA, y al editar un campo del tipo el CTA se conserva. Si una pieza con CTA se pasa a la variante 2 o 3, el CTA se mantiene y se ve; se borra a mano, ningún control lo reescribe.
+- La grilla del feed de la presentación sigue mostrando 2 y 3 sin CTA.
+- Las plantillas por tipo (`armarPieza`) todavía no completan CTA en 2 y 3: Promoción en la 2 y Evento en la 3 salen sin CTA (paso 4).
 - **Regla de cierre.** Amplía la del cap. 6. En 1 y 4 el CTA es el último elemento; en 2B, 2 y 3 el logo cierra y el CTA va inmediatamente antes. La regla del cap. 6 es por variante (no hay una regla general "el CTA es lo último de la pieza"), así que no hay choque.
 - El CTA agregado cumple las mismas reglas que en cualquier variante: jerarquía del H1 (el doble, cap. 4), zonas seguras, grilla 3:4 en 1:1 y contraste (cap. 8).
-- El control "Variante sin CTA" pasa a aplicar solo a las variantes con política "no".
+- El control "Variante sin CTA" (bloque Contenido del cap. 8) aplica solo a las variantes con política "no" (hoy, la P del carrusel); 2 y 3 no lo corren.
 
 ### Coherencia con el resto del sistema
 

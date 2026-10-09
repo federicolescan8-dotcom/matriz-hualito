@@ -101,12 +101,18 @@ export interface ItemCatalogo {
   foto: string | null;
 }
 
+export type PoliticaCta = "si" | "no" | "opcional";
+
 export interface PlantillaVariante {
   nombre: string;
   descripcion: string;
   /** Orden de lectura de los slots (cap. 6). Es el mismo en todos los formatos: solo cambian las proporciones. */
   orden: ("logo" | "H1" | "body" | "cta")[];
-  tieneCta: boolean;
+  /**
+   * Si la variante lleva CTA (cap. 7b, E15): "si" lo espera, "opcional" lo dibuja solo si tiene texto (las variantes
+   * 2 y 3, con el orden de la 2B: el CTA va justo antes del logo) y "no" nunca lo lleva (P, solo carrusel).
+   */
+  politicaCta: PoliticaCta;
   /**
    * Tamaños en px sobre el lienzo feed; en story y estado se multiplican por el factor de escala (+15-20%).
    * `altoMax` es la fracción del alto de la pieza que puede ocupar el H1; `maxLineas` limita los renglones.
@@ -133,7 +139,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "1 · Base",
     descripcion: "Logo, mensaje, dato de apoyo y llamado a la acción. Pieza estándar.",
     orden: ["logo", "H1", "body", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 120, altoMax: 0.5 },
     body: { min: 26, max: 36 },
     cta: 34,
@@ -143,7 +149,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2 · H1 protagonista",
     descripcion: "Una frase o dato de alto impacto. Sin llamado a la acción.",
     orden: ["H1", "body", "logo"],
-    tieneCta: false,
+    politicaCta: "opcional",
     h1: { min: 64, max: 170, altoMax: 0.7 },
     body: { min: 26, max: 36 },
     cta: 34,
@@ -153,7 +159,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2B-L · Deco lateral",
     descripcion: "Mensaje a la izquierda y una capa decorativa a la derecha. Impacto con refuerzo visual.",
     orden: ["H1", "body", "cta", "logo"],
-    tieneCta: true,
+    politicaCta: "si",
     // La columna del mensaje es angosta (la mitad izquierda): el mínimo del H1 es más alto para sostener la jerarquía.
     h1: { min: 64, max: 104, altoMax: 0.42 },
     body: { min: 26, max: 32 },
@@ -165,7 +171,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2B-S · Deco inferior",
     descripcion: "Mensaje arriba y una capa decorativa debajo. Impacto con refuerzo visual.",
     orden: ["H1", "body", "cta", "logo"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 116, altoMax: 0.34 },
     body: { min: 26, max: 32 },
     cta: 32,
@@ -176,7 +182,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "3 · Contacto",
     descripcion: "Ficha institucional: mensaje y hasta 4 datos de contacto con ícono. Sin llamado a la acción.",
     orden: ["H1", "body", "logo"],
-    tieneCta: false,
+    politicaCta: "opcional",
     h1: { min: 56, max: 104, altoMax: 0.34 },
     body: { min: 26, max: 32 },
     cta: 32,
@@ -187,7 +193,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "4 · Catálogo",
     descripcion: "Logo y mensaje, de 2 a 4 productos o servicios con foto o ícono, y llamado a la acción.",
     orden: ["logo", "H1", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 48, max: 92, altoMax: 0.24 },
     body: { min: 24, max: 30 },
     cta: 32,
@@ -198,7 +204,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "F · Texto sobre foto",
     descripcion: "Foto a sangre con el mensaje encima, protegido con degradado, placa o zona limpia. Pide fotos propias.",
     orden: ["logo", "H1", "body", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 104, altoMax: 0.3 },
     body: { min: 26, max: 34 },
     cta: 34,
@@ -208,7 +214,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
     orden: ["H1", "body"],
-    tieneCta: false,
+    politicaCta: "no",
     h1: { min: 56, max: 104, altoMax: 0.3 },
     body: { min: 26, max: 34 },
     cta: 32,
@@ -386,6 +392,11 @@ export function piezaNueva(marca: Marca): Pieza {
   };
 }
 
+/** La variante puede llevar CTA: lo espera o lo admite como opcional (cap. 7b). */
+export function admiteCta(variante: Variante): boolean {
+  return PLANTILLAS[variante]?.politicaCta !== "no";
+}
+
 /** Al cambiar de canal, el formato pasa al primero habilitado de ese canal. */
 export function formatoDeCanal(canal: Canal, actual: Formato): Formato {
   const formatos = CANALES[canal].formatos;
@@ -470,7 +481,8 @@ export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 
         h1: contenido.h1,
         // El catálogo (4) necesita body aunque no lo nombre en su orden: sin él, el texto no entra en el slot.
         body: PLANTILLAS[variante]?.orden.includes("body") || variante === "4" ? contenido.body : null,
-        cta: PLANTILLAS[variante]?.tieneCta ? contenido.cta : null,
+        // Solo las variantes que esperan CTA: en las de CTA opcional (2 y 3) la grilla sigue mostrándolas sin él.
+        cta: PLANTILLAS[variante]?.politicaCta === "si" ? contenido.cta : null,
       },
     };
   });

@@ -62,7 +62,8 @@ export function Pieza({
   const centrado = pieza.alineacion === "centrado";
   const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
-  const ctaTexto = plantilla.tieneCta ? pieza.contenido.cta?.trim() : null;
+  // Con CTA opcional (2 y 3, cap. 7b) el botón aparece solo si tiene texto: sin él, la pieza queda como antes.
+  const ctaTexto = plantilla.politicaCta !== "no" ? pieza.contenido.cta?.trim() : null;
   const deco = plantilla.deco ? decoEfectiva(marca, pieza) : null;
   // 2B-L con foto o ícono (v1.1): círculo del 80% del ancho. En 1200×630 el mensaje ya ocupa la mitad izquierda y sigue
   // con la forma sangrada.
@@ -587,6 +588,8 @@ export function Pieza({
     contenidoPieza = (
       <div data-columna style={colIzq}>
         {mensaje(listaContacto)}
+        {/* CTA opcional (cap. 7b): después del contacto y justo antes del logo, como en la 2B. */}
+        {botonCta}
         {logo}
       </div>
     );
@@ -604,9 +607,10 @@ export function Pieza({
       <div data-columna style={colIzq}>
         {pieza.variante === "1" && logo}
         {/* Con una decoración de bloque centrado, el logo acompaña al mensaje y el conjunto queda centrado en alto. */}
-        {decoracion?.bloque === "centrado" ? mensaje(logo) : mensaje()}
+        {decoracion?.bloque === "centrado" ? mensaje(<>{pieza.variante === "2" && botonCta}{logo}</>) : mensaje()}
         {pieza.variante === "1" && botonCta}
-        {pieza.variante === "2" && decoracion?.bloque !== "centrado" && logo}
+        {/* Variante 2 con CTA opcional (cap. 7b): el CTA va justo antes del logo, como en la 2B. */}
+        {pieza.variante === "2" && decoracion?.bloque !== "centrado" && <>{botonCta}{logo}</>}
       </div>
     );
   }

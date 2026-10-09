@@ -37,7 +37,8 @@ describe("tipos de contenido", () => {
       expect(p.variante).toBe(varianteDeTipo(id, marca));
       expect(p.formato).toBe(TIPOS_CONTENIDO[id].formato);
       expect(p.contenido.h1.length).toBeGreaterThan(0);
-      expect(!!p.contenido.cta).toBe(PLANTILLAS[p.variante]!.tieneCta);
+      // armarPieza no cambió con E15: el CTA sale solo en las variantes que lo esperan.
+      expect(!!p.contenido.cta).toBe(PLANTILLAS[p.variante]!.politicaCta === "si");
       if (PLANTILLAS[p.variante]!.bloque === "contacto") expect(p.contacto!.length).toBeGreaterThanOrEqual(1);
       if (PLANTILLAS[p.variante]!.bloque === "contacto") expect(p.contacto!.length).toBeLessThanOrEqual(MAX_CONTACTO);
     }
