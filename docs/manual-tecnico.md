@@ -177,3 +177,11 @@ La navegación (`components/Navegacion.tsx`) cuenta el proceso en tres pasos num
 - Instalar y verificar: `cd app && npm install && npx playwright-core install chromium && npm test`.
 - El servidor de desarrollo corre en el puerto 3000. Para los PNG hace falta el Chromium de Playwright, porque en la nube no hay Edge ni Chrome.
 - Sin `.env.local`, la app corre en modo local: no hace falta Supabase para trabajar.
+
+## 10. Subagentes (`.claude/agents/`)
+| Subagente | Qué hace | Cuándo usarlo |
+|---|---|---|
+| `manual` | Actualiza los manuales de `docs/` según el diff. | Antes de commitear un cambio que altere comportamiento, reglas, interfaz o arquitectura. |
+| `disenador-marketing` | Revisa una pieza (solo lectura: Read, Grep, Glob) con los criterios de marketing del manual (caps. 7b, 6, 8), el replanteo (E15) y `docs/tendencias.md` como contexto. Devuelve diagnóstico en tres líneas, cambios campo por campo con su largo y efecto en el checklist. Nunca rompe un bloqueante, respeta máximos de caracteres y política de CTA (el CTA lo decide el cliente). | Al armar o revisar el texto de una pieza digital, antes de generarla. |
+
+Los subagentes se registran al iniciar la sesión de Claude Code: uno nuevo se puede invocar recién desde la sesión siguiente.
