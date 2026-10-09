@@ -260,7 +260,8 @@ manuales.
   - formatos del roadmap: portada de Reel 9:16, portadas de Destacadas de Instagram, portada de Facebook (1640×624), banner de LinkedIn (1584×396) y posts de LinkedIn.
 - **Aceptación:** cada formato nuevo tiene zonas seguras, checklist y render verificados.
 
-### E15 · Capa de marketing · [ ] en curso · depende de E7 y E9; liga con E14
+### E15 · Capa de marketing · [x] hecha (pasos 1 a 9; el 10 queda pendiente) · depende de E7 y E9; liga con E14
+> Quedó: capítulo 7b del manual y `docs/tendencias.md`; política de CTA por variante (CTA opcional en 2 y 3); `engine/marketing.ts` con los objetivos y las heurísticas; `Pieza.objetivo` y `armarPieza`/`textoSugerido` con objetivo (sin objetivo, igual que antes: foto de regresión); selector "¿Qué querés lograr?" en Publicaciones; bloque Marketing del checklist (aviso de CTA requerido, sugerencias del H1, del CTA que le habla al lector, de la vigencia y del mensaje único); subagente `disenador-marketing`; público opcional en el diagnóstico. Cambio acordado: "el CTA arranca con verbo" pasó a "el CTA le habla al lector", para que "Tu lugar te espera" pase. No se hizo: el paso 10 (copy con la API de Claude), que queda para más adelante junto con E14; el público ya está cargado para alimentarlo.
 - **Por qué:** las piezas digitales ya salen bien hechas; falta que vendan. Cada pieza declara qué quiere lograr y el
   motor controla su estructura persuasiva. Solo digital (feed 4:5 y 1:1, stories 9:16, link 1200×630); no hay
   formatos nuevos.
