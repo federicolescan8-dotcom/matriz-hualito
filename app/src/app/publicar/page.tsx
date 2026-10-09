@@ -121,7 +121,9 @@ export default function PublicarPage() {
     const nuevos = { ...campos, [id]: valor };
     setCampos(nuevos);
     const armada = armarPieza(contenidoTipo!, nuevos, marca!);
-    const conCta = { ...armada.contenido, cta: admiteCta(actual!.variante) ? armada.contenido.cta ?? actual!.contenido.cta : null };
+    // Si lo que se edita es el CTA del tipo (promoción y evento, cap. 7b), vale lo que dice el campo, también vacío.
+    const ctaArmado = id === "cta" ? armada.contenido.cta : armada.contenido.cta ?? actual!.contenido.cta;
+    const conCta = { ...armada.contenido, cta: admiteCta(actual!.variante) ? ctaArmado : null };
     set({ contenido: conCta, contacto: armada.contacto ?? actual!.contacto, items: armada.items ?? actual!.items });
   }
 

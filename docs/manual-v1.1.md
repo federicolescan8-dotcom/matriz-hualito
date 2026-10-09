@@ -78,7 +78,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
-44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
+44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -777,16 +777,16 @@ Publicaciones arranca por el tipo de contenido. Cada tipo pide sus campos, se ar
 
 | Tipo | Variante (en orden) | Campos (máx. de caracteres) |
 |---|---|---|
-| Promoción | 2, 4 | Oferta o precio (32), Vigencia (60) |
+| Promoción | 2, 4 | Oferta o precio (32), Vigencia (60), Llamado a la acción (28, opcional) |
 | Testimonio | 2, 1 | Cita (44), Autor (40) |
 | Tip o educativo | 1 | Título (48), El consejo (100), Llamado a la acción (28) |
 | Lanzamiento | 1 | Qué se lanza (40), Detalle (100), Llamado a la acción (28) |
-| Evento | 3, 1 | Nombre (44), Fecha (30), Hora (14), Lugar (44) |
+| Evento | 3, 1 | Nombre (44), Fecha (30), Hora (14), Lugar (44), Llamado a la acción (28, opcional) |
 | Pregunta frecuente | 1 | Pregunta (48), Respuesta (100), Llamado a la acción (28) |
 | Antes y después | 4 | Título (40), Antes (16), Después (16), Qué cambió (60), Llamado a la acción (28) |
 
 - **Texto sugerido.** Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) y lo recorta, sin cortar palabras, para que entre en los límites. El H1 sugerido tiene hasta 6 palabras en la variante 2 y hasta 9 en las demás. Lo que el cliente no cargó cae al ejemplo del tipo.
-- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 admiten CTA opcional (E15, cap. 7b), pero las plantillas por tipo todavía las arman sin CTA (hasta el paso 4 de E15); se puede escribir a mano en el campo "Llamado a la acción".
+- **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 admiten CTA opcional (E15, cap. 7b). Sin objetivo, Promoción en la 2 y Evento en la 3 siguen saliendo sin CTA, salvo que se escriba a mano en el campo "Llamado a la acción" (opcional, sin ejemplo de respaldo) *(v1.1)*. Con un objetivo de CTA requerido salen con CTA (cap. 7b). Borrar el campo quita el CTA.
 - **Antes y después** lleva el campo "Qué cambió" en el body aunque el catálogo no lo dibuje: con el body vacío, el ajuste de texto da revisión manual ("el texto no entra").
 - **Edición.** Al cambiar un campo se reescribe solo contenido, contacto e ítems; el resto de la pieza (modo, decoración, elementos gráficos) no se toca. "Sin tipo" mantiene la edición libre. El tip ofrece pasar al carrusel.
 - **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas.
@@ -917,7 +917,7 @@ Se numera 7b para no renumerar el capítulo 9, que se cita en todo el código.
 
 ### Objetivo del capítulo
 
-Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Las tablas de este capítulo viven en el motor, en `engine/marketing.ts` (`OBJETIVOS` y `OBJETIVOS_DE_TIPO`, con los ids entre paréntesis). Estado: el CTA opcional de 2 y 3 y la tabla de objetivos ya rigen; el resto se implementa en los pasos 3 a 7 de E15 (`docs/replanteo.md`).
+Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Las tablas de este capítulo viven en el motor, en `engine/marketing.ts` (`OBJETIVOS` y `OBJETIVOS_DE_TIPO`, con los ids entre paréntesis). Estado: ya rigen el CTA opcional de 2 y 3, la tabla de objetivos y el objetivo en la pieza y en las plantillas por tipo; falta el selector de objetivo (paso 5) y los controles (pasos 6 y 7 de E15, `docs/replanteo.md`).
 
 ### Los cinco objetivos
 
@@ -962,6 +962,7 @@ El orden de lectura es narrativo; en la pieza cae en los slots que ya existen:
 - **Ninguno.** El sistema no completa un CTA; si el usuario lo escribe, va y no hay aviso.
 - **Prioridad del texto del CTA.** Lo escrito a mano > el CTA del diagnóstico (`contenido.cta`) > el CTA por defecto del objetivo. Ningún control reescribe ni bloquea el texto del CTA.
 - El CTA por defecto se completa solo si el CTA está vacío y la variante lo admite.
+- **En las plantillas por tipo (`armarPieza`, paso 4).** Con el campo vacío, el CTA se completa solo si el objetivo tiene CTA "requerido" y la variante lo admite (así Promoción en la variante 2 y Evento en la 3 salen con CTA). Con política "opcional" (Educar), vacío es una decisión válida y queda sin CTA; con "ninguno" (Confianza) nunca se propone uno. El ejemplo del campo no hace de respaldo cuando hay objetivo. Lo escrito a mano va también sin objetivo, si la variante lo admite. El objetivo no cambia la variante del tipo.
 
 ### CTA en las variantes 2 y 3
 
@@ -973,7 +974,7 @@ Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcion
 - En 1200×630 la variante 3 mantiene el contacto en la columna derecha y el CTA va en la columna izquierda, antes del logo.
 - En Publicaciones el campo "Llamado a la acción" aparece en toda variante que admite CTA, y al editar un campo del tipo el CTA se conserva. Si una pieza con CTA se pasa a la variante 2 o 3, el CTA se mantiene y se ve; se borra a mano, ningún control lo reescribe.
 - La grilla del feed de la presentación sigue mostrando 2 y 3 sin CTA.
-- Las plantillas por tipo (`armarPieza`) todavía no completan CTA en 2 y 3: Promoción en la 2 y Evento en la 3 salen sin CTA (paso 4).
+- Las plantillas por tipo (`armarPieza`): con objetivo de CTA requerido, Promoción en la 2 y Evento en la 3 salen con CTA; sin objetivo salen sin CTA salvo que se escriba a mano.
 - **Regla de cierre.** Amplía la del cap. 6. En 1 y 4 el CTA es el último elemento; en 2B, 2 y 3 el logo cierra y el CTA va inmediatamente antes. La regla del cap. 6 es por variante (no hay una regla general "el CTA es lo último de la pieza"), así que no hay choque.
 - El CTA agregado cumple las mismas reglas que en cualquier variante: jerarquía del H1 (el doble, cap. 4), zonas seguras, grilla 3:4 en 1:1 y contraste (cap. 8).
 - El control "Variante sin CTA" (bloque Contenido del cap. 8) aplica solo a las variantes con política "no" (hoy, la P del carrusel); 2 y 3 no lo corren.

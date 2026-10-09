@@ -6,7 +6,8 @@ import type { Marca } from "./diagnostico";
 import { ICONOS, BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Canal, Formato } from "./formatos";
 import { MAX_PALABRAS_H1_PROTAGONISTA } from "./checklist";
-import { piezaNueva, varianteSugerida, variantesDisponibles, type Pieza } from "./pieza";
+import { admiteCta, piezaNueva, varianteSugerida, variantesDisponibles, type Pieza } from "./pieza";
+import { OBJETIVOS, type ObjetivoMarketing } from "./marketing";
 import type { Variante } from "./presets";
 
 export type TipoContenido = "promocion" | "testimonio" | "tip" | "lanzamiento" | "evento" | "faq" | "antes_despues";
@@ -19,6 +20,8 @@ export interface CampoContenido {
   /** Límite de caracteres: lo que entra cómodo en la variante sin recortar la letra. */
   max: number;
   multilinea?: boolean;
+  /** Campo que se puede dejar vacío: no tiene ejemplo de respaldo (el CTA de promoción y evento, cap. 7b). */
+  opcional?: boolean;
 }
 
 export interface PlantillaContenido {
@@ -34,6 +37,9 @@ export interface PlantillaContenido {
   carrusel?: boolean;
 }
 
+/** CTA del testimonio en la variante 1 sin objetivo (antes de E15). Con objetivo "confianza" no se propone ninguno. */
+const CTA_TESTIMONIO = "Conocé más";
+
 export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
   promocion: {
     id: "promocion",
@@ -42,6 +48,7 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
     campos: [
       { id: "oferta", etiqueta: "Oferta o precio", ejemplo: "20% off esta semana", max: 32 },
       { id: "vigencia", etiqueta: "Vigencia", ejemplo: "Válido hasta el domingo", max: 60, multilinea: true },
+      { id: "cta", etiqueta: "Llamado a la acción (opcional)", ejemplo: "", max: 28, opcional: true },
     ],
     variantes: ["2", "4"],
     canal: "feed_ig",
@@ -95,6 +102,7 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
       { id: "fecha", etiqueta: "Fecha", ejemplo: "Sábado 14 de junio", max: 30 },
       { id: "hora", etiqueta: "Hora", ejemplo: "18 h", max: 14 },
       { id: "lugar", etiqueta: "Lugar", ejemplo: "Av. Siempre Viva 742", max: 44 },
+      { id: "cta", etiqueta: "Llamado a la acción (opcional)", ejemplo: "", max: 28, opcional: true },
     ],
     variantes: ["3", "1"],
     canal: "feed_ig",
@@ -158,7 +166,7 @@ function recortar(texto: string, palabras: number, caracteres: number): string {
  * Texto de ejemplo de cada campo. Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) cuando existe y
  * lo recorta a lo que entra en la variante; si no, el ejemplo del tipo.
  */
-export function textoSugerido(tipo: TipoContenido, marca: Marca): CamposContenido {
+export function textoSugerido(tipo: TipoContenido, marca: Marca, objetivo?: ObjetivoMarketing): CamposContenido {
   const plantilla = TIPOS_CONTENIDO[tipo];
   const c = marca.diagnostico.contenido;
   const oferta = (c?.oferta ?? []).map((o) => o.trim()).filter(Boolean);
@@ -196,7 +204,17 @@ export function textoSugerido(tipo: TipoContenido, marca: Marca): CamposContenid
     case "evento":
       break;
   }
-  if (cta && "cta" in ej) ej.cta = ajustar("cta", cta);
+  if ("cta" in ej) {
+    if (objetivo) {
+      // Con objetivo (cap. 7b) el CTA se precarga con el del diagnóstico o, si no hay, con el del objetivo; el ejemplo
+      // del campo ya no hace de respaldo.
+      const sugerido = cta || OBJETIVOS[objetivo].ctaPorDefecto || "";
+      ej.cta = sugerido ? ajustar("cta", sugerido) : "";
+    } else if (cta && !campo("cta").opcional) {
+      // Sin objetivo, como antes de E15: el CTA opcional de promoción y evento queda vacío.
+      ej.cta = ajustar("cta", cta);
+    }
+  }
   return ej;
 }
 
@@ -204,7 +222,7 @@ export function textoSugerido(tipo: TipoContenido, marca: Marca): CamposContenid
  * Traduce los campos del tipo a una pieza: el mensaje va al H1, el detalle al body y, según el tipo, el lugar a un
  * dato de contacto o el antes y el después a dos ítems del catálogo. Lo que falta cae al ejemplo del tipo.
  */
-export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: Marca): Pieza {
+export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: Marca, objetivo?: ObjetivoMarketing): Pieza {
   const plantilla = TIPOS_CONTENIDO[tipo];
   const base = piezaNueva(marca);
   const v = (id: string) => (campos[id] ?? "").trim() || plantilla.campos.find((x) => x.id === id)?.ejemplo || "";
@@ -217,14 +235,16 @@ export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: 
     contenido: { h1: "", body: null, cta: null },
   };
   const cta = (id = "cta") => v(id) || null;
+  // Lo escrito a mano en el CTA va siempre que la variante lo admita (cap. 7b): ningún objetivo ni control lo pisa.
+  const escrito = (campos.cta ?? "").trim();
+  const ctaEscrito = escrito && admiteCta(variante) ? escrito : null;
 
   switch (tipo) {
     case "promocion":
-      pieza.contenido = { h1: v("oferta"), body: v("vigencia"), cta: variante === "2" ? null : cta("cta") ?? "Aprovechala" };
-      if (variante === "4") pieza.contenido.cta = "Aprovechala";
+      pieza.contenido = { h1: v("oferta"), body: v("vigencia"), cta: escrito ? ctaEscrito : variante === "2" ? null : OBJETIVOS.vender.ctaPorDefecto };
       break;
     case "testimonio":
-      pieza.contenido = { h1: `“${v("cita").replace(/^[“"«]|[”"»]$/g, "")}”`, body: `— ${v("autor").replace(/^[—–-]\s*/, "")}`, cta: variante === "2" ? null : "Conocé más" };
+      pieza.contenido = { h1: `“${v("cita").replace(/^[“"«]|[”"»]$/g, "")}”`, body: `— ${v("autor").replace(/^[—–-]\s*/, "")}`, cta: variante === "2" ? null : CTA_TESTIMONIO };
       break;
     case "tip":
       pieza.contenido = { h1: v("titulo"), body: v("detalle"), cta: cta() };
@@ -233,7 +253,7 @@ export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: 
       pieza.contenido = { h1: v("novedad"), body: v("detalle"), cta: cta() };
       break;
     case "evento":
-      pieza.contenido = { h1: v("nombre"), body: `${v("fecha")} · ${v("hora")}`, cta: variante === "3" ? null : "Sumate" };
+      pieza.contenido = { h1: v("nombre"), body: `${v("fecha")} · ${v("hora")}`, cta: escrito ? ctaEscrito : variante === "3" ? null : OBJETIVOS.evento.ctaPorDefecto };
       pieza.contacto = [{ tipo: "direccion", valor: v("lugar") }];
       break;
     case "faq":
@@ -250,5 +270,21 @@ export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: 
       break;
     }
   }
+  if (objetivo) {
+    pieza.objetivo = objetivo;
+    pieza.contenido.cta = ctaConObjetivo(objetivo, ctaEscrito, variante, marca);
+  }
   return pieza;
+}
+
+/**
+ * CTA de una pieza con objetivo (cap. 7b). Prioridad: lo escrito a mano > el CTA del diagnóstico > el del objetivo.
+ * Con el campo vacío solo se completa si el objetivo lo requiere y la variante lo admite: con CTA opcional, vacío es
+ * una decisión válida; con "ninguno" (confianza), el sistema nunca propone uno.
+ */
+function ctaConObjetivo(objetivo: ObjetivoMarketing, escrito: string | null, variante: Pieza["variante"], marca: Marca): string | null {
+  if (escrito) return escrito;
+  const def = OBJETIVOS[objetivo];
+  if (def.politicaCta !== "requerido" || !admiteCta(variante)) return null;
+  return recortar(marca.diagnostico.contenido?.cta ?? "", 99, 28) || def.ctaPorDefecto;
 }

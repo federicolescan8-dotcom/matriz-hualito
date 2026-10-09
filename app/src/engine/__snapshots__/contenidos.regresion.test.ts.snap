@@ -1,0 +1,2737 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`armarPieza sin objetivo (regresión E15) > belleza 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off esta semana",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Separá un día fijo por semana para revisarlas.",
+      "cta": "Guardalo para después",
+      "h1": "Un tip para ordenar tus cuentas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Ya disponible, con stock limitado.",
+      "cta": "Conocela",
+      "h1": "Llegó nuestra nueva línea",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sí, enviamos a todo el país en 48 horas.",
+      "cta": "Escribinos",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí tu turno",
+      "h1": "Antes y después",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > belleza con contenido del cliente 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off en Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Todo lo que necesitás",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Llegó Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Leaf",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí turno",
+      "h1": "Antes y después: Café de",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Scissors",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Flower",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > gastronomia 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off esta semana",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Separá un día fijo por semana para revisarlas.",
+      "cta": "Guardalo para después",
+      "h1": "Un tip para ordenar tus cuentas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Ya disponible, con stock limitado.",
+      "cta": "Conocela",
+      "h1": "Llegó nuestra nueva línea",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sí, enviamos a todo el país en 48 horas.",
+      "cta": "Escribinos",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí tu turno",
+      "h1": "Antes y después",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > gastronomia con contenido del cliente 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off en Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Todo lo que necesitás",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Llegó Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Pizza",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí turno",
+      "h1": "Antes y después: Café de",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Coffee",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Hamburger",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > servicios 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off esta semana",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Separá un día fijo por semana para revisarlas.",
+      "cta": "Guardalo para después",
+      "h1": "Un tip para ordenar tus cuentas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Ya disponible, con stock limitado.",
+      "cta": "Conocela",
+      "h1": "Llegó nuestra nueva línea",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sí, enviamos a todo el país en 48 horas.",
+      "cta": "Escribinos",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí tu turno",
+      "h1": "Antes y después",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > servicios con contenido del cliente 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off en Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Todo lo que necesitás",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Llegó Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Calculator",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí turno",
+      "h1": "Antes y después: Café de",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Briefcase",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "Scales",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "A",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > tech 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off esta semana",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Separá un día fijo por semana para revisarlas.",
+      "cta": "Guardalo para después",
+      "h1": "Un tip para ordenar tus cuentas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Ya disponible, con stock limitado.",
+      "cta": "Conocela",
+      "h1": "Llegó nuestra nueva línea",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sí, enviamos a todo el país en 48 horas.",
+      "cta": "Escribinos",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Producto uno",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí tu turno",
+      "h1": "Antes y después",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;
+
+exports[`armarPieza sin objetivo (regresión E15) > tech con contenido del cliente 1`] = `
+[
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Válido hasta el domingo",
+      "cta": null,
+      "h1": "20% off en Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "promocion",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "— Cliente de Regresión",
+      "cta": null,
+      "h1": "“Me resolvieron todo en una semana”",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "testimonio",
+    "variante": "2",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Todo lo que necesitás",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "tip",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "Llegó Café de especialidad",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "lanzamiento",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Sábado 14 de junio · 18 h",
+      "cta": null,
+      "h1": "Jornada de puertas abiertas",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "evento",
+    "variante": "3",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "Atención todos los días.",
+      "cta": "Pedí turno",
+      "h1": "¿Hacen envíos a todo el país?",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Café de especialidad",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Producto dos",
+      },
+      {
+        "foto": null,
+        "icono": "Code",
+        "texto": "Producto tres",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "faq",
+    "variante": "1",
+  },
+  {
+    "alineacion": "izquierda",
+    "body_italica": false,
+    "canal": "feed_ig",
+    "contacto": [
+      {
+        "tipo": "whatsapp",
+        "valor": "11 5555-5555",
+      },
+      {
+        "tipo": "instagram",
+        "valor": "@regresin",
+      },
+      {
+        "tipo": "direccion",
+        "valor": "Av. Siempre Viva 742",
+      },
+    ],
+    "contenido": {
+      "body": "El resultado, en una línea.",
+      "cta": "Pedí turno",
+      "h1": "Antes y después: Café de",
+    },
+    "deco": null,
+    "decoracion": null,
+    "formato": "4:5",
+    "id": null,
+    "items": [
+      {
+        "foto": null,
+        "icono": "Laptop",
+        "texto": "Antes: Desorden",
+      },
+      {
+        "foto": null,
+        "icono": "DeviceMobile",
+        "texto": "Después: Todo en orden",
+      },
+    ],
+    "marca_id": null,
+    "modo": "B",
+    "soporte_iconos": false,
+    "tipo": "antes_despues",
+    "variante": "4",
+  },
+]
+`;

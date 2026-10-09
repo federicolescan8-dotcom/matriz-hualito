@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
 import { armarPieza, maxPalabrasH1, ORDEN_TIPOS, textoSugerido, TIPOS_CONTENIDO, varianteDeTipo } from "./contenidos";
 import { MAX_CONTACTO, PLANTILLAS, variantesDisponibles } from "./pieza";
+import { objetivosDe } from "./marketing";
 import type { Rubro } from "./presets";
 
 function marcaDe(rubro: Rubro, contenido?: Partial<ReturnType<typeof diagnosticoVacio>["contenido"]>) {
@@ -21,12 +22,14 @@ describe("tipos de contenido", () => {
       expect(t.nombre && t.descripcion).toBeTruthy();
       expect(t.campos.length).toBeGreaterThanOrEqual(2);
       for (const c of t.campos) {
-        expect(c.etiqueta && c.ejemplo).toBeTruthy();
+        expect(c.etiqueta).toBeTruthy();
+        // Los campos opcionales (el CTA de promoción y evento, cap. 7b) no tienen ejemplo de respaldo.
+        expect(!!c.ejemplo).toBe(!c.opcional);
         expect(c.ejemplo.length).toBeLessThanOrEqual(c.max);
       }
     }
     expect(TIPOS_CONTENIDO.tip.carrusel).toBe(true);
-    expect(TIPOS_CONTENIDO.evento.campos.map((c) => c.id)).toEqual(["nombre", "fecha", "hora", "lugar"]);
+    expect(TIPOS_CONTENIDO.evento.campos.map((c) => c.id)).toEqual(["nombre", "fecha", "hora", "lugar", "cta"]);
   });
 
   it.each(RUBROS)("armarPieza produce una pieza válida para cada tipo (%s)", (rubro) => {
@@ -85,5 +88,58 @@ describe("tipos de contenido", () => {
     expect(textoSugerido("faq", marca).respuesta).toBe("Cocina de barrio desde 1990.");
     expect(textoSugerido("faq", marca).cta).toBe("Pedí ahora");
     expect(textoSugerido("testimonio", marca).autor).toContain("Test");
+  });
+});
+
+// Objetivo de marketing (cap. 7b, E15).
+describe("armarPieza con objetivo", () => {
+  const marca = marcaDe("servicios");
+  const conCta = marcaDe("servicios", { cta: "Pedí turno" });
+
+  it("promoción y evento salen con CTA aunque su variante (2 y 3) lo tenga opcional", () => {
+    const promo = armarPieza("promocion", textoSugerido("promocion", marca, "vender"), marca, "vender");
+    expect(promo.variante).toBe("2");
+    expect(promo.objetivo).toBe("vender");
+    expect(promo.contenido.cta).toBe("Aprovechala");
+    const evento = armarPieza("evento", textoSugerido("evento", marca, "evento"), marca, "evento");
+    expect(evento.variante).toBe("3");
+    expect(evento.contenido.cta).toBe("Sumate");
+    expect(armarPieza("promocion", {}, marca, "consultas").contenido.cta).toBe("Escribinos");
+  });
+
+  it("prioridad del CTA: lo escrito a mano > el diagnóstico > el objetivo", () => {
+    expect(armarPieza("promocion", {}, conCta, "vender").contenido.cta).toBe("Pedí turno");
+    expect(textoSugerido("promocion", conCta, "vender").cta).toBe("Pedí turno");
+    expect(textoSugerido("promocion", marca, "vender").cta).toBe("Aprovechala");
+    for (const objetivo of ["vender", "consultas"] as const) {
+      expect(armarPieza("promocion", { cta: "Reservá el tuyo" }, conCta, objetivo).contenido.cta).toBe("Reservá el tuyo");
+    }
+    expect(armarPieza("evento", { cta: "Anotate" }, conCta, "evento").contenido.cta).toBe("Anotate");
+  });
+
+  it("lo escrito a mano va también sin objetivo, si la variante admite CTA", () => {
+    expect(armarPieza("promocion", { cta: "Reservá el tuyo" }, marca).contenido.cta).toBe("Reservá el tuyo");
+    expect(armarPieza("evento", { cta: "Anotate" }, marca).contenido.cta).toBe("Anotate");
+    expect(armarPieza("promocion", {}, marca).contenido.cta).toBeNull();
+  });
+
+  it("construir confianza no propone CTA, ni siquiera con uno en el diagnóstico", () => {
+    const t = armarPieza("testimonio", textoSugerido("testimonio", conCta, "confianza"), conCta, "confianza");
+    expect(t.objetivo).toBe("confianza");
+    expect(t.contenido.cta).toBeNull();
+  });
+
+  it("educar deja el CTA opcional: precargado con el del objetivo, y vacío si se borra", () => {
+    expect(textoSugerido("tip", marca, "educar").cta).toBe("Guardalo");
+    expect(armarPieza("tip", textoSugerido("tip", marca, "educar"), marca, "educar").contenido.cta).toBe("Guardalo");
+    expect(armarPieza("tip", { ...textoSugerido("tip", marca, "educar"), cta: "" }, marca, "educar").contenido.cta).toBeNull();
+  });
+
+  it("el objetivo no cambia la variante del tipo", () => {
+    for (const id of ORDEN_TIPOS) {
+      for (const objetivo of objetivosDe(id)) {
+        expect(armarPieza(id, textoSugerido(id, marca, objetivo), marca, objetivo).variante).toBe(varianteDeTipo(id, marca));
+      }
+    }
   });
 });

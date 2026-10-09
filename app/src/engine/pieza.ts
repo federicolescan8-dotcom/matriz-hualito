@@ -11,6 +11,7 @@ import {
 } from "./biblioteca";
 import type { IdDecoracion } from "./decoraciones";
 import type { RecursosPropios } from "./recursos";
+import type { ObjetivoMarketing } from "./marketing";
 import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
@@ -56,6 +57,11 @@ export interface Pieza {
   color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */
   aceptaciones?: Aceptacion[];
+  /**
+   * Qué quiere lograr la pieza (cap. 7b, E15). Viaja con la pieza porque `/api/render` vuelve a correr el checklist en
+   * el servidor. Sin objetivo, la pieza se comporta como antes y no corre ningún control de marketing.
+   */
+  objetivo?: ObjetivoMarketing;
 }
 
 /** Un aviso del checklist aceptado a propósito: qué control, por qué, quién y cuándo (E9). */
