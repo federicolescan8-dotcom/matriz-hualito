@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { rangoMatiz } from "./ejes";
-import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips, restaurarColorMarca } from "./diagnostico";
+import { ajustarColorMarca, construirMarca, diagnosticoDeMarca, diagnosticoVacio, generarChips, MAX_PUBLICO, publicoLimpio, restaurarColorMarca } from "./diagnostico";
+import { evaluarPieza, type Medicion } from "./checklist";
+import { piezaNueva } from "./pieza";
 import { hexToHsl } from "./color";
 import { enBandaProhibida } from "./palette";
 
@@ -82,5 +84,39 @@ describe("versión funcional como opción (v1.1)", () => {
     expect(con.identidad.paleta.version_funcional).not.toBeNull();
     expect(con.identidad.color.solo_heredado).toBeUndefined();
     expect(elegirVersionFuncional(con, false).identidad.paleta).toEqual(m.identidad.paleta);
+  });
+});
+
+// Público (E15, paso 9): viaja con el diagnóstico, no se guarda vacío y no toca el checklist.
+describe("público del cliente", () => {
+  const base = { ...diagnosticoVacio(), nombre: "Panadería", rubro: "gastronomia" as const };
+  const publico = { aquien: "  Familias del barrio ", motiva: "Pan del día", frena: "" };
+
+  it("viaja del diagnóstico a la marca, recortado, y vuelve al editar", () => {
+    const m = construirMarca({ ...base, publico }, generarChips(base)[0]);
+    expect(m.diagnostico.publico).toEqual({ aquien: "Familias del barrio", motiva: "Pan del día", frena: "" });
+    expect(diagnosticoDeMarca(m).publico).toEqual(m.diagnostico.publico);
+  });
+
+  it("con las tres respuestas vacías no se guarda", () => {
+    const m = construirMarca({ ...base, publico: { aquien: " ", motiva: "", frena: "" } }, generarChips(base)[0]);
+    expect("publico" in m.diagnostico).toBe(false);
+    expect(publicoLimpio(undefined)).toBeUndefined();
+    expect(publicoLimpio({ aquien: "x".repeat(200) })!.aquien).toHaveLength(MAX_PUBLICO);
+  });
+
+  it("el checklist da lo mismo con o sin público", () => {
+    const sin = construirMarca(base, generarChips(base)[0]);
+    const con = { ...sin, diagnostico: { ...sin.diagnostico, publico: publicoLimpio(publico) } };
+    const m: Medicion = {
+      h1: { lineas: [{ x: 119, y: 420, w: 700, h: 110 }], px: 100, peso: 700, italica: false },
+      body: { lineas: [{ x: 119, y: 600, w: 600, h: 44 }], px: 32, peso: 400, italica: false },
+      cta: null,
+      logo: null,
+      forma: null,
+      desborde: false,
+    };
+    const pz = { ...piezaNueva(sin), objetivo: "vender" as const };
+    expect(evaluarPieza(con, pz, m)).toEqual(evaluarPieza(sin, pz, m));
   });
 });

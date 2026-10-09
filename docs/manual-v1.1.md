@@ -78,7 +78,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
-44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
+44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -152,6 +152,18 @@ Esta clasificación predetermina rangos de color, criterio de dependencia de ima
 
 *(v1.1)* El rubro es una **semilla**, no una jaula: precarga los ejes de personalidad del paso 2. Se puede **mezclar con un segundo rubro** (los ejes de partida son el promedio de los dos) y el cliente puede escribir su **rubro libre** (la base sigue siendo uno de los cuatro). Cambiar de rubro vuelve los ejes a la semilla. En este paso también se carga el **contenido real**: nombre, oferta (hasta 4 productos o servicios), mensaje, dato de apoyo y CTA. Todas las vistas previas lo usan y completan con el ejemplo del rubro lo que falte.
 
+### Público del cliente *(v1.1, E15)*
+
+En el paso 1 (Marca), debajo del contenido real, el bloque "Público (opcional)" junta tres respuestas de texto libre, de hasta 120 caracteres cada una:
+
+| Campo | Pregunta |
+|---|---|
+| `aquien` | ¿A quién le vende? |
+| `motiva` | ¿Qué lo mueve a comprar? |
+| `frena` | ¿Qué lo frena antes de contactar? |
+
+Es opcional: si las tres quedan vacías no se guarda nada y la marca queda igual que una anterior a este paso. Se recorta cada respuesta y viaja a la marca (`marca.diagnostico.publico`); al editar el diagnóstico vuelve a cargarse. No son preguntas de personalidad (no cuentan en el máximo de tres del paso 2) ni alimentan variables visuales: no cambia el diseño, la paleta ni el checklist (cap. 7b). Solo alimentará las propuestas de copy (paso 10 de E15).
+
 ### Paso 2 — Preguntas de personalidad de marca
 
 *(v1.1)* La personalidad se define con **seis ejes continuos de 0 a 100**, que el cliente mueve con sliders partiendo de la semilla del rubro: clásico ↔ moderno, sobrio ↔ expresivo, artesanal ↔ tecnológico, cálido ↔ frío, accesible ↔ premium, serio ↔ lúdico. De los ejes salen:
@@ -219,7 +231,7 @@ Si el cliente solo tiene la versión color, se genera el par monocromo a partir 
 
 *(v1.1)* El diagnóstico es **editable** después de guardado (se reabre desde los datos de la marca): conserva id, historial y gráficos, y vuelve a aplicar los colores ajustados a mano. Los pasos se recorren sin orden fijo, con el nombre cargado; el resultado pide un color elegido.
 
-Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa, y, opcionales, el moodboard (colores) y los colores de la competencia. El esquema exacto está en el anexo A.2.
+Al terminar los cuatro pasos deben quedar registrados: rubro (más rubro secundario y rubro libre, si hay), ejes de personalidad, contenido del cliente, matiz elegido, decisión de color (chip optimizado o heredado), personalidad (tono y valor, derivados de los ejes), set de versiones del logo con su formato, disponibilidad de fotos propias y tipografía previa, y, opcionales, el moodboard (colores), los colores de la competencia y el público del cliente. El esquema exacto está en el anexo A.2.
 
 ---
 
@@ -917,7 +929,7 @@ Se numera 7b para no renumerar el capítulo 9, que se cita en todo el código.
 
 ### Objetivo del capítulo
 
-Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Las tablas de este capítulo viven en el motor, en `engine/marketing.ts` (`OBJETIVOS` y `OBJETIVOS_DE_TIPO`, con los ids entre paréntesis). Estado: ya rigen el CTA opcional de 2 y 3, la tabla de objetivos, el objetivo en la pieza y en las plantillas por tipo y el selector de objetivo en Publicaciones; faltan los controles (pasos 6 y 7 de E15, `docs/replanteo.md`).
+Que las piezas digitales (feed 4:5 y 1:1, stories 9:16, link 1200×630) además de estar bien hechas vendan: cada pieza puede declarar qué quiere lograr (`objetivo`) y el motor controla su estructura persuasiva. Solo digital; no hay formatos nuevos. El objetivo es opcional: sin objetivo la pieza se comporta como antes y no corre ningún control de marketing. Las tablas de este capítulo viven en el motor, en `engine/marketing.ts` (`OBJETIVOS` y `OBJETIVOS_DE_TIPO`, con los ids entre paréntesis). Estado: ya rigen el CTA opcional de 2 y 3, la tabla de objetivos, el objetivo en la pieza y en las plantillas por tipo y el selector de objetivo en Publicaciones, los controles de marketing y el público opcional del diagnóstico; queda el paso 10 de E15 (copy con la API, `docs/replanteo.md`).
 
 ### Los cinco objetivos
 
@@ -995,7 +1007,7 @@ Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcion
 
 ### Controles de marketing
 
-Van en el bloque Marketing del cap. 8. Solo corren con objetivo. Nunca son bloqueantes. Ya rigen todos los controles; quedan los pasos 8 a 10 de E15 (subagente, público, copy con la API).
+Van en el bloque Marketing del cap. 8. Solo corren con objetivo. Nunca son bloqueantes. Ya rigen todos los controles, el subagente y el público; queda el paso 10 de E15 (copy con la API).
 
 - **Aviso:** objetivo con CTA requerido y pieza sin CTA con texto. *(ya rige)*
 - **Sugerencia:** el H1 domina la lectura. Se mide con las cajas reales de las líneas la fracción del área de texto (H1 + body + CTA) que ocupa el H1, con un mínimo de 50%. No duplica la jerarquía del cap. 4 (H1 ≥ 2× body y CTA en cuerpo de letra): aquella compara tamaños de letra y esta compara cuánto ocupa cada cosa; con un H1 de pocas palabras y un body largo, la pieza se lee por el body aunque el H1 tenga el doble de cuerpo. Calibración: en las piezas de los 7 tipos con tres marcas el H1 ocupa entre 78% y 98%; un tip con H1 "Tres pilares" y body de 100 caracteres da 55% y el H1 todavía manda; con H1 "Ojo" y el mismo body da 25% y salta la sugerencia. *(ya rige)*
@@ -1004,7 +1016,7 @@ Van en el bloque Marketing del cap. 8. Solo corren con objetivo. Nunca son bloqu
 - **Sugerencia:** un solo mensaje, aproximado por cantidad de bloques de texto. Cuenta el H1, cada oración del body y el CTA; más de 4 bloques (por ejemplo, un body con más de 2 oraciones) sugiere dejar una idea por pieza o pasarla al carrusel. El nombre del control dice que es una aproximación, para no confundirlo con el bloqueante "Un mensaje principal" (H1 no vacío). *(ya rige)*
 - **Falsos resultados conocidos:** un imperativo sin tilde ("Reserva") no se detecta; un sustantivo con forma de imperativo con pronombre ("chocolate", "escuela") pasa; "hasta" sin plazo ("hasta en 10 cuotas") cuenta como vigencia; una abreviatura con punto ("Av. Siempre Viva") suma una oración. Por eso son sugerencias y nunca frenan.
 - No se controla "el H1 habla de beneficio y no de característica": no es verificable.
-- El público del diagnóstico (paso 9 de E15) no entra al checklist.
+- El público del diagnóstico (cap. 2, ya rige) no entra al checklist ni cambia el diseño: solo alimentará el prompt del copy (paso 10 de E15).
 
 ### Tendencias
 
@@ -1388,7 +1400,8 @@ No incluye plantillas SVG editables.
   logo: { versiones: [color, mono_claro, mono_oscuro],
           formato: [svg | pdf | png], deuda_vectorizar: [si/no] },
   tiene_fotos_propias: [si/no],
-  tipografia_previa: [si/no + cual]
+  tipografia_previa: [si/no + cual],
+  publico?: { aquien, motiva, frena }   // (v1.1, E15) texto, hasta 120 caracteres c/u; se omite si las tres están vacías
 }
 ```
 
