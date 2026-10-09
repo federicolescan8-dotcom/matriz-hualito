@@ -20,6 +20,7 @@ import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, pl
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
+import { OBJETIVOS } from "./marketing";
 import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
 
 export interface Rect {
@@ -83,7 +84,7 @@ export interface Medicion {
   contrasteSobreFoto?: { h1: number; body?: number };
 }
 
-export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido";
+export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido" | "Marketing";
 
 /**
  * Nivel de cada regla (replanteo, E9):
@@ -524,6 +525,23 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const sinForma = m.fotosSinForma ?? 0;
   add("Contenido", "Fotos dentro de una forma de contención", sinForma === 0, sinForma ? `${sinForma} sin recortar` : "", "recortar en una forma");
 
+  // ── Bloque Marketing (cap. 7b, E15): solo con objetivo. Nunca bloqueante: aviso lo estructural, sugerencia el resto ──
+  if (pieza.objetivo) {
+    const objetivo = OBJETIVOS[pieza.objetivo];
+    if (objetivo.politicaCta === "requerido") {
+      const tiene = !!m.cta && !!pieza.contenido.cta?.trim();
+      add("Marketing", "El objetivo pide un CTA", tiene, tiene ? "" : `"${objetivo.nombre}" necesita un llamado a la acción`, "escribir un CTA o elegir una variante que lo lleve");
+    }
+    const parte = parteDelH1(m);
+    sugerir(
+      "Marketing",
+      "El H1 domina la lectura",
+      parte >= AREA_H1_MIN,
+      `H1 ${Math.round(parte * 100)}% del área de texto (mín. ${Math.round(AREA_H1_MIN * 100)}%)`,
+      "acortar el body o el CTA para que el mensaje principal se lea primero",
+    );
+  }
+
   // Excepción v1.1 (decisión del cliente): con colores ajustados a mano o con el color heredado sin versión funcional,
   // los contrastes que no cumplen se aceptan con aviso. Un bloqueante nunca se acepta (E9).
   if ((marca.identidad.ajustes_manuales ?? []).length > 0 || marca.identidad.color.solo_heredado) {
@@ -533,6 +551,21 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   const motivos_revision = m.desborde ? ["El texto no entra en el slot ni siquiera en el tamaño mínimo permitido."] : [];
   return { estado: estadoDe(controles, motivos_revision), controles, motivos_revision };
+}
+
+/**
+ * Parte mínima del área de texto que ocupa el H1 (cap. 7b). La jerarquía del cap. 4 compara tamaños de letra; esta
+ * compara cuánto ocupa cada cosa: con un H1 de pocas palabras y un body largo, la pieza se lee por el body aunque el
+ * H1 tenga el doble de cuerpo.
+ */
+export const AREA_H1_MIN = 0.5;
+
+/** Fracción del área de texto (cajas reales de las líneas de H1, body y CTA) que ocupa el H1. */
+export function parteDelH1(m: Pick<Medicion, "h1" | "body" | "cta">): number {
+  const area = (lineas: Rect[] = []) => lineas.reduce((s, r) => s + r.w * r.h, 0);
+  const h1 = area(m.h1.lineas);
+  const total = h1 + area(m.body?.lineas) + area(m.cta?.lineas);
+  return total > 0 ? h1 / total : 1;
 }
 
 /**

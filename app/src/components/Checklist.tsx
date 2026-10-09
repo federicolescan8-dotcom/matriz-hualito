@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Bloque, Control, NivelRegla, ResultadoChecklist } from "@/engine/checklist";
 
-const BLOQUES: Bloque[] = ["Color y contraste", "Tipografía", "Composición", "Zonas seguras", "Contenido"];
+const BLOQUES: Bloque[] = ["Color y contraste", "Tipografía", "Composición", "Zonas seguras", "Contenido", "Marketing"];
 
 const ESTADOS = {
   ok: { texto: "Aprobada", clase: "bg-emerald-100 text-emerald-900" },

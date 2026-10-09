@@ -78,7 +78,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 41. **Fotografía de marca (E6)**: la marca define un tratamiento propio de sus fotos (natural, gradación hacia el color de marca o duotono) que sale igual en todas las piezas, el PNG y la medición; la foto se encuadra con un punto focal; y aparece la variante **F · Texto sobre foto** (foto a sangre con protección de degradado, placa o zona limpia). El contraste del texto sobre foto se mide sobre la imagen real, con dos controles nuevos (H1 3:1, body 4,5:1), y las fotos de fondo quedan exentas de la forma de contención. La identidad suma una guía de dirección de arte. *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
-44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean. Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
+44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 6, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -995,10 +995,10 @@ Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcion
 
 ### Controles de marketing
 
-Van en el bloque Marketing del cap. 8 y se implementan en los pasos 6 y 7 de E15. Solo corren con objetivo. Nunca son bloqueantes.
+Van en el bloque Marketing del cap. 8. Solo corren con objetivo. Nunca son bloqueantes. Ya rigen los dos primeros; los controles heurísticos siguen pendientes (paso 7 de E15).
 
-- **Aviso:** objetivo con CTA requerido y pieza sin CTA.
-- **Sugerencia:** tamaño relativo del H1 frente al resto, medido con las cajas reales. Tiene que medir otra cosa que la jerarquía del cap. 4 (H1 ≥ 2× body y CTA), que ya es un control; se define en el paso 6.
+- **Aviso:** objetivo con CTA requerido y pieza sin CTA con texto. *(ya rige)*
+- **Sugerencia:** el H1 domina la lectura. Se mide con las cajas reales de las líneas la fracción del área de texto (H1 + body + CTA) que ocupa el H1, con un mínimo de 50%. No duplica la jerarquía del cap. 4 (H1 ≥ 2× body y CTA en cuerpo de letra): aquella compara tamaños de letra y esta compara cuánto ocupa cada cosa; con un H1 de pocas palabras y un body largo, la pieza se lee por el body aunque el H1 tenga el doble de cuerpo. Calibración: en las piezas de los 7 tipos con tres marcas el H1 ocupa entre 78% y 98%; un tip con H1 "Tres pilares" y body de 100 caracteres da 55% y el H1 todavía manda; con H1 "Ojo" y el mismo body da 25% y salta la sugerencia. *(ya rige)*
 - **Sugerencia:** el CTA arranca con un verbo en imperativo con voseo ("reservá", "escribinos").
 - **Sugerencia:** la oferta tiene vigencia (fecha o "hasta agotar stock").
 - **Sugerencia:** un solo mensaje principal, medido por proxy (cantidad de bloques de texto) y rotulado así.
@@ -1028,8 +1028,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Nivel | Qué es | Qué pasa si falla |
 |---|---|---|
 | Bloqueante | Legibilidad crítica: contraste de texto bajo 3:1 (H1, body, contacto, ítems y los textos de los CTA), capa decorativa o decoración que tapa texto o logo, contenido fuera del margen, nada tapado por la interfaz de la plataforma, un solo mensaje principal | La pieza se rechaza y no se puede aceptar |
-| Aviso | Todo el resto: contraste de texto entre 3:1 y 4,5:1, reglas de estilo, controles del carrusel | Rechaza hasta que se corrige o se acepta con justificación |
-| Sugerencia | Lo que fija el rubro (alineación del mensaje, itálica en rubros y familias habilitados) y las mejoras de oficio | Se muestra, no frena |
+| Aviso | Todo el resto: contraste de texto entre 3:1 y 4,5:1, reglas de estilo, controles del carrusel, el objetivo que pide un CTA | Rechaza hasta que se corrige o se acepta con justificación |
+| Sugerencia | Lo que fija el rubro (alineación del mensaje, itálica en rubros y familias habilitados) y las mejoras de oficio (por ejemplo, el H1 domina la lectura del bloque Marketing) | Se muestra, no frena |
 
 - **Aceptar con justificación.** Un aviso que falla se acepta escribiendo el motivo. Queda registrado quién, cuándo y por qué (`control`, `motivo`, `autor`, `fecha`), la justificación se muestra en el checklist y se puede quitar. La aceptación viaja con la pieza, así que la exportación la respeta. Cada aceptación se suma al historial de decisiones de la marca.
 - **Estado de la pieza.** Es aprobada si cada control cumple, está aceptado o es una sugerencia.
@@ -1123,6 +1123,15 @@ Estos controles no se evalúan sobre la pieza aislada sino sobre el historial de
 | Posición relativa del logo | igual en todos los formatos dentro de una misma variante *(v1.1)* |
 
 La posición del logo (arriba o abajo) puede diferir entre variantes, porque cada variante ubica el logo según su propio orden de slots (por ejemplo, arriba en la variante 4, abajo en la variante 1 o en las 2B). Lo que se exige es coherencia dentro de una misma variante a través de los formatos, no una posición única para toda la marca. *(v1.1)*
+
+### Bloque Marketing *(v1.1, E15)*
+
+Solo corre si la pieza tiene objetivo (cap. 7b); sin objetivo no evalúa nada. Ningún control es bloqueante. En la interfaz es el último bloque y solo se muestra si tiene controles.
+
+| Control | Regla | Nivel | Acción si falla |
+|---|---|---|---|
+| El objetivo pide un CTA | si el objetivo tiene política de CTA "requerido" (vender, consultas, evento), la pieza dibuja un CTA con texto | Aviso (se acepta con justificación) | escribir un CTA o elegir una variante que lo lleve |
+| El H1 domina la lectura | el H1 ocupa al menos 50% del área de texto (H1 + body + CTA), medida con las cajas reales de las líneas | Sugerencia (nunca frena) | acortar el body o el CTA para que el mensaje principal se lea primero |
 
 ### Revisión visual: guías y hoja de contactos *(v1.1)*
 

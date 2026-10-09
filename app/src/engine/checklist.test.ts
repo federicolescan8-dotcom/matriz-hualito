@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { areaCubierta, evaluarPieza, type Medicion } from "./checklist";
+import { AREA_H1_MIN, areaCubierta, evaluarPieza, parteDelH1, type Medicion } from "./checklist";
 import { ajustarColorMarca, construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
 import { aceptarControl, piezaNueva, quitarAceptacion, type Pieza } from "./pieza";
 import { pesoH1 } from "./typography";
@@ -373,5 +373,57 @@ describe("niveles de regla y aceptación con justificación (E9)", () => {
       expect(evaluarPieza(marca, aceptada, conAviso).estado).toBe("ok");
       expect(evaluarPieza(marca, f, medicion({ contrasteSobreFoto: { h1: 7, body: 5.2 } })).estado).toBe("ok");
     });
+  });
+});
+
+// Bloque Marketing (cap. 7b, E15): solo con objetivo, nunca bloqueante.
+describe("controles de marketing", () => {
+  const sinCta = { contenido: { h1: "Tu contabilidad, en orden", body: "Asesoramiento para pymes.", cta: null } };
+  const marketing = (pz: Pieza, m = medicion()) => evaluarPieza(marca, pz, m).controles.filter((c) => c.bloque === "Marketing");
+
+  it("sin objetivo no corre ningún control de marketing", () => {
+    expect(marketing(pieza())).toEqual([]);
+    expect(marketing(pieza(sinCta), medicion({ cta: null }))).toEqual([]);
+  });
+
+  it("objetivo con CTA requerido y pieza sin CTA: aviso, que se puede aceptar con justificación", () => {
+    const pz = pieza({ ...sinCta, objetivo: "vender" });
+    const r = evaluarPieza(marca, pz, medicion({ cta: null }));
+    const k = r.controles.find((c) => c.control === "El objetivo pide un CTA")!;
+    expect(k.ok).toBe(false);
+    expect(k.nivel).toBe("aviso");
+    expect(r.estado).toBe("rechazado");
+    const aceptada = aceptarControl(pz, k.control, "La promo se comparte por WhatsApp con el link aparte", "estudio");
+    expect(evaluarPieza(marca, aceptada, medicion({ cta: null })).estado).toBe("ok");
+    expect(marketing(pieza({ objetivo: "vender" })).find((c) => c.control === "El objetivo pide un CTA")!.ok).toBe(true);
+  });
+
+  it("confianza y educar no piden CTA", () => {
+    for (const objetivo of ["confianza", "educar"] as const) {
+      const lista = marketing(pieza({ ...sinCta, objetivo }), medicion({ cta: null }));
+      expect(lista.find((c) => c.control === "El objetivo pide un CTA")).toBeUndefined();
+      expect(evaluarPieza(marca, pieza({ ...sinCta, objetivo }), medicion({ cta: null })).estado).toBe("ok");
+    }
+  });
+
+  it("ningún control de marketing es bloqueante", () => {
+    const lista = marketing(pieza({ ...sinCta, objetivo: "evento" }), medicion({ cta: null }));
+    expect(lista.length).toBeGreaterThan(0);
+    for (const c of lista) expect(c.nivel).not.toBe("bloqueante");
+  });
+
+  it("H1 que no domina la lectura: sugerencia, no frena la exportación", () => {
+    // H1 corto (una línea angosta) y body de tres renglones: el H1 ocupa menos de la mitad del área de texto.
+    const m = medicion({
+      h1: { ...medicion().h1, lineas: [{ x: 119, y: 420, w: 250, h: 110 }] },
+      body: { lineas: [0, 1, 2].map((i) => ({ x: 119, y: 600 + i * 48, w: 800, h: 44 })), px: 32, peso: 400, italica: false },
+    });
+    expect(parteDelH1(m)).toBeLessThan(AREA_H1_MIN);
+    const r = evaluarPieza(marca, pieza({ objetivo: "educar" }), m);
+    const k = r.controles.find((c) => c.control === "El H1 domina la lectura")!;
+    expect(k.nivel).toBe("sugerencia");
+    expect(k.aviso).toBeTruthy();
+    expect(r.estado).toBe("ok");
+    expect(parteDelH1(medicion())).toBeGreaterThan(AREA_H1_MIN);
   });
 });
