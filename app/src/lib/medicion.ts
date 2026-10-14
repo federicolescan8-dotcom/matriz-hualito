@@ -313,6 +313,15 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
     iconos: root.querySelectorAll("[data-icono]").length,
     // Sujeto PNG (E16): la caja del <img>, que se dibuja con la proporción de la imagen (sin aire de object-fit).
     sujeto: q(root, "sujeto") ? relativo(root, q(root, "sujeto")!.getBoundingClientRect()) : null,
+    // Recursos de composición (E16): la insignia lleva sus colores en data-, como el soporte de los íconos.
+    insignias: [...root.querySelectorAll<HTMLElement>('[data-slot="insignia"]')].map((el) => ({
+      caja: relativo(root, el.getBoundingClientRect()),
+      px: Math.round(parseFloat(getComputedStyle(el).fontSize)),
+      texto: JSON.parse(el.dataset.texto!) as HSL,
+      relleno: JSON.parse(el.dataset.relleno!) as HSL,
+    })),
+    fotoForma: q(root, "foto-forma") ? relativo(root, q(root, "foto-forma")!.getBoundingClientRect()) : null,
+    palabra: q(root, "palabra") ? { caja: relativo(root, q(root, "palabra")!.getBoundingClientRect()), color: JSON.parse(q(root, "palabra")!.dataset.color!) as HSL } : null,
     contacto: [...root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]')].map((fila) => {
       const icono = q(fila, "contacto-icono")!;
       return {

@@ -90,6 +90,12 @@ export interface Medicion {
   contrasteSobreFoto?: { h1: number; body?: number };
   /** Caja donde quedó dibujado el sujeto PNG (cap. 6b, E16), en px del lienzo. Puede salirse del lienzo. */
   sujeto?: Rect | null;
+  /** Insignias dibujadas (cap. 6b): su caja, el tamaño de su texto y sus dos colores. */
+  insignias?: { caja: Rect; px: number; texto: HSL; relleno: HSL }[];
+  /** Caja de la foto en forma (cap. 6b). */
+  fotoForma?: Rect | null;
+  /** Palabra gigante (cap. 6b): su caja y su color. Es decoración: no informa. */
+  palabra?: { caja: Rect; color: HSL } | null;
 }
 
 export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido" | "Marketing";
@@ -261,6 +267,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const base = geoDeg && claroDeg ? cajas.flatMap((k) => fondosBajoCaja(c.fondo, claroDeg, geoDeg, k)) : [];
     const fondos = base.length ? base : [c.fondo];
     if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(...fondos.map((b) => mezclar(b, m.forma!.color, m.forma!.opacidad)));
+    // Palabra gigante (cap. 6b): el texto que la pisa se mide contra el peor entre el fondo y la palabra.
+    if (m.palabra && cajas.some((k) => seTocan(k, m.palabra!.caja))) fondos.push(m.palabra.color);
     return fondos;
   };
   const peorContraste = (color: HSL, cajas: Rect[]) => Math.min(...fondosDe(cajas).map((b) => contraste(color, b)));
@@ -291,6 +299,14 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const borde = e.anillo?.color ?? e.fondo;
     const cB = Math.min(...fondosDe([m.cta.caja]).map((b) => contraste(borde, b)));
     add("Color y contraste", "CTA sobre el degradado", cB >= MIN_GRAFICO, `${r(cB)} (mín. 3:1)`, "mover el CTA o cambiar la forma del degradado");
+  }
+  // Insignia (cap. 6b): contraste propio. Su texto contra su relleno, y el relleno contra el peor fondo bajo ella.
+  const insignias = m.insignias ?? [];
+  if (insignias.length) {
+    const cT = Math.min(...insignias.map((k) => contraste(k.texto, k.relleno)));
+    add("Color y contraste", "Texto de la insignia sobre su relleno", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "cambiar los colores de la insignia", nivelTexto(cT));
+    const cR = Math.min(...insignias.map((k) => Math.min(...fondosDe([k.caja]).map((b) => contraste(k.relleno, b)))));
+    add("Color y contraste", "Insignia sobre su fondo", cR >= MIN_GRAFICO, `${r(cR)} (mín. 3:1)`, "cambiar el relleno de la insignia o moverla");
   }
   const contacto = m.contacto ?? [];
   const items = m.items ?? [];
@@ -453,7 +469,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // lo opaco de la imagen (su máscara), no contra su caja: el aire transparente de alrededor no cuenta.
   const capa = pieza.sujeto ? capaSujeto(marca, pieza) : null;
   if (capa?.tipo === "png" && m.sujeto) {
-    const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
+    const informan = [...elementosInformativos(m), ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] }))];
+    const tapados = informan.filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
     add(
       "Composición",
       "Sujeto sin tapar texto, logo ni CTA",
@@ -462,6 +479,31 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       "achicar o mover el sujeto, o recortar el texto",
       "bloqueante",
     );
+  }
+  // Insignia (cap. 6b): una sola, con letra legible, sin pisar el H1 ni el CTA.
+  if (insignias.length) {
+    add("Composición", "Una insignia por pieza", insignias.length <= 1, `${insignias.length}`, "dejar una sola insignia");
+    const minBody = Math.round(24 * escala);
+    const chica = Math.min(...insignias.map((k) => k.px));
+    add("Tipografía", `Texto de la insignia de ${minBody} px o más`, chica >= minBody, `${chica} px (mín. ${minBody})`, "agrandar la insignia o acortar su texto");
+    const clave = [...m.h1.lineas, ...(m.cta ? [m.cta.caja] : [])];
+    const pisa = insignias.some((k) => clave.some((c) => seTocan(achicar(k.caja, ROCE), c)));
+    add("Composición", "Insignia sin pisar el H1 ni el CTA", !pisa, pisa ? "se superpone" : "", "mover la insignia");
+  }
+  // Foto en forma (cap. 6b): va sin overlay, así que ningún texto puede ir encima.
+  if (m.fotoForma) {
+    const textosEncima = [
+      { nombre: "H1", cajas: m.h1.lineas },
+      { nombre: "body", cajas: m.body?.lineas ?? [] },
+      { nombre: "CTA", cajas: m.cta ? [m.cta.caja] : [] },
+      ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] })),
+    ].filter((t) => t.cajas.some((k) => seTocan(achicar(k, ROCE), m.fotoForma!)));
+    add("Composición", "Foto en forma sin texto encima", textosEncima.length === 0, textosEncima.map((t) => t.nombre).join(", "), "mover el texto fuera de la foto", "bloqueante");
+  }
+  // Palabra gigante (cap. 6b): no comparte la pieza con otra decoración protagonista.
+  if (m.palabra) {
+    const otras = [m.forma ? "forma de fondo" : null, decoracion ? "decoración de plantilla" : null, m.deco ? "capa decorativa" : null].filter(Boolean);
+    add("Composición", "Una sola decoración protagonista", otras.length === 0, otras.length ? `palabra gigante con ${otras.join(", ")}` : "", "quitar la palabra gigante o la otra decoración");
   }
   if (plantilla?.bloque === "contacto") {
     const n = contacto.length;
@@ -488,6 +530,9 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     k.y >= f.alto * zm.arriba - 0.5 &&
     k.x + k.w <= f.ancho * (1 - zm.x) + 0.5 &&
     k.y + k.h <= f.alto * (1 - zm.abajo) + 0.5;
+  if (m.insignias?.length) {
+    add("Zonas seguras", "Insignia dentro del margen seguro", m.insignias.every((k) => dentro(k.caja)), "", "mover la insignia hacia adentro", "bloqueante");
+  }
   add("Zonas seguras", "Logo dentro del margen seguro", !m.logo || dentro(m.logo), m.logo ? "" : "sin logo", "reubicar");
   // Logo como sistema (E4): tamaño mínimo, área de seguridad y contraste con su fondo, sobre la caja visible del logo.
   // Solo con un logo cargado: el nombre en texto que lo reemplaza no es el logo.

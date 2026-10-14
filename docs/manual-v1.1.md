@@ -80,7 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
-45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 y 3 hechos: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara) y el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante (todavía no se dibuja: llega con las variantes, paso 5). Lo demás sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Nada de esto se dibuja todavía: llega con las variantes, paso 5. Lo demás sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -887,7 +887,7 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 
 ## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
 
-> **Estado: en construcción.** Están implementados el degradado de marca (paso 2) y el sujeto PNG sin dibujar (paso 3); lo demás es solo especificación y se construye en los pasos 4 a 6 de E16 (`docs/replanteo.md`). Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+> **Estado: en construcción.** Están implementados el degradado de marca (paso 2), el sujeto PNG sin dibujar (paso 3) y, con motor y controles pero sin dibujar, la insignia, la foto en forma y la palabra gigante (paso 4); lo demás es solo especificación y se construye en los pasos 5 y 6 de E16 (`docs/replanteo.md`). Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
 
 ### Objetivo del capítulo
 
@@ -939,16 +939,24 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 - Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja: un texto puede pasar sobre el aire transparente del PNG. *(v1.1, implementado el control; el dibujo llega con las variantes 5 y 6, paso 5.)*
 - Uno por pieza. Sin overlay (no lleva texto encima).
 
-**3. Insignia** *(opcional, cualquier variante nueva; sin referencia en los 6 diseños: todo derivado)*.
+**3. Insignia** *(opcional, cualquier variante nueva; sin referencia en los 6 diseños: todo derivado)*. *(v1.1, implementados el motor y los controles; el dibujo llega con las variantes, paso 5.)*
 
-- Máximo 1 por pieza.
-- Su texto no baja del tamaño mínimo del body del formato.
-- Contraste propio: texto 4,5:1 contra su relleno y relleno 3:1 contra el fondo bajo ella.
-- No pisa el H1 ni el CTA (cajas medidas) y va dentro de la zona segura.
+- Máximo 1 por pieza (aviso "Una insignia por pieza").
+- Su texto no baja del tamaño mínimo del body del formato (24 px × la escala del formato; aviso).
+- Contraste propio: texto 4,5:1 contra su relleno (bajo 3:1 es bloqueante, si no aviso) y relleno 3:1 contra el peor fondo bajo ella, degradado incluido (aviso).
+- **Colores por defecto** *(v1.1, derivado)*: relleno en el acento con su color de texto (el par del CTA), si el acento cumple 4,5:1 con su texto y 3:1 contra el fondo del modo. Si no (acento claro sobre el neutro del Modo A, que con la marca de prueba no llega a 3:1, igual que el CTA, que por eso usa contorno), el par invertido: relleno en el color del texto y letra en el color del fondo, como el soporte de los íconos de contacto. Cumple en los dos modos.
+- No pisa el H1 ni el CTA (cajas medidas; aviso) y va dentro de la zona segura global (bloqueante). Es información: el sujeto PNG tampoco puede taparla.
 
-**4. Foto en forma** (diseño 2). Foto contenida en una forma de la biblioteca (cap. 5). La referencia es un rectángulo redondeado (radio ~16 px, 1,5% del ancho), de proporción 2,5:1 y del ancho del contenido (x de 10% a 91%), entre el 50% y el 76% del alto. Usa el tratamiento de foto de la marca; sin overlay porque no lleva texto encima. Nunca va texto sobre la foto.
+**4. Foto en forma** (diseño 2). Foto contenida en una forma de la biblioteca (cap. 5). La referencia es un rectángulo redondeado (radio ~16 px, 1,5% del ancho), de proporción 2,5:1 y del ancho del contenido (x de 10% a 91%), entre el 50% y el 76% del alto. Usa el tratamiento de foto de la marca; sin overlay porque no lleva texto encima. Nunca va texto sobre la foto. *(v1.1, implementados el motor y el control; el dibujo llega en el paso 5.)*
 
-**5. Palabra gigante** *(sin referencia: derivado)*. Decoración tipográfica detrás del contenido, tono sobre tono. No cuenta como información ni para la jerarquía. El texto que la pisa se mide contra el **peor** entre el fondo y la palabra. Puede salirse del lienzo. No va junto con otra decoración protagonista (forma de fondo, decoración de plantilla, círculo de la variante 6).
+- **Geometría** *(v1.1, medida en el diseño 2)*: proporción 2,5:1 (`PROPORCION_FOTO_FORMA`) y radio del 1,5% del ancho del lienzo (`RADIO_FOTO_FORMA`; 16 px en 4:5). Con un ancho de contenido de 876 px da 350,4 px de alto y 16 px de radio.
+- **Control bloqueante** "Foto en forma sin texto encima": al ir sin overlay, un texto encima no se puede garantizar legible; se miran H1, body, CTA e insignia.
+
+**5. Palabra gigante** *(sin referencia: derivado)*. Decoración tipográfica detrás del contenido, tono sobre tono. No cuenta como información ni para la jerarquía. El texto que la pisa se mide contra el **peor** entre el fondo y la palabra. Puede salirse del lienzo. No va junto con otra decoración protagonista (forma de fondo, decoración de plantilla, círculo de la variante 6). *(v1.1, implementados el motor y los controles; el dibujo llega en el paso 5.)*
+
+- **Color** *(v1.1, derivado)*: tono sobre tono del fondo, con luminosidad OKLCH ±0,06 (`DELTA_L_PALABRA`; aclara en Modo B, oscurece en Modo A) y croma relativo constante, como el degradado. Es poco a propósito, para que se lea como textura y no compita con el texto.
+- Los textos que la pisan (H1, body, contacto, ítems, CTA sobre degradado e insignia) se miden contra el peor entre el fondo y la palabra. No entra en la zona segura ni en el espacio negativo.
+- **Aviso** "Una sola decoración protagonista": palabra gigante junto con forma de fondo, decoración de plantilla o capa decorativa 2B. El círculo de la variante 6 se sumará a este control en el paso 5.
 
 Insignia, foto en forma y palabra gigante se suman a las variantes: no son variantes aparte.
 
@@ -1191,6 +1199,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Body sobre la foto *(v1.1, E6, variante F)* | 4,5:1, medido sobre la imagen real | ídem |
 | Logo contrasta con su fondo *(v1.1, E4, aviso, solo con logo cargado y si se conocen el color del logo y su fondo)* | 3:1 | usar la versión monocromo o una placa detrás |
 | Acento como fondo de botón con su texto (blanco o color de marca) | 4,5:1 | ajustar L del acento (cap. 3, paso 4b) *(v1.1)* |
+| Texto de la insignia sobre su relleno *(v1.1, E16, solo con insignia)* | 4,5:1; bajo 3:1 es bloqueante, si no aviso | usar el par de colores por defecto de la insignia |
+| Insignia sobre su fondo *(v1.1, E16, aviso, solo con insignia)* | 3:1 del relleno contra el peor fondo bajo ella, degradado y palabra gigante incluidos | cambiar el relleno o mover la insignia |
 | Acento sobre color de marca en Modo B | 3:1 | recalcular matiz (cap. 3, paso 5) |
 | Acento fuera de la banda prohibida | — | cascada de recálculo |
 | Tono de apoyo no usado en texto ni íconos | — | reasignar a color de marca |
@@ -1199,7 +1209,7 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 
 **Contraste sobre la foto** *(v1.1, E6)*. En la variante F el contraste no se calcula contra un color plano: se dibuja la foto con su encuadre, su tratamiento y su protección en un lienzo a mitad de tamaño, y se muestrean los píxeles que quedan bajo cada línea del H1 y del body. Se toma el percentil 5% (el "peor" contraste, que ignora el 5% de píxeles más extremos), no el promedio, porque una sola zona clara ya vuelve ilegible una palabra. Por debajo de 3:1 es bloqueante; entre 3:1 y 4,5:1 es aviso (cap. 8, niveles).
 
-**Contraste sobre degradado y recursos de composición** *(v1.1, E16)*. Con el degradado de marca (cap. 6b, implementado en el paso 2) el contraste del texto (H1, body, contacto, ítems) y del logo se mide bajo cada caja, sobre el degradado real y tomando el peor caso, no contra el color base. Dos avisos nuevos: "CTA sobre el degradado" (borde del botón, mín. 3:1) y "Texto fuera de la zona clara del degradado" (ningún texto donde la mezcla llega al 50%). Con fondo liso el checklist da lo mismo que antes. La Cifra cuenta como información: cumple contraste como el H1, y entra en el control de la grilla 3:4 y en el de la interfaz de stories. El sujeto PNG, la palabra gigante y el degradado son decoración: pueden pasar bajo la zona segura, el recorte 3:4 y la interfaz de stories, pero nunca tapan texto, logo, Cifra ni CTA. Cada regla restante del cap. 6b será un control del checklist (se implementa en los pasos 3 a 5 de E16).
+**Contraste sobre degradado y recursos de composición** *(v1.1, E16)*. Con el degradado de marca (cap. 6b, implementado en el paso 2) el contraste del texto (H1, body, contacto, ítems) y del logo se mide bajo cada caja, sobre el degradado real y tomando el peor caso, no contra el color base. Dos avisos nuevos: "CTA sobre el degradado" (borde del botón, mín. 3:1) y "Texto fuera de la zona clara del degradado" (ningún texto donde la mezcla llega al 50%). Con fondo liso el checklist da lo mismo que antes. La Cifra cuenta como información: cumple contraste como el H1, y entra en el control de la grilla 3:4 y en el de la interfaz de stories. El sujeto PNG, la palabra gigante y el degradado son decoración: pueden pasar bajo la zona segura, el recorte 3:4 y la interfaz de stories, pero nunca tapan texto, logo, Cifra ni CTA. Insignia, foto en forma y palabra gigante ya tienen sus controles (paso 4; filas marcadas *(v1.1, E16)* en los bloques 1 a 3; ninguno corre sin el recurso, así que las piezas de antes no cambian), y la palabra gigante entra en los fondos que se miden bajo cada texto. Las reglas propias de las variantes 5, 6 y 7 serán controles en el paso 5 de E16.
 
 ### Bloque 2 — Tipografía
 
@@ -1215,6 +1225,7 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Itálica ausente en precios, fechas y CTA | sin excepción | rechazo |
 | H1 con margen sobre su tamaño mínimo *(v1.1)* | el ajuste no lo dejó en el piso de su rango | sugerencia: recortar palabras antes que achicar la letra |
 | H1 protagonista (variante 2) *(v1.1)* | 6 palabras o menos | sugerencia: dejar lo esencial y pasar el resto al dato de apoyo |
+| Texto de la insignia de N px o más *(v1.1, E16, aviso, solo con insignia)* | mínimo del body del formato (24 px × escala) | agrandar el texto de la insignia |
 
 El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1 siga midiendo el doble que el body y el CTA en sus mínimos. *(v1.1)*
 
@@ -1234,7 +1245,12 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
 | Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
 | Área de seguridad del logo *(v1.1, E4, aviso, solo con logo cargado)* | ningún otro elemento informativo toca la caja del logo agrandada 25% de su alto por lado | separar el logo de los otros elementos |
-| Sujeto sin tapar texto, logo ni CTA *(v1.1, E16, bloqueante, solo con un sujeto PNG válido dibujado)* | ningún elemento informativo (H1, body, CTA, logo, íconos, contacto e ítems; la Cifra se suma cuando exista) toca el área opaca del sujeto; puede salirse del lienzo y no cuenta para el espacio negativo | reubicar el sujeto o el texto, o usar el estado sin sujeto |
+| Sujeto sin tapar texto, logo ni CTA *(v1.1, E16, bloqueante, solo con un sujeto PNG válido dibujado)* | ningún elemento informativo (H1, body, CTA, logo, íconos, contacto, ítems e insignia; la Cifra se suma cuando exista) toca el área opaca del sujeto; puede salirse del lienzo y no cuenta para el espacio negativo | reubicar el sujeto o el texto, o usar el estado sin sujeto |
+| Una insignia por pieza *(v1.1, E16, aviso, solo con insignia)* | máximo 1 | quitar el excedente |
+| Insignia sin pisar el H1 ni el CTA *(v1.1, E16, aviso, solo con insignia)* | las cajas no se tocan | reubicar la insignia |
+| Insignia dentro del margen seguro *(v1.1, E16, bloqueante, solo con insignia)* | zona segura global del formato | reubicar la insignia |
+| Foto en forma sin texto encima *(v1.1, E16, bloqueante, solo con foto en forma)* | ni H1, body, CTA ni insignia tocan la foto (va sin overlay) | mover el texto o quitar la foto en forma |
+| Una sola decoración protagonista *(v1.1, E16, aviso, solo con palabra gigante)* | la palabra gigante no va con forma de fondo, decoración de plantilla ni capa decorativa 2B | quitar una de las dos |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -1435,6 +1451,9 @@ pieza: {
   proteccion?: "degradado | placa | zona"   // (v1.1, E6) variante F; por defecto degradado
   sujeto?: { src, ancho, alto, transparente, damero, mascara, respaldo?: "icono | forma | nada" } | null   // (v1.1, E16) PNG con su máscara; null o ausente = estado sin sujeto
   degradado?: { forma: "diagonal | vertical | radial", esquina?: "arriba-derecha | abajo-derecha", centro?: { x, y } } | null   // (v1.1, E16) null o ausente = fondo liso
+  insignia?: { texto } | null                   // (v1.1, E16) null o ausente = sin insignia
+  foto_forma?: { src, foco? } | null            // (v1.1, E16) foto en forma; null o ausente = sin ella
+  palabra_gigante?: { texto } | null            // (v1.1, E16) null o ausente = sin palabra
 }
 ```
 

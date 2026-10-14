@@ -18,6 +18,7 @@ import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "
 import type { Foco, LadoTexto, Proteccion } from "./fotografia";
 import type { Degradado } from "./palette";
 import type { Sujeto } from "./sujeto";
+import type { FotoEnForma, Insignia, PalabraGigante } from "./composicion";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -62,6 +63,10 @@ export interface Pieza {
    * estado sin sujeto con la cadena de respaldo (`capaSujeto`).
    */
   sujeto?: Sujeto | null;
+  /** Recursos opcionales de las variantes nuevas (cap. 6b, E16): se dibujan dentro de cada variante. */
+  insignia?: Insignia | null;
+  foto_forma?: FotoEnForma | null;
+  palabra_gigante?: PalabraGigante | null;
   /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
   color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */
