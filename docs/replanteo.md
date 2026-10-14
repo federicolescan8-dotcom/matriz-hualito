@@ -151,6 +151,7 @@ manuales.
 
 ### E11 · Rescate de marca existente · [x] hecha · depende de E3 y E4
 > Quedó: `engine/rescate.ts` y `components/RescateMarca.tsx` (sección "Rescate" de la identidad): grado de cambio, carga múltiple de referencias, agrupación por ΔE < 10, informe, canónicos por grado aplicados a roles o secundarios, brief del diseñador y antes y después (guardar el antes, comparación A/B, HTML descargable). No se hizo: vectorizar el logo ni detectar la tipografía (los resuelve el diseñador con el brief), ni la recomendación automática de tipografía.
+> Después se sumó el **perfilador** (`herramientas/perfilador/`, herramienta externa) y el botón "Importar perfil" en `/marcas`: a partir de capturas reales arma un `perfil-<slug>.json` (`hualito.perfil.v1`) con los colores medidos y la lectura interpretativa de Claude, y la app lo importa como marca en rescate (`engine/perfil.ts`, `lib/perfil.ts`); la paleta la arma el motor, y el grado de cambio decide si el color previo entra como heredado o como optimizado.
 - **Por qué:** la mayoría de los clientes ya tiene logo y colores, pero mal resueltos. Aparecen:
   - logos en baja resolución, distintos en cada red o hechos con IA con detalles que no escalan;
   - el "mismo" color en varios tonos (Instagram, cartel, Canva, imprenta);
@@ -325,6 +326,7 @@ manuales.
       entorno, verificado en la documentación vigente. Si E14 sigue pendiente, queda el punto de enganche del tono.
       *Aceptación:* sin clave pasan todos los tests y la app se usa completa; con clave las opciones respetan los
       `max`; tests del validador (válida, JSON roto, campo largo, campo faltante) sin red.
+      > Primer uso de la API de Claude, hecho aparte en una herramienta externa (el perfilador de E11, con visión y clave en su propio `.env`). Ahí quedó probado el patrón de este paso: JSON estricto, validador puro (`validarPerfil`) y un reintento con los errores. La ruta de copy de la app sigue pendiente.
 - **Fuera de alcance por ahora:** empezar por objetivo en vez de por tipo; el control "beneficio vs. característica";
   tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
   checklist; objetivo a nivel de marca.

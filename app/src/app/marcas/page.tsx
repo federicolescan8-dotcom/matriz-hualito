@@ -9,6 +9,7 @@ import { hslCss } from "@/engine/color";
 import type { Marca } from "@/engine/diagnostico";
 import { borrarMarca, descargarJson, elegirMarcaActiva, guardarMarca, importarDelNavegador, marcasDelNavegador, useErrorMarcas, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { usaSupabase } from "@/lib/supabase";
+import { importarArchivo } from "@/lib/perfil";
 
 // Paso 1 del proceso (replanteo, E1): la marca y sus datos. El sistema visual se edita en Identidad.
 
@@ -24,7 +25,10 @@ export default function MarcasPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Marcas</h1>
-        <Link href="/" className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">Nuevo diagnóstico</Link>
+        <div className="flex items-center gap-2">
+          <ImportarPerfil />
+          <Link href="/" className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">Nuevo diagnóstico</Link>
+        </div>
       </header>
       {error && <p className="rounded-md bg-red-50 p-3 text-sm text-red-800">{error}</p>}
       {pendientesImportar.length > 0 && (
@@ -111,6 +115,73 @@ export default function MarcasPage() {
           </div>
           <DatosMarca marca={actual} />
         </section>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Importar un perfil del perfilador (con su logo, si viene) o una marca exportada. El perfil entra como marca en
+ * rescate y en diagnóstico: el diseñador lo revisa antes de seguir.
+ */
+function ImportarPerfil() {
+  const [estado, setEstado] = useState<{ tipo: "ok" | "error"; lineas: string[]; id?: string } | null>(null);
+
+  async function importar(files: FileList | null) {
+    const lista = Array.from(files ?? []);
+    const json = lista.find((f) => f.name.toLowerCase().endsWith(".json"));
+    if (!json) {
+      setEstado({ tipo: "error", lineas: ["Elegí el archivo .json del perfil (y, si querés, su logo)."] });
+      return;
+    }
+    const logo = lista.find((f) => f !== json && (f.type.startsWith("image/") || /\.svg$/i.test(f.name)));
+    const r = await importarArchivo(json, logo);
+    if (!r.ok) {
+      setEstado({ tipo: "error", lineas: r.errores });
+      return;
+    }
+    if (!(await guardarMarca(r.marca))) {
+      setEstado({ tipo: "error", lineas: ["No se pudo guardar la marca importada."] });
+      return;
+    }
+    elegirMarcaActiva(r.marca.id);
+    setEstado({ tipo: "ok", lineas: [`Se importó ${r.marca.nombre}.`, ...r.avisos], id: r.marca.id });
+  }
+
+  return (
+    <div className="relative">
+      <label className="cursor-pointer rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50">
+        Importar perfil
+        <input
+          type="file"
+          accept=".json,application/json,image/*"
+          multiple
+          className="sr-only"
+          onChange={(e) => {
+            void importar(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </label>
+      {estado && (
+        <div
+          role={estado.tipo === "error" ? "alert" : "status"}
+          className={`absolute right-0 z-10 mt-2 flex w-80 flex-col gap-1 rounded-md border p-3 text-sm shadow ${estado.tipo === "error" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}
+        >
+          {estado.lineas.map((l) => (
+            <span key={l}>{l}</span>
+          ))}
+          <span className="mt-1 flex gap-3">
+            {estado.id && (
+              <Link href={`/?editar=${estado.id}`} className="font-medium underline">
+                Revisar diagnóstico
+              </Link>
+            )}
+            <button type="button" onClick={() => setEstado(null)} className="underline">
+              Cerrar
+            </button>
+          </span>
+        </div>
       )}
     </div>
   );

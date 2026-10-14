@@ -1,0 +1,77 @@
+{
+  "formato": "hualito.perfil.v1",
+  "fuente": {
+    "empresa": "Barocca Tortuguitas",
+    "usuario_red": "baroccatortuguitas",
+    "fecha": "2026-10-14T12:00:00.000Z",
+    "archivos": ["perfil-y-feed.jpg", "logo.png"]
+  },
+  "diagnostico": {
+    "nombre": "Barocca",
+    "rubro": "gastronomia",
+    "rubro_secundario": null,
+    "rubro_libre": "Cafetería y heladería artesanal",
+    "ejes": {
+      "clasico_moderno": 30,
+      "sobrio_expresivo": 70,
+      "artesanal_tecnologico": 15,
+      "calido_frio": 15,
+      "accesible_premium": 40,
+      "serio_ludico": 65
+    },
+    "personalidad": { "tono": "cercana", "valor": null },
+    "contenido": {
+      "oferta": ["Helado artesanal", "Café de especialidad", "Postres y pastelería", "Licuados y frappés"],
+      "mensaje": "Helado artesanal y café, todos los días",
+      "apoyo": "De 9 h hasta el cierre en Tortuguitas",
+      "cta": "Pedí por delivery"
+    },
+    "publico": {
+      "aquien": "Familias y grupos de amigos de Tortuguitas",
+      "motiva": "Darse un gusto dulce, en el local o por delivery",
+      "frena": "No saber los sabores del día ni las promos vigentes"
+    },
+    "color_previo_hex": "#E9DCC6",
+    "tiene_fotos_propias": true,
+    "tipografia_previa": null
+  },
+  "logo": { "archivo": "logo.png" },
+  "rescate": {
+    "grado": "refresco",
+    "referencias": [
+      {
+        "nombre": "logo.png",
+        "colores": [
+          { "color": { "H": 37.7, "S": 44.3, "L": 84.5 }, "peso": 0.82 },
+          { "color": { "H": 30.4, "S": 42.2, "L": 63.3 }, "peso": 0.18 }
+        ]
+      },
+      {
+        "nombre": "perfil-y-feed.jpg",
+        "colores": [
+          { "color": { "H": 18.9, "S": 42.9, "L": 24.7 }, "peso": 0.34 },
+          { "color": { "H": 332, "S": 79.6, "L": 52 }, "peso": 0.21 },
+          { "color": { "H": 42.7, "S": 90.2, "L": 51.8 }, "peso": 0.17 },
+          { "color": { "H": 37.7, "S": 44.3, "L": 84.5 }, "peso": 0.15 },
+          { "color": { "H": 20, "S": 5.7, "L": 10.4 }, "peso": 0.13 }
+        ]
+      }
+    ]
+  },
+  "evidencia": {
+    "ejes": {
+      "clasico_moderno": "Logo con serif clásica y ornamento; las piezas mezclan scripts caligráficos.",
+      "sobrio_expresivo": "Feed muy expresivo: fucsia, amarillo y degradados de temporada.",
+      "artesanal_tecnologico": "Se presenta como artesanal en la bio y en la fotografía de producto.",
+      "calido_frio": "Domina el marrón chocolate y el crema del logo.",
+      "accesible_premium": "Promos del 50% y delivery: accesible, con el logo apuntando a algo más cuidado.",
+      "serio_ludico": "Saludos por fechas, emojis y tipografías festivas."
+    },
+    "tipografia_observada": "Logo en serif clásica; piezas con scripts caligráficos y una condensada en mayúsculas para promos.",
+    "notas": [
+      "El feed no tiene sistema: cada pieza usa otra tipografía y otra paleta.",
+      "El logo negro y crema es lo único constante: es el ancla del rescate."
+    ]
+  },
+  "confianza": { "ejes": 0.7, "tono": 0.8, "rubro": 0.95 }
+}

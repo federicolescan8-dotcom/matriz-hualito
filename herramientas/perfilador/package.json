@@ -1,0 +1,20 @@
+{
+  "name": "perfilador",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Perfilador de marcas existentes: de capturas reales a un JSON de diagnóstico importable en Matriz Hualito.",
+  "scripts": {
+    "perfilar": "tsx perfilar.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.134.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
