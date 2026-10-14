@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BIBLIOTECA_RUBRO,
   CONTACTO,
@@ -14,9 +15,12 @@ import { decoracionesPara, trazadoDecoracion } from "@/engine/decoraciones";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
 import { hslCss } from "@/engine/color";
-import { decoEfectiva, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
+import { decoEfectiva, degradadoActivo, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
 import { FOCO_CENTRO, PROTECCIONES, type Foco } from "@/engine/fotografia";
-import { reducirFoto } from "@/lib/imagen";
+import { BORDES_BANDA } from "@/engine/protagonista";
+import { cargarSujeto, recortarTransparencia, reducirFoto, tieneTransparencia } from "@/lib/imagen";
+import type { Degradado } from "@/engine/palette";
+import { ESCALA_SUJETO, motivoSinSujeto } from "@/engine/sujeto";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
 // Editores de los elementos gráficos de cada variante (fase 3b): capa decorativa (2B), contacto (3) y catálogo (4).
@@ -312,52 +316,248 @@ export function MiniaturaFoco({ src, foco, onChange }: { src: string; foco?: Foc
  * el bloque de texto. El checklist mide el contraste sobre la imagen real.
  */
 export function EditorFotoFondo({ pieza, onChange }: { pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
-  const proteccion = pieza.proteccion ?? "degradado";
-  const lado = pieza.foto_texto ?? "abajo";
+  const producto = pieza.variante === "FP";
+  const titular = pieza.variante === "FT";
+  const banda = pieza.variante === "FB";
+  // El titular sobre foto no usa placa (tapa a la protagonista); la FB y la FP llevan el texto sobre color plano.
+  const protecciones = titular ? PROTECCIONES.filter((pr) => pr.id !== "placa") : PROTECCIONES;
+  const proteccion = protecciones.find((pr) => pr.id === pieza.proteccion)?.id ?? "degradado";
+  const lado = pieza.foto_texto ?? (producto ? "arriba" : "abajo");
+  const borde = pieza.banda_borde ?? "onda";
   const horizontal = FORMATOS[pieza.formato].columnaMensaje != null;
+  const conProteccion = pieza.variante === "F" || titular;
   return (
     <div className="flex flex-col gap-2 text-xs">
-      <span className="text-sm font-medium">Foto de fondo</span>
+      <span className="text-sm font-medium">{producto ? "Producto" : "Foto protagonista"}</span>
+      {producto && <span className="text-neutral-500">Subí el producto recortado: PNG o WebP con fondo transparente.</span>}
       <input
         type="file"
-        accept="image/*"
+        accept={producto ? "image/png,image/webp,image/*" : "image/*"}
         onChange={async (e) => {
           const file = e.target.files?.[0];
-          if (file) onChange({ foto_fondo: await reducirFoto(file), foto_foco: undefined });
+          if (!file) return;
+          if (!producto) {
+            onChange({ foto_fondo: await reducirFoto(file), foto_foco: undefined });
+            return;
+          }
+          // El producto conserva su transparencia y se recorta a lo visible: así llena su caja.
+          const reducida = await reducirFoto(file, 1600, { conservarAlfa: true });
+          const recortada = await tieneTransparencia(reducida);
+          onChange({ foto_fondo: recortada ? (await recortarTransparencia(reducida)).dataUrl : reducida, foto_recortada: recortada, foto_foco: undefined });
         }}
       />
       {pieza.foto_fondo ? (
         <>
-          <MiniaturaFoco src={pieza.foto_fondo} foco={pieza.foto_foco} onChange={(foto_foco) => onChange({ foto_foco })} />
-          <button type="button" onClick={() => onChange({ foto_fondo: null, foto_foco: undefined })} className="self-start underline">Quitar foto</button>
+          {producto ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pieza.foto_fondo} alt="" className="h-24 w-24 self-start rounded border border-neutral-200 object-contain" />
+          ) : (
+            <MiniaturaFoco src={pieza.foto_fondo} foco={pieza.foto_foco} onChange={(foto_foco) => onChange({ foto_foco })} />
+          )}
+          {producto && !pieza.foto_recortada && (
+            <span className="text-amber-700">La imagen no tiene fondo transparente: va dentro de un rectángulo redondeado.</span>
+          )}
+          <button type="button" onClick={() => onChange({ foto_fondo: null, foto_foco: undefined, foto_recortada: undefined })} className="self-start underline">Quitar foto</button>
         </>
       ) : (
-        <span className="text-neutral-500">Sin foto cargada, la pieza usa el fondo del modo.</span>
+        <span className="text-neutral-500">
+          {pieza.variante === "F" ? "Sin foto cargada, la pieza usa el fondo del modo." : "Esta variante necesita su foto: sin ella no se puede exportar."}
+        </span>
       )}
-      <span className="text-sm font-medium">Protección del texto</span>
-      <div className="flex overflow-hidden rounded-md border border-neutral-300">
-        {PROTECCIONES.map((pr) => (
-          <button
-            key={pr.id}
-            type="button"
-            title={pr.descripcion}
-            onClick={() => onChange({ proteccion: pr.id })}
-            className={`flex-1 py-1.5 ${proteccion === pr.id ? "bg-neutral-900 text-white" : "bg-white"}`}
-          >
-            {pr.nombre}
-          </button>
-        ))}
-      </div>
-      <p className="text-neutral-500">{PROTECCIONES.find((x) => x.id === proteccion)!.descripcion}</p>
-      {!horizontal && (
+      {conProteccion && (
+        <>
+          <span className="text-sm font-medium">Protección del texto</span>
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {protecciones.map((pr) => (
+              <button
+                key={pr.id}
+                type="button"
+                title={pr.descripcion}
+                onClick={() => onChange({ proteccion: pr.id })}
+                className={`flex-1 py-1.5 ${proteccion === pr.id ? "bg-neutral-900 text-white" : "bg-white"}`}
+              >
+                {pr.nombre}
+              </button>
+            ))}
+          </div>
+          <p className="text-neutral-500">{PROTECCIONES.find((x) => x.id === proteccion)!.descripcion}</p>
+        </>
+      )}
+      {banda && (
+        <>
+          <span className="text-sm font-medium">Borde de la banda</span>
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {BORDES_BANDA.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                title={b.descripcion}
+                onClick={() => onChange({ banda_borde: b.id })}
+                className={`flex-1 py-1.5 ${borde === b.id ? "bg-neutral-900 text-white" : "bg-white"}`}
+              >
+                {b.nombre}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {!horizontal && !banda && (
         <div className="flex overflow-hidden rounded-md border border-neutral-300">
           {(["arriba", "abajo"] as const).map((l) => (
             <button key={l} type="button" onClick={() => onChange({ foto_texto: l })} className={`flex-1 py-1.5 ${lado === l ? "bg-neutral-900 text-white" : "bg-white"}`}>
-              Texto {l}
+              {producto ? `Mensaje ${l} del producto` : `Texto ${l}`}
             </button>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const FONDOS: { id: string; nombre: string; valor: Degradado | null }[] = [
+  { id: "liso", nombre: "Liso", valor: null },
+  { id: "diagonal-ar", nombre: "Diagonal ↗", valor: { forma: "diagonal", esquina: "arriba-derecha" } },
+  { id: "diagonal-ab", nombre: "Diagonal ↘", valor: { forma: "diagonal", esquina: "abajo-derecha" } },
+  { id: "vertical", nombre: "Vertical", valor: { forma: "vertical" } },
+  { id: "radial", nombre: "Radial", valor: { forma: "radial" } },
+];
+
+/**
+ * Fondo de la pieza (cap. 6b, E16): liso o degradado de marca, tono sobre tono. Sin elegir, vale el de la variante
+ * (liso en las de siempre; el de su referencia en las nuevas). El checklist mide el contraste bajo cada caja.
+ */
+export function EditorFondo({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
+  const actual = degradadoActivo(marca, pieza);
+  const id = (d: Degradado | null) => (!d ? "liso" : d.forma === "diagonal" ? (d.esquina === "abajo-derecha" ? "diagonal-ab" : "diagonal-ar") : d.forma);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="font-medium">Fondo</span>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {FONDOS.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange({ degradado: o.valor })}
+            className={`rounded-md border px-3 py-1.5 ${id(actual) === o.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 bg-white"}`}
+          >
+            {o.nombre}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Recursos de las variantes nuevas (cap. 6b, E16): Cifra, foto en forma, sujeto PNG, insignia y palabra gigante. En la
+ * variante 5 el medio sale solo: el sujeto si tiene transparencia; si no, la Cifra; si no, la foto en forma.
+ */
+export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
+  const [cargando, setCargando] = useState(false);
+  const motivo = pieza.sujeto ? motivoSinSujeto(pieza.sujeto) : null;
+  const campo = "rounded-md border border-neutral-300 px-3 py-2";
+  // En la 6 la Cifra hace de H1 (va en el mensaje principal) y no hay foto en forma.
+  const v6 = pieza.variante === "6";
+  // La 7 es solo tipográfica: Cifra, insignia y palabra gigante; no lleva producto ni foto.
+  const v7 = pieza.variante === "7";
+  return (
+    <div className="flex flex-col gap-3">
+      {v6 && <p className="text-xs text-neutral-500">En esta variante la oferta (&quot;25% OFF&quot;) va en el mensaje principal. Sin producto, en el círculo va un ícono del rubro.</p>}
+      {!v6 && <label className="flex flex-col gap-1">
+        <span className="font-medium">Cifra</span>
+        <input
+          value={pieza.contenido.cifra ?? ""}
+          placeholder="25% OFF"
+          onChange={(e) => onChange({ contenido: { ...pieza.contenido, cifra: e.target.value || null } })}
+          className={campo}
+        />
+        <span className="text-xs text-neutral-500">Número u oferta protagonista. No cuenta para la jerarquía del H1.</span>
+      </label>}
+      {!v7 && <div className="flex flex-col gap-1 text-xs">
+        <span className="text-sm font-medium">Producto recortado (PNG con fondo transparente)</span>
+        <input
+          type="file"
+          accept="image/png,image/webp"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setCargando(true);
+            try {
+              onChange({ sujeto: await cargarSujeto(file) });
+            } finally {
+              setCargando(false);
+            }
+          }}
+        />
+        {cargando && <span className="text-neutral-500">Analizando la transparencia…</span>}
+        {pieza.sujeto && (
+          <span className={motivo ? "text-amber-700" : "text-emerald-700"}>
+            {motivo ?? "Transparencia útil: va el producto recortado."}{" "}
+            <button type="button" className="underline" onClick={() => onChange({ sujeto: null })}>
+              Quitar
+            </button>
+          </span>
+        )}
+        {pieza.sujeto && !motivo && (
+          // E16 paso 7: arrastrarlo en la vista previa lo mueve; acá, el tamaño. El motor nunca lo deja tapando texto.
+          <div className="flex flex-col gap-1">
+            <span className="text-neutral-500">Arrastralo en la vista previa para moverlo. Si tapa texto, se acomoda solo al lugar libre más cercano.</span>
+            <label className="flex items-center gap-2">
+              Tamaño
+              <input
+                type="range"
+                min={ESCALA_SUJETO.min * 100}
+                max={ESCALA_SUJETO.max * 100}
+                step={5}
+                value={Math.round((pieza.sujeto.ajuste?.escala ?? 1) * 100)}
+                onChange={(e) =>
+                  onChange({ sujeto: { ...pieza.sujeto!, ajuste: { dx: pieza.sujeto!.ajuste?.dx ?? 0, dy: pieza.sujeto!.ajuste?.dy ?? 0, escala: Number(e.target.value) / 100 } } })
+                }
+              />
+              <span>{Math.round((pieza.sujeto.ajuste?.escala ?? 1) * 100)}%</span>
+            </label>
+            {pieza.sujeto.ajuste && (
+              <button type="button" className="self-start underline" onClick={() => onChange({ sujeto: { ...pieza.sujeto!, ajuste: null } })}>
+                Volver a la posición automática
+              </button>
+            )}
+          </div>
+        )}
+      </div>}
+      {!v6 && !v7 && <div className="flex flex-col gap-1 text-xs">
+        <span className="text-sm font-medium">Foto en forma</span>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (file) onChange({ foto_forma: { src: await reducirFoto(file) } });
+          }}
+        />
+        {pieza.foto_forma && (
+          <MiniaturaFoco src={pieza.foto_forma.src} foco={pieza.foto_forma.foco} onChange={(foco) => onChange({ foto_forma: { ...pieza.foto_forma!, foco } })} />
+        )}
+        {pieza.foto_forma && (
+          <button type="button" className="self-start underline" onClick={() => onChange({ foto_forma: null })}>
+            Quitar foto
+          </button>
+        )}
+      </div>}
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="font-medium">Insignia</span>
+          <input value={pieza.insignia?.texto ?? ""} placeholder="Nuevo" onChange={(e) => onChange({ insignia: e.target.value ? { texto: e.target.value } : null })} className={campo} />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="font-medium">Palabra gigante</span>
+          <input
+            value={pieza.palabra_gigante?.texto ?? ""}
+            placeholder="OFF"
+            onChange={(e) => onChange({ palabra_gigante: e.target.value ? { texto: e.target.value } : null })}
+            className={campo}
+          />
+        </label>
+      </div>
     </div>
   );
 }

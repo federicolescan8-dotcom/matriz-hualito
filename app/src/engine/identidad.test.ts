@@ -40,3 +40,15 @@ describe("migración de marcas guardadas a identidad (E1)", () => {
     expect(migrarMarca(nueva)).toBe(nueva);
   });
 });
+
+// Público del diagnóstico (E15, paso 9): opcional; las marcas guardadas antes no lo tienen.
+describe("público en marcas guardadas", () => {
+  it("una marca guardada antes del paso 9 carga sin errores y sin el campo", () => {
+    const d = { ...diagnosticoVacio(), nombre: "Vieja", rubro: "servicios" as const };
+    const guardada = JSON.parse(JSON.stringify(construirMarca(d, generarChips(d)[0]))) as Marca;
+    expect("publico" in guardada.diagnostico).toBe(false);
+    const migrada = migrarMarca(guardada);
+    expect(migrada).toBe(guardada);
+    expect(migrada.diagnostico.publico).toBeUndefined();
+  });
+});

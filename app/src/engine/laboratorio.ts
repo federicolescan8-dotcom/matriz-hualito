@@ -122,14 +122,21 @@ export function regenerarPaleta(
 // ── Extraer colores de una imagen ──
 
 /**
- * Colores dominantes de una imagen (k-medias sobre RGB). Ignora píxeles transparentes y casi blancos o casi negros,
- * que en un logo o una foto son fondo o contorno. Devuelve de más a menos frecuente.
+ * Colores dominantes de una imagen (k-medias sobre RGB). Ignora píxeles transparentes y, salvo con `extremos`, los casi
+ * blancos o casi negros, que en un logo o una foto son fondo o contorno. Devuelve de más a menos frecuente.
  */
-export function extraerColores(pixeles: { rgb: RGB; alfa: number }[], k = 5): { color: HSL; peso: number }[] {
+export function extraerColores(
+  pixeles: { rgb: RGB; alfa: number }[],
+  k = 5,
+  { extremos = false }: { extremos?: boolean } = {},
+): { color: HSL; peso: number }[] {
+  // Con `extremos` se cuentan también los casi negros y casi blancos: en la foto de perfil o los destacados de una
+  // marca el negro o el blanco son su esencia, no fondo (perfilador, `esencia.ts`).
   const utiles = pixeles
     .filter((p) => p.alfa > 128)
     .map((p) => p.rgb)
     .filter(([r, g, b]) => {
+      if (extremos) return true;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
       return !(min > 240) && !(max < 18);

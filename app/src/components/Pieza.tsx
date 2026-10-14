@@ -1,17 +1,31 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { contraste, hexToHsl, hslCss, type HSL } from "@/engine/color";
-import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
+import { contraste, hexToHsl, hslCss, hslToHex, mezclar, type HSL } from "@/engine/color";
+import { AREA_SEGURIDAD, dataUrlASvg, elegirVersionLogo, monocromoDe, versionLegible } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
-import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
+import { cajasQueInforman, evaluarPieza, intensidadSegura, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
-import { coloresModo, estiloCta, estiloCtaSobre, fondoCapaDecorativa, MIN_GRAFICO, opacidadSegura } from "@/engine/palette";
+import {
+  colorClaroDegradado,
+  coloresModo,
+  estiloCta,
+  estiloCtaSobre,
+  fondoCapaDecorativa,
+  geometriaDegradado,
+  MIN_GRAFICO,
+  opacidadSegura,
+} from "@/engine/palette";
 import {
   decoEfectiva,
+  degradadoActivo,
+  esVarianteE16,
   estiloIconos,
   geometria2BLImagen,
+  geometriaEscenario,
+  geometriaSujetoApilada,
+  medioApilada,
   modoDeco,
   MAX_CONTACTO,
   maxItems,
@@ -24,6 +38,9 @@ import { asegurarFamilias, cargarFuentePropia, fontFamily } from "@/lib/fuentes"
 import { ajustarTexto, medirContrasteSobreFoto, medirPieza } from "@/lib/medicion";
 import { decoracionEfectiva, SOMBRA_DECORACION, trazadoDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
 import { bloqueTexto, capaProteccion, filtroDeMarca, type Foco } from "@/engine/fotografia";
+import { coloresInsignia, colorPalabraGigante, geometriaFotoEnForma } from "@/engine/composicion";
+import { capaSujeto, posicionValida, rectBase, rectConAjuste, sujetoLibre, type AjusteSujeto } from "@/engine/sujeto";
+import { bloqueTitular, contener, geometriaBanda, geometriaProducto, usaFotoFondo } from "@/engine/protagonista";
 import { dimensionesCacheadas, dimensionesImagen } from "@/lib/imagen";
 import { FiltroSvg, FormaRellena, FormaSvg, FotoEnForma, ImagenFoco, Icono } from "./Graficos";
 
@@ -38,10 +55,16 @@ export function Pieza({
   marca,
   pieza,
   onResultado,
+  onAjusteSujeto,
 }: {
   marca: Marca;
   pieza: TPieza;
   onResultado?: (r: ResultadoChecklist, m: Medicion) => void;
+  /**
+   * Movimiento manual del sujeto (E16, paso 7). Solo en la vista previa editable: con esto el producto se arrastra, y
+   * la ubicación corregida por el motor vuelve a la pieza.
+   */
+  onAjusteSujeto?: (a: AjusteSujeto | null) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
@@ -59,10 +82,14 @@ export function Pieza({
   const estilo = estiloIconos(marca);
   const logoSrc = marca.identidad.logo[c.logo];
   const colorTextoMarca = p.version_funcional ?? p.color_marca;
-  const centrado = pieza.alineacion === "centrado";
+  // Variantes nuevas (cap. 6b, E16): cada una tiene su alineación propia. La 5 apila el mensaje a la izquierda.
+  const e16 = esVarianteE16(pieza.variante);
+  // La 6 va centrada (en 1200×630 el mensaje queda a la izquierda, con el producto a la derecha).
+  const centrado = ((pieza.variante === "6" || pieza.variante === "7") && f.columnaMensaje == null) || (pieza.alineacion === "centrado" && !e16);
   const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
-  const ctaTexto = plantilla.tieneCta ? pieza.contenido.cta?.trim() : null;
+  // Con CTA opcional (2 y 3, cap. 7b) el botón aparece solo si tiene texto: sin él, la pieza queda como antes.
+  const ctaTexto = plantilla.politicaCta !== "no" ? pieza.contenido.cta?.trim() : null;
   const deco = plantilla.deco ? decoEfectiva(marca, pieza) : null;
   // 2B-L con foto o ícono (v1.1): círculo del 80% del ancho. En 1200×630 el mensaje ya ocupa la mitad izquierda y sigue
   // con la forma sangrada.
@@ -81,7 +108,12 @@ export function Pieza({
   // protagonistas (cap. 6).
   // Decoración de plantilla (v1.1): reemplaza a la forma de fondo automática.
   const esFoto = pieza.variante === "F";
-  const decoracion = esFoto ? null : decoracionEfectiva(pieza);
+  // Imagen protagonista: titular sobre foto (FT), foto con banda (FB) y producto héroe (FP).
+  const esTitular = pieza.variante === "FT";
+  const esBanda = pieza.variante === "FB";
+  const esProducto = pieza.variante === "FP";
+  const conFotoPropia = usaFotoFondo(pieza.variante);
+  const decoracion = conFotoPropia ? null : decoracionEfectiva(pieza);
   // Rasgos propios (E2): forma de fondo y detalle recurrente. El detalle va en el acento si se distingue del fondo; si
   // no, en el color del texto.
   const formaPropia = marca.identidad.recursos?.formas[0] ?? null;
@@ -91,20 +123,47 @@ export function Pieza({
   // se limita para que el texto que pase por encima siga cumpliendo.
   const colorDeco = (pieza.color_decoracion != null && marca.identidad.paleta_extendida?.secundarios[pieza.color_decoracion]?.color) || p.tono_apoyo;
   const geoDecoracion = decoracion?.geometria(pieza.formato) ?? null;
-  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion && !esFoto;
+  // Las variantes nuevas (E16) y las que llevan foto propia no llevan la forma de fondo automática: una sola decoración
+  // protagonista (cap. 6b).
+  const conFormaFondo = !plantilla.deco && plantilla.bloque !== "catalogo" && !decoracion && !conFotoPropia && !e16;
   const formaColor = pieza.modo === "A" ? c.apoyo : p.fondo_neutro;
   const formaOpacidad = opacidadSegura(c.fondo, formaColor, c.texto, pieza.modo === "A" ? 0.35 : 0.12);
 
   // Texto sobre foto (E6): la foto a sangre, su tratamiento de marca y la protección de contraste detrás del bloque.
   const uid = useId().replace(/:/g, "");
   const filtro = filtroDeMarca(marca.identidad);
-  const fotoFondo = esFoto && marca.identidad.fotos_habilitadas ? (pieza.foto_fondo ?? null) : null;
-  const proteccion = pieza.proteccion ?? "degradado";
+  const fotoFondo = conFotoPropia && marca.identidad.fotos_habilitadas ? (pieza.foto_fondo ?? null) : null;
+  // El titular sobre foto no usa placa: tapa demasiado de la foto, que es la protagonista.
+  const proteccion = esTitular && pieza.proteccion === "placa" ? "degradado" : (pieza.proteccion ?? "degradado");
   const ladoTexto = pieza.foto_texto ?? "abajo";
-  const bloqueFoto = esFoto ? bloqueTexto(f, ladoTexto) : null;
+  const bloqueFoto = esFoto ? bloqueTexto(f, ladoTexto) : esTitular ? bloqueTitular(pieza.formato, ladoTexto) : null;
+  // La foto a sangre (F y FT) lleva el texto encima y su protección; en la FB y la FP el texto va sobre color plano.
   const capaFoto = fotoFondo && bloqueFoto ? capaProteccion(proteccion, bloqueFoto, f, ladoTexto) : null;
-  // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo.
-  const fotosConFoco = pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null].filter((s): s is string => !!s) : [];
+  // Degradado de marca (cap. 6b, E16): la misma geometría y las mismas paradas que mide el checklist. Las paradas van
+  // en hex (sin redondear el matiz) para que el color dibujado sea el medido.
+  const degradado = degradadoActivo(marca, pieza);
+  const claveDeg = JSON.stringify([{ ...pieza, id: null }, marca.identidad.paleta, marca.identidad.tipografia, marca.identidad.logo.versiones]);
+  const geoDeg = degradado ? geometriaDegradado(degradado, f.ancho, f.alto) : null;
+  // Intensidad automática (cap. 6b): arranca en 1 para cada pieza nueva y, si al medir el degradado suma avisos, se baja
+  // y se vuelve a medir. Se guarda junto con la clave de la pieza, así un cambio de pieza vuelve a empezar en 1.
+  const [intDeg, setIntDeg] = useState<{ clave: string; k: number }>({ clave: "", k: 1 });
+  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo, intDeg.clave === claveDeg ? intDeg.k : 1) : null;
+  const intensidad = intDeg.clave === claveDeg ? intDeg.k : 1;
+  // Ajuste manual del sujeto (E16, paso 7): el pedido viaja en la pieza; si en este formato tapa algo, el motor lo
+  // corre al lugar libre más cercano y se dibuja ese (por formato, así el ZIP de los 4 formatos también pasa).
+  const [ajSuj, setAjSuj] = useState<{ clave: string; a: AjusteSujeto | null }>({ clave: "", a: null });
+  const ajustePedido = pieza.sujeto?.ajuste ?? null;
+  const ajusteSujeto = ajSuj.clave === claveDeg ? ajSuj.a : ajustePedido;
+  // Arrastre en curso (fracción del lienzo) y si en la posición actual taparía algo.
+  const [arrastre, setArrastre] = useState<{ dx: number; dy: number; tapa: boolean } | null>(null);
+  const ultimaMedicion = useRef<Medicion | null>(null);
+  const paradasDeg = geoDeg && claroDeg ? geoDeg.paradas.map(([o, k], i) => <stop key={i} offset={o} stopColor={hslToHex(mezclar(c.fondo, claroDeg, k))} />) : null;
+  // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo. El producto héroe
+  // siempre lo necesita: se dibuja entero (contain) en su caja.
+  const fotosConFoco = [
+    ...(pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null] : []),
+    esProducto ? fotoFondo : null,
+  ].filter((s, i, arr): s is string => !!s && arr.indexOf(s) === i);
   const [dimensionesListas, setDimensionesListas] = useState(0);
   const claveFotos = fotosConFoco.join("|");
   useEffect(() => {
@@ -118,12 +177,14 @@ export function Pieza({
   }, [claveFotos]);
 
   const onResultadoRef = useRef(onResultado);
+  const onAjusteRef = useRef(onAjusteSujeto);
   useLayoutEffect(() => {
     onResultadoRef.current = onResultado;
+    onAjusteRef.current = onAjusteSujeto;
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas, intensidad, ajusteSujeto]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -142,8 +203,30 @@ export function Pieza({
       if (!vigente) return;
       const desborde = ajustarTexto(root, plantilla, f.alto, escala, lateralVertical ? g.posiciones : undefined);
       const medicion = medirPieza(root, desborde);
+      medicion.intensidadDegradado = intensidad;
+      ultimaMedicion.current = medicion;
+      // Sujeto movido a mano: si lo opaco tapa algo que informa, se corre al lugar libre más cercano y se vuelve a medir.
+      const mascara = pieza.sujeto?.transparente ? pieza.sujeto.mascara : null;
+      if (ajusteSujeto && mascara && medicion.sujeto) {
+        const base = rectBase(medicion.sujeto, ajusteSujeto, f.ancho, f.alto);
+        const cajas = cajasQueInforman(medicion).flatMap((e) => e.cajas);
+        const valido = posicionValida(mascara, base, ajusteSujeto, cajas, f.ancho, f.alto);
+        if (JSON.stringify(valido) !== JSON.stringify(ajusteSujeto)) {
+          setAjSuj({ clave: claveDeg, a: valido });
+          onAjusteRef.current?.(valido);
+          return;
+        }
+      }
+      // Degradado: si con esta intensidad suma avisos, se dibuja más suave y se vuelve a medir (el texto no cambia).
+      if (degradado) {
+        const segura = intensidadSegura(marca, pieza, medicion);
+        if (segura < intensidad - 1e-6) {
+          setIntDeg({ clave: claveDeg, k: segura });
+          return;
+        }
+      }
       // El contraste del texto sobre foto se mide sobre la imagen real, con su tratamiento y su protección.
-      if (fotoFondo) {
+      if (fotoFondo && bloqueFoto) {
         medicion.contrasteSobreFoto = await medirContrasteSobreFoto({
           foto: fotoFondo, foco: pieza.foto_foco, filtro, capa: capaFoto, ancho: f.ancho, alto: f.alto, fondo: c.fondo, colorTexto: c.texto, medicion,
         }).catch(() => undefined);
@@ -182,7 +265,13 @@ export function Pieza({
     const modoFoto = sobreFoto ? (logoDef.sobre_foto ?? "mono") : "mono";
     // Sobre una placa el logo va en color y el fondo pasa a ser el neutro de la marca.
     const conPlaca = modoFoto === "placa" && !!(logoDef.color ?? elegida);
-    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : version;
+    // Un logo color que no se lee sobre este fondo (claro sobre claro) pasa a su monocromo: el SVG se recolorea.
+    const esSvg = !!(logoDef.color && dataUrlASvg(logoDef.color));
+    const legible = versionLegible(version, logoDef.color_dominante, fondoLogo, {
+      mono_claro: !!logoDef.mono_claro || esSvg,
+      mono_oscuro: !!logoDef.mono_oscuro || esSvg,
+    });
+    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : legible;
     const fondoReal = conPlaca ? p.fondo_neutro : fondoLogo;
     let src: string | null | undefined = logoDef[versionEfectiva] ?? logoSrc;
     let aspecto: number | undefined = versionEfectiva === "color" ? logoDef.aspecto : undefined;
@@ -282,9 +371,7 @@ export function Pieza({
     </div>
   );
 
-  const mensaje = (extra?: React.ReactNode, estiloZona?: React.CSSProperties, despues?: React.ReactNode) => (
-    <div data-slot="mensaje" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", ...estiloZona }}>
-      <div data-slot="mensaje-contenido" style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: horizontal ? px(16) : px(28), alignItems: justificar }}>
+  const h1El = (
         <h1
           data-slot="h1"
           style={{
@@ -304,11 +391,18 @@ export function Pieza({
         >
           {h1 || " "}
         </h1>
-        {body?.trim() && (
+  );
+  const bodyEl = body?.trim() && (
           <p data-slot="body" style={{ ...bodyEstilo, maxWidth: "88%", fontStyle: italica ? "italic" : "normal" }}>
             {body}
           </p>
-        )}
+  );
+  const mensaje = (extra?: React.ReactNode, estiloZona?: React.CSSProperties, despues?: React.ReactNode, medio?: React.ReactNode) => (
+    <div data-slot="mensaje" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", ...estiloZona }}>
+      <div data-slot="mensaje-contenido" style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: horizontal ? px(16) : px(28), alignItems: justificar }}>
+        {h1El}
+        {medio}
+        {bodyEl}
         {extra}
       </div>
       {despues}
@@ -316,9 +410,9 @@ export function Pieza({
   );
 
   /** `angosto`: columna estrecha (2B-L con imagen), el botón va en una línea con menos relleno lateral. */
-  const botonCtaCon = (e: typeof cta, angosto = false) =>
+  const botonCtaCon = (e: typeof cta, angosto = false, alinear: string = justificar) =>
     ctaTexto && (
-      <div style={{ display: "flex", justifyContent: justificar, padding: e.anillo ? e.anillo.px : 0, flexShrink: 0 }}>
+      <div style={{ display: "flex", justifyContent: alinear, padding: e.anillo ? e.anillo.px : 0, flexShrink: 0 }}>
         <span
           data-slot="cta"
           data-cta-fondo={JSON.stringify(e.fondo)}
@@ -458,6 +552,9 @@ export function Pieza({
   );
 
   // ── Composición por variante ──
+  // El espacio entre bloques nunca es menor que el área de seguridad del logo (E4), más 12 px: la caja de las letras
+  // del H1 (tildes, ascendentes) sobresale por encima de su línea.
+  const separacion = Math.max(horizontal ? px(20) : px(36), Math.ceil(px(plantilla.logoPx) * AREA_SEGURIDAD) + 12);
   const zonaBase: React.CSSProperties = {
     position: "absolute",
     left: f.ancho * f.zona.x,
@@ -465,9 +562,7 @@ export function Pieza({
     bottom: f.alto * f.zona.abajo,
     display: "flex",
     flexDirection: "column",
-    // El espacio entre bloques nunca es menor que el área de seguridad del logo (E4), más 12 px: la caja de las letras
-    // del H1 (tildes, ascendentes) sobresale por encima de su línea.
-    gap: Math.max(horizontal ? px(20) : px(36), Math.ceil(px(plantilla.logoPx) * AREA_SEGURIDAD) + 12),
+    gap: separacion,
     textAlign: centrado ? "center" : "left",
   };
   // Horizontal: el mensaje ocupa la mitad izquierda; el elemento lateral (deco, contacto o ítems), la derecha.
@@ -489,9 +584,329 @@ export function Pieza({
     justifyContent: "center",
   };
 
+  // ── Movimiento manual del sujeto (E16, paso 7) ──
+  // El ajuste se dibuja con una transformación (corrimiento del centro y escala), así el lugar automático de cada
+  // variante no cambia y la medición toma la caja ya transformada.
+  const ajusteVisto: AjusteSujeto | null =
+    arrastre || ajusteSujeto
+      ? { dx: (ajusteSujeto?.dx ?? 0) + (arrastre?.dx ?? 0), dy: (ajusteSujeto?.dy ?? 0) + (arrastre?.dy ?? 0), escala: ajusteSujeto?.escala ?? 1 }
+      : null;
+  const estiloAjuste: React.CSSProperties = {
+    ...(ajusteVisto ? { transform: `translate(${ajusteVisto.dx * f.ancho}px, ${ajusteVisto.dy * f.alto}px) scale(${ajusteVisto.escala})`, transformOrigin: "50% 50%" } : {}),
+    ...(onAjusteSujeto ? { cursor: arrastre ? "grabbing" : "grab", touchAction: "none" } : {}),
+    // Mientras se arrastra, rojo si en ese lugar taparía texto, logo, Cifra, CTA o insignia (al soltarlo se acomoda).
+    ...(arrastre?.tapa ? { filter: "drop-shadow(0 0 6px rgba(220,38,38,0.9)) drop-shadow(0 0 2px rgba(220,38,38,1))" } : {}),
+  };
+  const manejoArrastre = onAjusteSujeto
+    ? {
+        onPointerDown: (e: React.PointerEvent<HTMLImageElement>) => {
+          e.preventDefault();
+          const img = e.currentTarget;
+          img.setPointerCapture(e.pointerId);
+          // Pantalla → lienzo: la vista previa está escalada con CSS.
+          const k = (ref.current?.getBoundingClientRect().width ?? f.ancho) / f.ancho;
+          const x0 = e.clientX;
+          const y0 = e.clientY;
+          const m = ultimaMedicion.current;
+          const mascara = pieza.sujeto?.mascara;
+          const base = m?.sujeto ? rectBase(m.sujeto, ajusteSujeto, f.ancho, f.alto) : null;
+          const cajas = m ? cajasQueInforman(m).flatMap((c) => c.cajas) : [];
+          const delta = (ev: PointerEvent) => ({ dx: (ev.clientX - x0) / k / f.ancho, dy: (ev.clientY - y0) / k / f.alto });
+          const mover = (ev: PointerEvent) => {
+            const d = delta(ev);
+            const pedido = { dx: (ajusteSujeto?.dx ?? 0) + d.dx, dy: (ajusteSujeto?.dy ?? 0) + d.dy, escala: ajusteSujeto?.escala ?? 1 };
+            const tapa = !!(mascara && base) && !sujetoLibre(mascara, rectConAjuste(base, pedido, f.ancho, f.alto), cajas);
+            setArrastre({ ...d, tapa });
+          };
+          const soltar = (ev: PointerEvent) => {
+            img.removeEventListener("pointermove", mover);
+            img.removeEventListener("pointerup", soltar);
+            const d = delta(ev);
+            setArrastre(null);
+            onAjusteSujeto({ dx: (ajusteSujeto?.dx ?? 0) + d.dx, dy: (ajusteSujeto?.dy ?? 0) + d.dy, escala: ajusteSujeto?.escala ?? 1 });
+          };
+          img.addEventListener("pointermove", mover);
+          img.addEventListener("pointerup", soltar);
+        },
+      }
+    : {};
+
+  // ── Recursos de las variantes nuevas (cap. 6b, E16) ──
+  const familiaDisplay = marca.identidad.tipografia.familia_variable;
+  const cifraTexto = e16 ? pieza.contenido.cifra?.trim() : null;
+  const medio = pieza.variante === "5" ? medioApilada(pieza) : null;
+  // La Cifra es texto grande en el color del texto; el ajuste la achica si no entra a lo ancho.
+  const cifraEl = cifraTexto ? (
+    <div
+      data-slot="cifra"
+      style={{
+        width: "100%",
+        textAlign: "center",
+        whiteSpace: "nowrap",
+        color: hslCss(c.texto),
+        fontSize: "var(--cifra)",
+        fontWeight: pesoH1("", familiaDisplay),
+        lineHeight: 1,
+        letterSpacing: "-0.02em",
+      }}
+    >
+      {cifraTexto}
+    </div>
+  ) : null;
+  // Foto en forma (diseño 2): rectángulo redondeado de 2,5:1 del ancho disponible, con el tratamiento de la marca.
+  const anchoMedio = horizontal ? f.ancho * (1 - f.columnaMensaje!) - 40 - f.ancho * f.zona.x : f.ancho * (1 - 2 * f.zona.x);
+  const gFoto = geometriaFotoEnForma(pieza.formato, anchoMedio);
+  const fotoForma = pieza.foto_forma?.src;
+  const fotoEl = fotoForma ? (
+    <svg data-slot="foto-forma" width={gFoto.w} height={gFoto.h} viewBox={`0 0 ${gFoto.w} ${gFoto.h}`} style={{ display: "block", flexShrink: 0 }}>
+      <defs>
+        <clipPath id={`fz${uid}`}>
+          <rect width={gFoto.w} height={gFoto.h} rx={gFoto.radio} />
+        </clipPath>
+        <FiltroSvg id={`fzf${uid}`} filtro={filtro} />
+      </defs>
+      <g clipPath={`url(#fz${uid})`}>
+        <ImagenFoco src={fotoForma} foco={pieza.foto_forma?.foco} x={0} y={0} w={gFoto.w} h={gFoto.h} filtroId={filtro ? `fzf${uid}` : undefined} />
+      </g>
+    </svg>
+  ) : null;
+  // Sujeto PNG (diseño 3): se dibuja con la proporción de la imagen, así su caja es la imagen y la máscara calza.
+  const capaSuj = medio === "sujeto" ? capaSujeto(marca, pieza) : null;
+  const sujetoPng = capaSuj?.tipo === "png" ? capaSuj.sujeto : null;
+  const gSujeto = sujetoPng ? geometriaSujetoApilada(pieza.formato, sujetoPng.ancho / sujetoPng.alto) : null;
+  const sujetoEl =
+    sujetoPng && gSujeto ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        data-slot="sujeto"
+        src={sujetoPng.src}
+        alt=""
+        draggable={false}
+        {...manejoArrastre}
+        style={{ position: "absolute", left: gSujeto.x, top: gSujeto.y, width: gSujeto.w, height: gSujeto.h, display: "block", ...estiloAjuste }}
+      />
+    ) : null;
+  // Insignia (derivado, sin referencia): en la fila del logo, del otro lado, donde no hay mensaje.
+  const colIns = coloresInsignia(p, pieza.modo);
+  const insigniaEl =
+    e16 && pieza.insignia?.texto.trim() ? (
+      <span
+        data-slot="insignia"
+        data-texto={JSON.stringify(colIns.texto)}
+        data-relleno={JSON.stringify(colIns.relleno)}
+        style={{
+          flexShrink: 0,
+          background: hslCss(colIns.relleno),
+          color: hslCss(colIns.texto),
+          fontFamily: fuenteTexto,
+          fontWeight: 600,
+          fontSize: px(horizontal ? 24 : 28),
+          lineHeight: 1.2,
+          padding: `${px(10)}px ${px(22)}px`,
+          borderRadius: px(10),
+          whiteSpace: "nowrap",
+        }}
+      >
+        {pieza.insignia.texto.trim()}
+      </span>
+    ) : null;
+  // Palabra gigante (derivado, sin referencia): detrás de todo, abajo a la izquierda y saliéndose del lienzo.
+  const palabraTexto = e16 ? pieza.palabra_gigante?.texto.trim() : null;
+  const colorPalabra = colorPalabraGigante(c.fondo, pieza.modo);
+  const palabraEl = palabraTexto ? (
+    <div
+      data-slot="palabra"
+      data-color={JSON.stringify(colorPalabra)}
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: -f.ancho * 0.04,
+        bottom: -f.alto * 0.03,
+        color: hslCss(colorPalabra),
+        fontSize: Math.round(Math.min(f.ancho, f.alto) * 0.42),
+        fontWeight: pesoH1("", familiaDisplay),
+        lineHeight: 0.8,
+        letterSpacing: "-0.04em",
+        whiteSpace: "nowrap",
+        pointerEvents: "none",
+      }}
+    >
+      {palabraTexto}
+    </div>
+  ) : null;
+  const filaLogo = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: px(24), flexShrink: 0 }}>
+      {logo}
+      {insigniaEl}
+    </div>
+  );
+
+  // Escenario de la 6 (diseños 4 y 5): círculo opaco en tono de apoyo y, encima, el producto (o su respaldo).
+  const gEsc = pieza.variante === "6" ? geometriaEscenario(pieza.formato, !!body?.trim()) : null;
+  const capa6 = pieza.variante === "6" ? capaSujeto(marca, pieza) : null;
+  let escenario: React.ReactNode = null;
+  if (gEsc && capa6) {
+    const D = gEsc.diametro;
+    const centro: React.CSSProperties = { position: "absolute", left: "50%", top: "50%" };
+    // Respaldo (ícono o forma): el color del texto o del fondo, el que más contraste con el círculo.
+    const colorRespaldo = contraste(c.texto, c.apoyo) >= contraste(c.fondo, c.apoyo) ? c.texto : c.fondo;
+    let encima: React.ReactNode = null;
+    if (capa6.tipo === "png") {
+      const s = capa6.sujeto;
+      const aspecto = s.ancho / s.alto;
+      const w = Math.min(gEsc.anchoSujeto, gEsc.alto * aspecto);
+      const h = w / aspecto;
+      encima = (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          data-slot="sujeto"
+          src={s.src}
+          alt=""
+          draggable={false}
+          {...manejoArrastre}
+          style={{ ...centro, width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, display: "block", ...estiloAjuste }}
+        />
+      );
+    } else if (capa6.tipo === "icono") {
+      encima = (
+        <div style={{ ...centro, transform: "translate(-50%, -50%)", display: "flex" }}>
+          <Icono nombre={capa6.icono} estilo={estilo} color={colorRespaldo} tamano={Math.round(D * 0.5)} />
+        </div>
+      );
+    } else if (capa6.tipo === "forma") {
+      const lado = Math.round(D * 0.6);
+      encima = (
+        <div style={{ ...centro, width: lado, height: lado, marginLeft: -lado / 2, marginTop: -lado / 2 }}>
+          <FormaSvg id={capa6.forma} formas={marca.identidad.recursos?.formas ?? []} color={colorRespaldo} style={{ width: "100%", height: "100%" }} />
+        </div>
+      );
+    }
+    escenario = (
+      <div data-slot="escenario" style={{ position: "relative", width: "100%", height: gEsc.alto, flexShrink: 0 }}>
+        <div
+          data-slot="circulo"
+          data-color={JSON.stringify(c.apoyo)}
+          style={{ ...centro, width: D, height: D, marginLeft: -D / 2, marginTop: -D / 2, borderRadius: "50%", background: hslCss(c.apoyo) }}
+        />
+        {encima}
+      </div>
+    );
+  }
+
+  // Fila del logo de las variantes centradas: la insignia va pegada a la derecha sin descentrar el logo.
+  const filaLogoCentrada = (
+    <div style={{ position: "relative", display: "flex", justifyContent: justificar, flexShrink: 0 }}>
+      {logo}
+      {insigniaEl && <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, display: "flex", alignItems: "center" }}>{insigniaEl}</div>}
+    </div>
+  );
+
+  // Imagen protagonista: el pie junta el CTA y el logo en una fila, así el mensaje y la imagen se quedan con el alto. En
+  // 1200×630 la columna es angosta para los dos: el CTA pasa al mensaje y el pie es solo el logo.
+  const ctaEnPie = !!ctaTexto && !horizontal;
+  const altoPie = Math.max(px(plantilla.logoPx), ctaEnPie ? Math.ceil(px(plantilla.cta) * 1.3 + 2 * px(22) + 2 * (cta.anillo?.px ?? 0)) : 0);
+  const pieFila = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: ctaEnPie && !centrado ? "space-between" : justificar, gap: separacion, height: "100%" }}>
+      {ctaEnPie && botonCta}
+      <div style={{ flex: ctaEnPie ? "0 1 40%" : "1 1 auto", display: "flex", justifyContent: ctaEnPie && !centrado ? "flex-end" : justificar }}>{logoCon(c.logo, c.fondo)}</div>
+    </div>
+  );
+  const mensajeProtagonista = () => mensaje(ctaEnPie ? undefined : botonCta);
+  const ladoProducto = pieza.foto_texto ?? "arriba";
+  const geoProducto = esProducto ? geometriaProducto(pieza.formato, ladoProducto, altoPie, separacion) : null;
+  const dimProducto = esProducto && fotoFondo ? dimensionesCacheadas(fotoFondo) : undefined;
+  const cajaProducto = geoProducto ? (dimProducto ? contener(dimProducto, geoProducto.producto) : geoProducto.producto) : null;
+  const productoRecortado = pieza.foto_recortada === true;
+  const bordeBanda = pieza.banda_borde ?? "onda";
+  const geoBanda = esBanda ? geometriaBanda(pieza.formato, bordeBanda, separacion) : null;
+
   let contenidoPieza: React.ReactNode;
-  if (esFoto && bloqueFoto) {
-    // Texto sobre foto (E6): logo, mensaje y CTA en un solo bloque pegado arriba o abajo, sobre su protección.
+  if (pieza.variante === "7") {
+    // 7 · Cifra (cap. 6b, diseño 6): logo, H1, Cifra, body y CTA, todo centrado. En 1200×630 el mensaje va a la
+    // izquierda y la Cifra en la columna derecha.
+    contenidoPieza = horizontal ? (
+      <>
+        <div data-columna style={colIzq}>
+          {filaLogoCentrada}
+          {mensaje(botonCta)}
+        </div>
+        {cifraEl && <div style={{ ...colDer, flexDirection: "column" }}>{cifraEl}</div>}
+      </>
+    ) : (
+      <div data-columna style={colIzq}>
+        {filaLogoCentrada}
+        {/* Diseño 6: ~70 px de aire entre el H1 y la Cifra, y ~80 px hasta el body (el hueco del bloque es 28 px). */}
+        {mensaje(undefined, undefined, undefined, cifraEl && <div style={{ width: "100%", padding: `${px(44)}px 0 ${px(52)}px` }}>{cifraEl}</div>)}
+        {botonCta}
+      </div>
+    );
+  } else if (pieza.variante === "6") {
+    // 6 · Producto (cap. 6b, diseños 4 y 5): logo, la Cifra como H1, el escenario, el body opcional y el CTA, todo
+    // centrado. En 1200×630 el mensaje va a la izquierda y el escenario en la columna derecha.
+    contenidoPieza = horizontal ? (
+      <>
+        <div data-columna style={colIzq}>
+          {filaLogoCentrada}
+          {mensaje(botonCta)}
+        </div>
+        <div style={{ ...colDer, flexDirection: "column" }}>{escenario}</div>
+      </>
+    ) : (
+      <div data-columna style={colIzq}>
+        {filaLogoCentrada}
+        {mensaje(undefined, undefined, undefined, escenario)}
+        {botonCta}
+      </div>
+    );
+  } else if (pieza.variante === "5") {
+    // 5 · Apilada (cap. 6b, diseños 1 a 3). Con sujeto, el CTA sube a la izquierda debajo del body y la columna termina
+    // antes del sujeto; si no, el medio (Cifra o foto) va centrado en el espacio libre y el CTA centrado al pie. En
+    // 1200×630 el mensaje y el CTA van a la izquierda y el medio en la columna derecha.
+    const medioEl = medio === "cifra" ? cifraEl : medio === "foto" ? fotoEl : null;
+    const columna: React.CSSProperties = gSujeto && !horizontal ? { ...colIzq, bottom: f.alto - gSujeto.y + px(28) } : colIzq;
+    contenidoPieza = (
+      <>
+        {sujetoEl}
+        <div data-columna style={columna}>
+          {filaLogo}
+          {mensaje(medio === "sujeto" || horizontal ? botonCtaCon(cta, false, "flex-start") : undefined, { flex: "0 1 auto", justifyContent: "flex-start" })}
+          {!horizontal && medioEl ? (
+            <div data-slot="medio" style={{ flex: "1 0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              {medioEl}
+            </div>
+          ) : (
+            <div style={{ flex: "1 1 0" }} />
+          )}
+          {medio !== "sujeto" && !horizontal && botonCtaCon(cta, false, "center")}
+        </div>
+        {horizontal && medioEl && <div style={{ ...colDer, flexDirection: "column" }}>{medioEl}</div>}
+      </>
+    );
+  } else if (geoProducto) {
+    // Producto héroe: el mensaje arriba o abajo del producto (al costado en 1200×630) y el pie cerrando la zona segura.
+    const caja = geoProducto.mensaje;
+    contenidoPieza = (
+      <>
+        <div data-columna style={{ ...zonaBase, left: caja.x, top: caja.y, bottom: "auto", width: caja.w, height: caja.h, gap: 0 }}>
+          {/* Centrado en su caja, como en la F: las cajas de las letras del H1 sobresalen del renglón y pegado al borde
+              de la caja pisarían el margen. */}
+          {mensajeProtagonista()}
+        </div>
+        <div style={{ position: "absolute", left: geoProducto.pie.x, top: geoProducto.pie.y, width: geoProducto.pie.w, height: geoProducto.pie.h }}>{pieFila}</div>
+      </>
+    );
+  } else if (geoBanda) {
+    // Foto con banda: todo el texto va sobre la banda, en el color plano del modo.
+    const caja = geoBanda.texto;
+    contenidoPieza = (
+      <div data-columna style={{ ...zonaBase, left: caja.x, top: caja.y, bottom: "auto", width: caja.w, height: caja.h }}>
+        {mensajeProtagonista()}
+        <div style={{ height: altoPie, flexShrink: 0 }}>{pieFila}</div>
+      </div>
+    );
+  } else if (bloqueFoto) {
+    // Texto sobre foto (E6) y titular sobre foto: logo, mensaje y CTA en un solo bloque pegado arriba o abajo, sobre su
+    // protección.
     contenidoPieza = (
       <div data-columna style={{ ...zonaBase, left: bloqueFoto.x, top: bloqueFoto.y, bottom: "auto", width: bloqueFoto.w, height: bloqueFoto.h }}>
         {logoCon(c.logo, c.fondo, proteccion === "zona" && !!fotoFondo)}
@@ -587,6 +1002,8 @@ export function Pieza({
     contenidoPieza = (
       <div data-columna style={colIzq}>
         {mensaje(listaContacto)}
+        {/* CTA opcional (cap. 7b): después del contacto y justo antes del logo, como en la 2B. */}
+        {botonCta}
         {logo}
       </div>
     );
@@ -604,9 +1021,10 @@ export function Pieza({
       <div data-columna style={colIzq}>
         {pieza.variante === "1" && logo}
         {/* Con una decoración de bloque centrado, el logo acompaña al mensaje y el conjunto queda centrado en alto. */}
-        {decoracion?.bloque === "centrado" ? mensaje(logo) : mensaje()}
+        {decoracion?.bloque === "centrado" ? mensaje(<>{pieza.variante === "2" && botonCta}{logo}</>) : mensaje()}
         {pieza.variante === "1" && botonCta}
-        {pieza.variante === "2" && decoracion?.bloque !== "centrado" && logo}
+        {/* Variante 2 con CTA opcional (cap. 7b): el CTA va justo antes del logo, como en la 2B. */}
+        {pieza.variante === "2" && decoracion?.bloque !== "centrado" && <>{botonCta}{logo}</>}
       </div>
     );
   }
@@ -625,10 +1043,65 @@ export function Pieza({
         ["--h1" as string]: `${px(plantilla.h1.max)}px`,
         ["--body" as string]: `${px(plantilla.body.max)}px`,
         ["--cta" as string]: `${px(plantilla.cta)}px`,
+        ["--cifra" as string]: `${px(plantilla.cifra ?? 150)}px`,
         ["--deco-izq" as string]: `${g.izquierda}px`,
       }}
     >
-      {fotoFondo && (
+      {geoDeg && (
+        <svg data-slot="degradado" data-forma={degradado?.forma} data-intensidad={intensidad} width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            {geoDeg.tipo === "lineal" ? (
+              <linearGradient id={`dg${uid}`} gradientUnits="userSpaceOnUse" x1={geoDeg.x1} y1={geoDeg.y1} x2={geoDeg.x2} y2={geoDeg.y2}>
+                {paradasDeg}
+              </linearGradient>
+            ) : (
+              <radialGradient id={`dg${uid}`} gradientUnits="userSpaceOnUse" cx={geoDeg.cx} cy={geoDeg.cy} r={geoDeg.r}>
+                {paradasDeg}
+              </radialGradient>
+            )}
+          </defs>
+          <rect width={f.ancho} height={f.alto} fill={`url(#dg${uid})`} />
+        </svg>
+      )}
+      {esBanda && geoBanda && (
+        // Foto con banda: la foto arriba (o a la derecha en 1200×630) y la banda del color del modo encima, con su borde.
+        <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            <FiltroSvg id={`ff${uid}`} filtro={filtro} />
+          </defs>
+          {fotoFondo ? (
+            <ImagenFoco fondo src={fotoFondo} foco={pieza.foto_foco} x={geoBanda.foto.x} y={geoBanda.foto.y} w={geoBanda.foto.w} h={geoBanda.foto.h} filtroId={filtro ? `ff${uid}` : undefined} />
+          ) : (
+            // Sin foto se ve el lugar que ocupa; el checklist la pide.
+            <rect x={geoBanda.foto.x} y={geoBanda.foto.y} width={geoBanda.foto.w} height={geoBanda.foto.h} fill={hslCss(p.tono_apoyo)} />
+          )}
+          <path data-slot="banda" data-borde={bordeBanda} d={geoBanda.path} fill={hslCss(c.fondo)} />
+        </svg>
+      )}
+      {esProducto && cajaProducto && (
+        // Producto héroe: recortado, va suelto sobre el fondo; con fondo propio, dentro de un rectángulo redondeado (una
+        // foto nunca va suelta, cap. 5).
+        <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            <FiltroSvg id={`ff${uid}`} filtro={filtro} />
+            <clipPath id={`pc${uid}`}>
+              <rect x={cajaProducto.x} y={cajaProducto.y} width={cajaProducto.w} height={cajaProducto.h} rx={Math.min(cajaProducto.w, cajaProducto.h) * 0.06} />
+            </clipPath>
+          </defs>
+          {fotoFondo ? (
+            productoRecortado ? (
+              <image data-slot="producto" data-foto-protagonista="" href={fotoFondo} x={cajaProducto.x} y={cajaProducto.y} width={cajaProducto.w} height={cajaProducto.h} preserveAspectRatio="xMidYMid meet" filter={filtro ? `url(#ff${uid})` : undefined} />
+            ) : (
+              <g clipPath={`url(#pc${uid})`}>
+                <image data-slot="producto" href={fotoFondo} x={cajaProducto.x} y={cajaProducto.y} width={cajaProducto.w} height={cajaProducto.h} preserveAspectRatio="xMidYMid meet" filter={filtro ? `url(#ff${uid})` : undefined} />
+              </g>
+            )
+          ) : (
+            <rect x={cajaProducto.x} y={cajaProducto.y} width={cajaProducto.w} height={cajaProducto.h} rx={Math.min(cajaProducto.w, cajaProducto.h) * 0.06} fill={hslCss(p.tono_apoyo)} />
+          )}
+        </svg>
+      )}
+      {fotoFondo && bloqueFoto && (
         <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
           <defs>
             <FiltroSvg id={`ff${uid}`} filtro={filtro} />
@@ -690,6 +1163,7 @@ export function Pieza({
           }}
         />
       )}
+      {palabraEl}
       {geoDecoracion && <CapaDecoracion geometria={geoDecoracion} ancho={f.ancho} alto={f.alto} color={colorDeco} opacidad={pieza.modo === "B" ? 1 : opacidadSegura(c.fondo, colorDeco, c.texto, 0.35)} />}
       {contenidoPieza}
       {enCarrusel?.rol === "portada" && (

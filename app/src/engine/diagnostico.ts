@@ -52,6 +52,30 @@ export interface Diagnostico {
   moodboard?: { color: HSL; peso: number }[];
   /** Colores de marcas competidoras a evitar (E5): extienden la banda prohibida (±25°) del color de marca. */
   competencia?: HSL[];
+  /**
+   * Público del cliente (E15, paso 9): tres respuestas opcionales. No entra al checklist (no es medible); solo alimenta
+   * las propuestas de copy. Si las tres están vacías, no se guarda.
+   */
+  publico?: PublicoCliente;
+}
+
+export interface PublicoCliente {
+  /** A quién le vende. */
+  aquien: string;
+  /** Qué lo mueve a comprar. */
+  motiva: string;
+  /** Qué lo frena antes de contactar. */
+  frena: string;
+}
+
+/** Largo máximo de cada respuesta del público: una frase, no un perfil completo. */
+export const MAX_PUBLICO = 120;
+
+/** Público recortado y sin espacios de más; undefined si las tres respuestas están vacías. */
+export function publicoLimpio(p: Partial<PublicoCliente> | undefined): PublicoCliente | undefined {
+  const limpio = (s?: string) => (s ?? "").trim().slice(0, MAX_PUBLICO);
+  const r = { aquien: limpio(p?.aquien), motiva: limpio(p?.motiva), frena: limpio(p?.frena) };
+  return r.aquien || r.motiva || r.frena ? r : undefined;
 }
 
 export interface ContenidoCliente {
@@ -281,8 +305,10 @@ export function diagnosticoDeMarca(m: Marca): Diagnostico {
 
 function sinLogo(d: Diagnostico): Omit<Diagnostico, "logo"> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { logo, ...resto } = d;
-  return resto;
+  const { logo, publico, ...resto } = d;
+  // El público vacío no se guarda: la marca queda igual que una anterior al paso 9 de E15.
+  const p = publicoLimpio(publico);
+  return p ? { ...resto, publico: p } : resto;
 }
 
 export const PNG_LADO_MINIMO = 1000;

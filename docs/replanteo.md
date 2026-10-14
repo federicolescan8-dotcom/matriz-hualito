@@ -151,6 +151,8 @@ manuales.
 
 ### E11 · Rescate de marca existente · [x] hecha · depende de E3 y E4
 > Quedó: `engine/rescate.ts` y `components/RescateMarca.tsx` (sección "Rescate" de la identidad): grado de cambio, carga múltiple de referencias, agrupación por ΔE < 10, informe, canónicos por grado aplicados a roles o secundarios, brief del diseñador y antes y después (guardar el antes, comparación A/B, HTML descargable). No se hizo: vectorizar el logo ni detectar la tipografía (los resuelve el diseñador con el brief), ni la recomendación automática de tipografía.
+> Después se sumó el **perfilador** (`herramientas/perfilador/`, herramienta externa) y el botón "Importar perfil" en `/marcas`: a partir de capturas reales arma un `perfil-<slug>.json` (`hualito.perfil.v1`) con los colores medidos y la lectura interpretativa de Claude, y la app lo importa como marca en rescate (`engine/perfil.ts`, `lib/perfil.ts`); la paleta la arma el motor, y el grado de cambio decide si el color previo entra como heredado o como optimizado.
+> Después se sumó la **esencia** (`engine/esencia.ts`): lo que la marca muestra siempre igual (foto de perfil, destacados, logo, carpeta `identidad/` del perfilador) se mide con extremos y manda sobre el color previo en todos los grados; de ahí salen color de marca, fondo neutro, acento y modo. También: versión del logo legible sobre su fondo (`versionLegible`) e ícono según la oferta (`iconoParaOferta`). Surgió del feed de prueba de Barocca, que salía mostaza con acento celeste.
 - **Por qué:** la mayoría de los clientes ya tiene logo y colores, pero mal resueltos. Aparecen:
   - logos en baja resolución, distintos en cada red o hechos con IA con detalles que no escalan;
   - el "mismo" color en varios tonos (Instagram, cartel, Canva, imprenta);
@@ -207,6 +209,7 @@ manuales.
 
 ### E6 · Fotografía de marca · [x] hecha · depende de E1
 > Quedó: `engine/fotografia.ts` (tratamiento natural, gradación y duotono generado de la paleta con `feColorMatrix`, igual en pieza, PNG y medición; encuadre con punto focal; protección degradado, placa o zona limpia; dirección de arte). Variante F "Texto sobre foto" (solo con fotos habilitadas) y contraste medido sobre la imagen real (`medirContrasteSobreFoto`, percentil 5%) con los controles "H1 grande sobre la foto" (3:1) y "Body sobre la foto" (4,5:1). En Identidad › Fotografía, selector con vista previa, intensidad y guía. No se hizo: quitar el fondo de las fotos ni detectar automáticamente la zona limpia (se elige a mano).
+> Sub-etapa (imagen protagonista): variantes FP "Producto héroe" (producto recortado subido por la persona), FT "Titular sobre foto" y FB "Foto con banda" (borde recto u onda), en `engine/protagonista.ts`, con los controles "Foto protagonista cargada", "Producto recortado" y "Producto sin tapar texto ni logo". Sigue sin hacerse el recorte automático de fondo ni la palabra gigante detrás del producto.
 - **Alcance:**
   - **tratamiento propio:** gradación de color de la marca, duotono y recorte de fondo;
   - **recorte inteligente:** con punto focal;
@@ -260,8 +263,117 @@ manuales.
   - formatos del roadmap: portada de Reel 9:16, portadas de Destacadas de Instagram, portada de Facebook (1640×624), banner de LinkedIn (1584×396) y posts de LinkedIn.
 - **Aceptación:** cada formato nuevo tiene zonas seguras, checklist y render verificados.
 
+### E15 · Capa de marketing · [x] hecha (pasos 1 a 9; el 10 queda pendiente) · depende de E7 y E9; liga con E14
+> Quedó: capítulo 7b del manual y `docs/tendencias.md`; política de CTA por variante (CTA opcional en 2 y 3); `engine/marketing.ts` con los objetivos y las heurísticas; `Pieza.objetivo` y `armarPieza`/`textoSugerido` con objetivo (sin objetivo, igual que antes: foto de regresión); selector "¿Qué querés lograr?" en Publicaciones; bloque Marketing del checklist (aviso de CTA requerido, sugerencias del H1, del CTA que le habla al lector, de la vigencia y del mensaje único); subagente `disenador-marketing`; público opcional en el diagnóstico. Cambio acordado: "el CTA arranca con verbo" pasó a "el CTA le habla al lector", para que "Tu lugar te espera" pase. No se hizo: el paso 10 (copy con la API de Claude), que queda para más adelante junto con E14; el público ya está cargado para alimentarlo.
+- **Por qué:** las piezas digitales ya salen bien hechas; falta que vendan. Cada pieza declara qué quiere lograr y el
+  motor controla su estructura persuasiva. Solo digital (feed 4:5 y 1:1, stories 9:16, link 1200×630); no hay
+  formatos nuevos.
+- **Decisiones tomadas:**
+  - `objetivo` es un campo opcional de `Pieza` (`ObjetivoMarketing`), porque `/api/render` recibe solo
+    `{marca, pieza}` y vuelve a correr el checklist en el servidor. Las piezas no se persisten: no hay migración.
+    Sin objetivo, todo se comporta como antes y no corre ningún control de marketing.
+  - Cinco objetivos en `engine/marketing.ts` (tabla `OBJETIVOS`): vender ahora, generar consultas, construir
+    confianza, educar y llenar un evento, cada uno con su pregunta al cliente, orden de lectura, política de CTA
+    (`requerido | opcional | ninguno`) y CTA por defecto. `OBJETIVOS_DE_TIPO` asigna los compatibles a cada tipo de
+    E7; el primero es el default. La tabla completa está en el manual, capítulo 7b.
+  - Variantes 2 y 3: CTA opcional cuando el objetivo lo pide, con el orden de slots de la 2B (el CTA va justo antes
+    del logo).
+  - El CTA siempre se puede escribir a mano. Prioridad: lo escrito por el usuario > el CTA del diagnóstico > el CTA
+    por defecto del objetivo. Ningún control reescribe ni bloquea el texto del CTA.
+  - Los controles de marketing nunca son `bloqueante`: `aviso` solo para lo estructural y medible, `sugerencia` para
+    lo heurístico.
+  - Público: tres preguntas opcionales en el diagnóstico. No entran al checklist; solo alimentan el prompt de copy.
+  - Las tendencias estéticas no van en las reglas: viven en `docs/tendencias.md`, con fecha de revisión.
+- **Pasos** (uno por vez; cada uno cierra con tests, typecheck y lint limpios, manuales actualizados y un commit):
+  1. **Manual y tendencias (sin código).** Capítulo "Estructura de marketing" en el manual y `docs/tendencias.md`.
+     *Aceptación:* la tabla es coherente con los 7 tipos, las variantes prioritarias por rubro y el carrusel; el manual
+     resuelve el orden CTA/logo en 2 y 3; no hay tendencias de memoria sin marcar "a verificar".
+  2. **CTA opcional en las variantes 2 y 3.** `tieneCta: boolean` pasa a una política `"si" | "no" | "opcional"` en
+     `PlantillaVariante` (`Pieza.tsx`, `publicar/page.tsx`, `piezasDeGrilla`, el control "Variante sin CTA" solo con
+     `"no"`, `contenidos.test.ts`). *Aceptación:* 2 y 3 sin CTA se ven y miden igual que antes; con CTA pasan el
+     checklist en 4:5, 1:1, 9:16 y 1200×630 (o se documenta cuál no y por qué); `piezasDeGrilla` conserva su
+     resultado; tests de ambas variantes con y sin CTA.
+  3. **`engine/marketing.ts`.** `ObjetivoMarketing`, `OBJETIVOS`, `OBJETIVOS_DE_TIPO` y helpers puros, con un test de
+     coherencia: las variantes de cada tipo admiten la política de CTA de su objetivo por defecto. *Aceptación:* tests
+     verdes, sin React ni DOM, sin ciclos de importación con `contenidos.ts` y `checklist.ts`.
+  4. **Campo `objetivo` en `Pieza` y en `armarPieza`.** Los CTA del `switch` ("Aprovechala", "Sumate", "Conocé más")
+     pasan a la tabla; Promoción y Evento ganan un campo `cta` opcional; prioridad del CTA como arriba; el objetivo no
+     cambia el orden de variantes del tipo. *Aceptación:* sin objetivo, `armarPieza` devuelve lo mismo que hoy (test
+     de regresión); con objetivo, promoción y evento salen con CTA; lo escrito a mano pisa siempre.
+  5. **Selector en Publicaciones.** Fila "¿Qué querés lograr?" en el recuadro del tipo, con los objetivos compatibles
+     y el default marcado (texto fijo si hay uno solo) y el orden de lectura en una línea; no aparece con "Sin tipo".
+     `elegirObjetivo` actualiza `pieza.objetivo` y completa el CTA por defecto solo si está vacío y la variante lo
+     admite. El carrusel no cambia. *Aceptación:* verificado en el navegador (promoción, evento, tip, testimonio); lo
+     que se ve es lo que se exporta.
+  6. **Controles objetivos en el checklist.** Bloque nuevo "Marketing": objetivo con CTA requerido y pieza sin CTA →
+     `aviso`; tamaño relativo del H1 frente al resto, medido con las cajas reales → `sugerencia`. Solo con
+     `pieza.objetivo`. *Aceptación:* el checklist del servidor y el de pantalla dan lo mismo; la aceptación con
+     justificación (E9) funciona sobre los avisos nuevos; tests por regla.
+  7. **Controles heurísticos (todos `sugerencia`).** CTA que arranca con verbo (imperativos con voseo), oferta con
+     vigencia, un solo mensaje principal como proxy por cantidad de bloques de texto (rotulado así). Sin el control
+     "beneficio vs. característica". *Aceptación:* ninguno frena la exportación; "Pedí turno" y "Tu lugar te espera"
+     pasan sin avisos; tests con los falsos positivos documentados.
+  8. **Subagente `disenador-marketing`** (`.claude/agents/`, mismo formato que `manual.md`): lee el manual y el
+     replanteo antes de opinar; criterios: se entiende en 3 segundos, un mensaje y un CTA, jerarquía gancho >
+     beneficio > oferta > CTA, coherencia con la identidad. Nunca rompe un bloqueante; lo que choca con un aviso lo
+     propone con justificación. *Aceptación:* el archivo existe, lista qué lee y sus criterios, y se puede invocar.
+  9. **Público en el diagnóstico (opcional).** A quién le vende, qué lo mueve a comprar, qué lo frena antes de
+     contactar. `migrarMarca` tolera su ausencia; no toca el checklist. *Aceptación:* una marca guardada antes carga
+     sin errores y sin esos campos; tests en `diagnostico.test.ts` / `identidad.test.ts`.
+  10. **Capa de copy con la API de Claude.** Ruta de servidor (estilo `/api/render`) que recibe marca, objetivo y
+      brief y devuelve 2 o 3 opciones de copy en JSON con los campos de `TIPOS_CONTENIDO` y sus `max`. La IA propone,
+      `armarPieza` arma y el checklist valida. Clave en `app/.env.local`; sin clave, la app funciona completa y no
+      ofrece la función. JSON estricto validado, un reintento y error claro. Prompt armado con la tabla `OBJETIVOS`,
+      los ejes de la marca (y el tono de E14 si existe) y el público del paso 9. Modelo configurable por variable de
+      entorno, verificado en la documentación vigente. Si E14 sigue pendiente, queda el punto de enganche del tono.
+      *Aceptación:* sin clave pasan todos los tests y la app se usa completa; con clave las opciones respetan los
+      `max`; tests del validador (válida, JSON roto, campo largo, campo faltante) sin red.
+      > Primer uso de la API de Claude, hecho aparte en una herramienta externa (el perfilador de E11, con visión y clave en su propio `.env`). Ahí quedó probado el patrón de este paso: JSON estricto, validador puro (`validarPerfil`) y un reintento con los errores. La ruta de copy de la app sigue pendiente.
+- **Fuera de alcance por ahora:** empezar por objetivo en vez de por tipo; el control "beneficio vs. característica";
+  tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
+  checklist; objetivo a nivel de marca.
+
+### E16 · Recursos y variantes de composición · **[x] hecha** (pasos 1 a 7) · depende de E6, E7 y E15
+- **Por qué:** las piezas se sienten monótonas (pocas variantes, fondo liso). Se suman recursos gráficos medibles y tres
+  variantes nuevas sacadas de 6 diseños de referencia del cliente interno (4:5, medidos en píxeles). Solo digital
+  (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos. Especificación en el cap. 6b del manual.
+- **Decisiones tomadas:**
+  - El sujeto PNG es viable como refuerzo opcional, nunca requisito: siempre hay un estado sin sujeto que pasa el
+    checklist, con la cadena de respaldo PNG → ícono → forma o patrón → nada.
+  - Cada variante nueva tiene sus reglas; globales solo las bloqueantes del cap. 8.
+  - Degradado opcional, tono sobre tono del fondo del modo, con zona clara declarada sin texto; el contraste se mide
+    bajo cada caja de texto sobre el degradado real (peor píxel).
+  - La decoración no es información. La palabra gigante se mide contra el peor entre el fondo y la palabra.
+  - Fotos de pyme: sin transparencia real, el sujeto cae al estado sin sujeto.
+  - Slot Cifra: es información (contraste, grilla 3:4, interfaz de stories) y no cuenta para la jerarquía del H1.
+  - Alineación propia de cada variante: la regla de rubro no rige para 5, 6 y 7.
+  - El sujeto puede salirse del lienzo, pero no tapa texto, logo, Cifra ni CTA.
+  - Formatos derivados por regla y verificados en el paso 5.
+  - Las referencias se usan por estructura, nunca textos, logos ni caras, y no se guardan en el repo.
+- **Pasos** (uno por vez; cada uno cierra con tests, typecheck y lint limpios, manuales actualizados y un commit):
+  1. **Manual sin código.** Cap. 6b del manual. *Aceptación:* lo no medido está marcado *(derivado, sin referencia)*;
+     sin contradicciones con los cap. 6, 7b y 8. **Hecho.**
+  2. **Degradado de marca.** Campo de fondo en `Pieza`, cálculo en `palette.ts`, raíz de `Pieza.tsx`,
+     `fondosDe`/`peorContraste` en `checklist.ts` midiendo bajo cada caja; revisar logo, CTA y detalles que asumen
+     fondo liso. *Aceptación:* default liso idéntico al de hoy; tests de contraste sobre degradado, incluida la zona
+     clara. **Hecho.** Quedó: degradado diagonal, vertical y radial con el color claro a croma relativo constante, contraste de texto y logo medido bajo cada caja, avisos de CTA y de zona clara, 17 tests en `degradado.test.ts`; falta el selector en Publicaciones, y `colorDetalle`, el número de la P, la forma de fondo y la decoración de plantilla se siguen calculando contra el fondo liso.
+  3. **Sujeto PNG.** Carga que conserve el alfa (no `reducirFoto`, que pasa a JPEG), recorte de transparencia, campo en
+     `Pieza`, superposición medida sobre el área opaca, cadena de respaldo. *Aceptación:* tests con sujeto con y sin
+     transparencia; el estado sin sujeto pasa el checklist. **Hecho.** Quedó: `engine/sujeto.ts` (análisis de alfa con transparencia útil, detección del damero pintado, máscara de 48 celdas, cadena de respaldo), `cargarSujeto` en `lib/imagen.ts` (PNG hasta 1600 px, recortado a lo visible), `Pieza.sujeto`, `Medicion.sujeto` y el control bloqueante "Sujeto sin tapar texto, logo ni CTA", con 16 tests en `sujeto.test.ts`; falta dibujarlo en `Pieza.tsx` y la carga en Publicaciones, que llegan en el paso 5 porque el lugar lo define cada variante.
+  4. **Insignia, foto en forma y palabra gigante.** *Aceptación:* un control por regla, con su test. **Hecho.** Quedó: `engine/composicion.ts` (colores de la insignia con el par del CTA o invertido, geometría de la foto en forma 2,5:1 con radio del 1,5% y color tono sobre tono de la palabra gigante a ±0,06 de L), `Pieza.insignia`, `Pieza.foto_forma` y `Pieza.palabra_gigante`, `Medicion.insignias`, `Medicion.fotoForma` y `Medicion.palabra` leídas por `lib/medicion.ts`, y los controles en `checklist.ts` (seis de la insignia, "Foto en forma sin texto encima" bloqueante, la palabra gigante como peor fondo del texto y "Una sola decoración protagonista"), con 16 tests en `composicion.test.ts`; falta dibujarlos en `Pieza.tsx`, que llega en el paso 5 con las variantes.
+  5. **Las variantes 5, 6 y 7**, una por una, con verificación visual. *Aceptación:* pasan el checklist en los 4
+     formatos o se documenta cuál no y por qué. **Hecho.** Quedó de la 5 · Apilada: plantilla y geometría en `pieza.ts` (`medioApilada`, `geometriaSujetoApilada`, degradado por defecto por variante), slot Cifra con su control, insignia, foto en forma, sujeto y palabra gigante dibujados en `Pieza.tsx`, `EditorFondo` y `EditorComposicion` en Publicaciones, y la **intensidad automática del degradado** (`intensidadSegura`: la más alta que no suma avisos respecto del fondo liso; decisión del usuario porque con +0,21 de L saltaban avisos en casi todos los formatos). Las 16 piezas (4 formatos × sin medio, Cifra, foto, sujeto) aprueban; 17 tests en `variante5.test.ts`. Hallazgo: con la palabra gigante bajo el CTA, "CTA sobre el degradado" da 2,4:1 aun con fondo liso (aviso correcto). (La conexión de la 5 a la grilla, los tipos y los rubros se hizo en el paso 6.)
+     Quedó de la 6 · Producto: plantilla, `geometriaEscenario` y `alineacionesPermitidas` (siempre centrada) en `pieza.ts`; la Cifra es el H1 (la oferta va en el mensaje principal); escenario con círculo en tono de apoyo y producto (o ícono sin producto) dentro del bloque del mensaje, radial por defecto centrado en el círculo, insignia en la fila del logo, `Medicion.circulo` y el círculo en "Una sola decoración protagonista". Las 16 piezas (4 formatos × producto/sin producto × con/sin body) aprueban; 10 tests en `variante6.test.ts`. Pendiente: selector del respaldo sin producto en Publicaciones.
+     Quedó de la 7 · Cifra: plantilla y tamaños en `pieza.ts` (`VARIANTES_E16` = 5, 6 y 7), alineación siempre centrada, fila del logo centrada compartida con la 6 (`filaLogoCentrada`), aire de la Cifra medido en el diseño 6 (44 px arriba y 52 abajo), en 1200×630 la Cifra a la derecha, degradado vertical por defecto con intensidad automática y editor solo con Cifra, insignia y palabra gigante. Las 16 piezas (4 formatos × Modo A/B × con/sin body) aprueban; 5 tests en `variante7.test.ts`; 332 tests en total. Hallazgo pendiente: el degradado vertical casi no se ve en Modo B (la intensidad automática baja casi a 0 porque el acento no se distingue del verde más claro) y en Modo A oscurece el neutro y se ve grisáceo: decidir el degradado en Modo A (sin referencia).
+  6. **Conexión a `TIPOS_CONTENIDO.variantes` y `varianteSugerida` por rubro**, sin repetir la misma variante seguida.
+     *Aceptación:* tests de selección. **Hecho.** Quedó: Promoción 7, 6, 2, 4 con el campo opcional Cifra (12 caracteres, sin ejemplo; `varianteDeTipo` saltea la 6 y la 7 si está vacía, así que sin Cifra sale en la 2 como antes); Lanzamiento 5, 1; Tip y Pregunta frecuente 1, 5; prioritarias por rubro con la nueva en segundo lugar (servicios 7, gastronomía 6, belleza 6, tech 5) sin cambiar la sugerida; `piezasDeGrilla` rota las tres con `secuenciaSinRepetir` (nunca la misma seguida, tampoco en la vuelta; sin Cifra ni producto); `armarPieza` pone la alineación permitida de la variante; en Publicaciones la promoción cambia sola entre 2 y 7 al escribir o borrar la Cifra, salvo variante elegida a mano. El snapshot de regresión cambió a propósito solo en Lanzamiento (1 → 5). 9 tests en `conexion.test.ts`; 341 en total. Verificado en el navegador en los 4 formatos.
+  7. **Movimiento manual del sujeto PNG** (pedido del usuario: que no rompa reglas para exportar sin problemas). *Aceptación:* arrastrar y agrandar el producto nunca deja la pieza en un bloqueante, en los 4 formatos. **Hecho.** Quedó: `Sujeto.ajuste` (corrimiento y escala 50%-160%), `posicionValida` en `sujeto.ts` (lo pedido si es válido; si no, el lugar libre más cercano, luego más chico, luego el lugar automático), `cajasQueInforman` en `checklist.ts`, lazo de corrección por formato y arrastre con mouse en `Pieza.tsx`, y en Publicaciones el deslizador Tamaño y "Volver a la posición automática"; 9 tests en `sujeto-ajuste.test.ts`; 350 en total. Probado con el PNG real (anteojos): variantes 5 y 6 con el producto sobre el título o la Cifra en los 4 formatos, las 8 piezas aprueban; arrastre real sobre el H1 en la app, se acomoda arriba del logo. Caso válido a tener en cuenta: en 9:16 de la 6, pedido arriba y más grande, el logo cae en el aire transparente entre los cristales y el círculo queda vacío.
+  - **Pendientes conocidos de E16:** selector del respaldo del producto (ícono, forma o nada) en Publicaciones; PNG real del usuario probado el 14/10/2026 (anteojos, 2500×2500 con alfa real): se reconoce como sujeto válido y las variantes 5 y 6 aprueban en los 4 formatos. Decisión del usuario (14/10/2026): en Modo A el degradado oscurece el neutro solo 0,08 de L (`DEGRADADO_DELTA_L_MODO_A`) y conserva su croma, para que no se vea gris ni opaque el color de la pieza.
+- **Fuera de alcance:** banco de matrices por ejemplos, ingredientes flotantes o realismo 3D, eliminación automática
+  de fondo.
+
 ## Orden sugerido
-E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10.
+E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10. E15 (capa de marketing) va después de E7 y deja el enganche para E14. E16 (recursos y variantes de composición) va después de E15.
 - **E9 primero:** es chica y libera las decisiones creativas que hoy chocan contra un control que bloquea.
 - **E12 y E3 antes que E2:** el diagnóstico abierto, el color y la tipografía son lo que más diferencia a una marca y
   lo más barato de construir.

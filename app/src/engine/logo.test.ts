@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cajaVisible, dataUrlASvg, elegirVersionLogo, monocromoDe, recolorearSvg, svgADataUrl } from "./logo";
+import { cajaVisible, dataUrlASvg, elegirVersionLogo, monocromoDe, recolorearSvg, svgADataUrl, versionLegible } from "./logo";
 
 describe("recolorearSvg", () => {
   const svg = `<svg viewBox="0 0 10 10"><rect fill="#e30613" stroke="#000"/><path fill="none" style="fill:#0f0;stroke:none"/><circle/></svg>`;
@@ -56,5 +56,22 @@ describe("cajaVisible", () => {
   });
   it("centra en vertical en una caja más alta", () => {
     expect(cajaVisible({ x: 10, y: 10, w: 100, h: 200 }, 1)).toEqual({ x: 10, y: 60, w: 100, h: 100 });
+  });
+});
+
+describe("versión legible del logo (perfilador)", () => {
+  const CREMA = { H: 38, S: 30, L: 88 };
+  const hay = { mono_claro: true, mono_oscuro: true };
+  it("un logo color claro sobre el fondo neutro claro pasa al monocromo oscuro", () => {
+    expect(versionLegible("color", CREMA, { H: 38, S: 30, L: 90 }, hay)).toBe("mono_oscuro");
+  });
+  it("si se lee, queda la versión color", () => {
+    expect(versionLegible("color", { H: 0, S: 0, L: 5 }, { H: 38, S: 30, L: 90 }, hay)).toBe("color");
+  });
+  it("sin monocromo cargado queda la versión pedida (el checklist avisa)", () => {
+    expect(versionLegible("color", CREMA, { H: 38, S: 30, L: 90 }, { mono_claro: false, mono_oscuro: false })).toBe("color");
+  });
+  it("las versiones mono no se tocan", () => {
+    expect(versionLegible("mono_claro", CREMA, { H: 0, S: 0, L: 0 }, hay)).toBe("mono_claro");
   });
 });

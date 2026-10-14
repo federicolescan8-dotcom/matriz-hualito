@@ -686,3 +686,157 @@ export function colorPorContraste(p: Paleta, rol: RolPaleta, deseado: HSL): HSL 
   }
   return null;
 }
+
+// ── Degradado de marca (cap. 6b, E16) ──
+// Fondo opcional, tono sobre tono: el mismo color del fondo del modo, con la luminosidad movida en OKLCH (matiz y croma
+// quietos). La geometría y las paradas salen de medir los diseños de referencia en píxeles. El componente lo dibuja con
+// un degradado SVG en coordenadas del lienzo y el checklist evalúa la misma fórmula: lo que se mide es lo que se ve.
+
+/** Diagonal (desde una esquina), vertical (aclara hacia abajo) o radial (resplandor detrás del sujeto). */
+export type FormaDegradado = "diagonal" | "vertical" | "radial";
+/** Esquina de la zona clara en el degradado diagonal: las dos medidas en las referencias. */
+export type EsquinaDegradado = "arriba-derecha" | "abajo-derecha";
+
+export interface Degradado {
+  forma: FormaDegradado;
+  /** Solo diagonal. Por defecto, arriba a la derecha. */
+  esquina?: EsquinaDegradado;
+  /** Solo radial: centro en fracción del lienzo. Por defecto, el centro (en la variante 6 va detrás del sujeto). */
+  centro?: { x: number; y: number };
+}
+
+/**
+ * Cuánto cambia la luminosidad OKLCH del fondo en la zona más clara: medido en Modo B, #00685a (L 0,46) a #09ae9d
+ * (L 0,68). En Modo A el fondo neutro ya es claro y el degradado oscurece con la misma magnitud (derivado, sin referencia).
+ */
+export const DEGRADADO_DELTA_L = 0.21;
+
+/**
+ * Desde esta mezcla (fracción del color claro) empieza la zona clara declarada: ningún texto va ahí (cap. 6b). Es la
+ * mitad del recorrido; el contraste igual se mide aparte, bajo cada caja.
+ */
+export const ZONA_CLARA = 0.5;
+
+/** Parada del degradado: posición (0-1 sobre su eje) y mezcla del color claro (0 = fondo, 1 = claro). */
+export type ParadaDegradado = [posicion: number, mezcla: number];
+
+export type GeometriaDegradado =
+  | { tipo: "lineal"; x1: number; y1: number; x2: number; y2: number; paradas: ParadaDegradado[] }
+  | { tipo: "radial"; cx: number; cy: number; r: number; paradas: ParadaDegradado[] };
+
+/**
+ * Paradas medidas. Diagonal: el claro se va rápido y se funde con la base en el 60% del eje (diseños 1-3). Vertical:
+ * liso hasta la mitad del alto y aclara cada vez más rápido hacia abajo (diseño 6). Radial: el centro llega a ~57% del
+ * claro (+0,12 de L) y se funde en un radio de 0,42 del ancho (diseños 4 y 5).
+ */
+const PARADAS: Record<FormaDegradado, ParadaDegradado[]> = {
+  diagonal: [[0, 1], [0.3, 0.34], [0.6, 0], [1, 0]],
+  vertical: [[0, 0], [0.57, 0.39], [1, 1]],
+  radial: [[0, 0.57], [1, 0]],
+};
+export const RADIO_RADIAL = 0.42;
+
+/**
+ * Geometría en px del lienzo. El diagonal sigue la convención "hacia la esquina" de CSS: el eje sale de la esquina
+ * clara y es perpendicular a la diagonal que une las otras dos esquinas, así la mitad del recorrido pasa justo por
+ * ellas (en las referencias, la esquina de arriba a la izquierda apenas aclara).
+ */
+export function geometriaDegradado(d: Degradado, ancho: number, alto: number): GeometriaDegradado {
+  const paradas = PARADAS[d.forma];
+  if (d.forma === "vertical") return { tipo: "lineal", x1: 0, y1: alto / 2, x2: 0, y2: alto, paradas };
+  if (d.forma === "radial") {
+    const c = d.centro ?? { x: 0.5, y: 0.5 };
+    return { tipo: "radial", cx: c.x * ancho, cy: c.y * alto, r: RADIO_RADIAL * ancho, paradas };
+  }
+  const diag = Math.hypot(ancho, alto);
+  const largo = (2 * ancho * alto) / diag;
+  const abajo = d.esquina === "abajo-derecha";
+  // Dirección hacia la esquina opuesta, perpendicular a la otra diagonal.
+  const nx = -alto / diag;
+  const ny = (abajo ? -ancho : ancho) / diag;
+  const x1 = ancho;
+  const y1 = abajo ? alto : 0;
+  return { tipo: "lineal", x1, y1, x2: x1 + nx * largo, y2: y1 + ny * largo, paradas };
+}
+
+/**
+ * En Modo A el degradado oscurece el fondo neutro, pero mucho menos (decisión del usuario, 14/10/2026): con 0,21 y el
+ * croma bajando con la luz, el neutro se volvía gris y opacaba el color de toda la pieza.
+ */
+export const DEGRADADO_DELTA_L_MODO_A = 0.08;
+
+/**
+ * Color de la zona más clara. Modo B: el fondo con +0,21 de luminosidad, mismo matiz y croma relativo constante (C/L);
+ * en la referencia el croma sube con la luz (0,084 a 0,119, la misma proporción que L), y con el croma fijo el claro
+ * sale lavado, a ΔE 12 del medido. Modo A: oscurece 0,08 y conserva el croma del neutro, así sigue teñido de la marca
+ * en vez de agrisarse.
+ */
+export function colorClaroDegradado(fondo: HSL, modo: "A" | "B", intensidad = 1): HSL {
+  const [L, C, h] = oklch(fondo);
+  if (modo === "A") return desdeOklch(Math.max(0, L - DEGRADADO_DELTA_L_MODO_A * intensidad), C, h);
+  const destino = Math.min(1, L + DEGRADADO_DELTA_L * intensidad);
+  return desdeOklch(destino, L > 0 ? (C * destino) / L : C, h);
+}
+
+/** Posición (0-1, recortada) de un punto sobre el eje del degradado. */
+export function posicionDegradado(g: GeometriaDegradado, x: number, y: number): number {
+  if (g.tipo === "radial") return Math.min(1, Math.hypot(x - g.cx, y - g.cy) / g.r);
+  const dx = g.x2 - g.x1;
+  const dy = g.y2 - g.y1;
+  const t = ((x - g.x1) * dx + (y - g.y1) * dy) / (dx * dx + dy * dy);
+  return Math.min(1, Math.max(0, t));
+}
+
+/** Mezcla del color claro en una posición: interpolación lineal entre paradas, como el SVG. */
+export function mezclaDegradado(g: GeometriaDegradado, t: number): number {
+  const ps = g.paradas;
+  if (t <= ps[0][0]) return ps[0][1];
+  for (let i = 1; i < ps.length; i++) {
+    const [p1, m1] = ps[i];
+    const [p0, m0] = ps[i - 1];
+    if (t <= p1) return p1 === p0 ? m1 : m0 + ((t - p0) / (p1 - p0)) * (m1 - m0);
+  }
+  return ps[ps.length - 1][1];
+}
+
+/** Color del degradado en un punto del lienzo. */
+export function colorEnDegradado(fondo: HSL, claro: HSL, g: GeometriaDegradado, x: number, y: number): HSL {
+  return mezclar(fondo, claro, mezclaDegradado(g, posicionDegradado(g, x, y)));
+}
+
+/**
+ * Rango de mezcla bajo una caja: en un lineal los extremos están en las esquinas; en un radial, en el punto de la caja
+ * más cercano al centro y en la esquina más lejana. Las paradas son monótonas, así que alcanza con esos extremos.
+ */
+export function rangoMezcla(g: GeometriaDegradado, k: { x: number; y: number; w: number; h: number }): [number, number] {
+  const esquinas: [number, number][] = [[k.x, k.y], [k.x + k.w, k.y], [k.x, k.y + k.h], [k.x + k.w, k.y + k.h]];
+  const ts = esquinas.map(([x, y]) => posicionDegradado(g, x, y));
+  if (g.tipo === "radial") {
+    ts.push(posicionDegradado(g, Math.max(k.x, Math.min(g.cx, k.x + k.w)), Math.max(k.y, Math.min(g.cy, k.y + k.h))));
+  }
+  const ms = [Math.min(...ts), Math.max(...ts), ...ts].map((t) => mezclaDegradado(g, t));
+  // Entre las esquinas puede quedar una parada intermedia: se suman las de adentro del rango de posiciones.
+  const [t0, t1] = [Math.min(...ts), Math.max(...ts)];
+  for (const [p, m] of g.paradas) if (p > t0 && p < t1) ms.push(m);
+  return [Math.min(...ms), Math.max(...ms)];
+}
+
+/**
+ * Colores del degradado bajo una caja, del más oscuro al más claro, para medir el peor contraste (como la F con foto,
+ * pero exacto: la fórmula es la misma que dibuja el SVG).
+ */
+export function fondosBajoCaja(fondo: HSL, claro: HSL, g: GeometriaDegradado, k: { x: number; y: number; w: number; h: number }, n = 9): HSL[] {
+  const [m0, m1] = rangoMezcla(g, k);
+  return Array.from({ length: n }, (_, i) => mezclar(fondo, claro, m0 + ((m1 - m0) * i) / (n - 1)));
+}
+
+/**
+ * La caja entra en la zona clara declarada, donde no va texto. Con la intensidad bajada (ajuste automático) la zona se
+ * achica: cuenta lo que de verdad aclara (mezcla × intensidad).
+ */
+export function tocaZonaClara(g: GeometriaDegradado, k: { x: number; y: number; w: number; h: number }, intensidad = 1): boolean {
+  return rangoMezcla(g, k)[1] * intensidad >= ZONA_CLARA;
+}
+
+/** Paso del ajuste automático de la intensidad del degradado: de 1 a 0 de a 5%. */
+export const PASO_INTENSIDAD = 0.05;

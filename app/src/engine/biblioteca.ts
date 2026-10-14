@@ -77,13 +77,41 @@ export type CategoriaIcono = "contacto" | "comercio" | "gastronomia" | "belleza"
 
 export const ICONOS: Record<CategoriaIcono, string[]> = {
   contacto: ["Phone", "WhatsappLogo", "InstagramLogo", "FacebookLogo", "Envelope", "MapPin", "Globe", "Clock", "Calendar", "Truck", "CreditCard", "Storefront"],
-  comercio: ["Tag", "ShoppingBag", "ShoppingCart", "Gift", "Percent", "Star", "Heart", "CheckCircle", "Sparkle", "Lightning", "Fire", "Medal", "Trophy"],
-  gastronomia: ["Coffee", "Hamburger", "Pizza", "Wine", "ForkKnife", "Cake", "Cookie", "BowlFood"],
+  comercio: ["Tag", "ShoppingBag", "ShoppingCart", "Gift", "Percent", "Star", "Heart", "CheckCircle", "Sparkle", "Lightning", "Fire"],
+  // IceCream, Popsicle y Martini van al final: el orden fija los íconos por defecto del rubro. Entraron en lugar de
+  // Trophy, Medal y Cpu (sin uso) para no pasar el subset de 60 (cap. 5); Graficos.tsx los sigue dibujando en piezas viejas.
+  gastronomia: ["Coffee", "Hamburger", "Pizza", "Wine", "ForkKnife", "Cake", "Cookie", "BowlFood", "IceCream", "Popsicle", "Martini"],
   belleza: ["Scissors", "Flower", "Leaf", "Drop", "Sun", "Moon", "HandHeart", "Barbell", "TShirt"],
   servicios: ["Briefcase", "Scales", "Calculator", "House", "Handshake", "ChartLine", "FileText", "ShieldCheck", "Users", "Lightbulb"],
-  tech: ["Laptop", "DeviceMobile", "Code", "Cloud", "Rocket", "Gear", "Robot", "Cpu"],
+  tech: ["Laptop", "DeviceMobile", "Code", "Cloud", "Rocket", "Gear", "Robot"],
 };
 export const TODOS_LOS_ICONOS = Object.values(ICONOS).flat();
+
+/** Palabras de la oferta del cliente que piden un ícono concreto (se buscan sin acentos ni mayúsculas). */
+const ICONO_POR_PALABRA: [RegExp, string][] = [
+  [/helad|gelato|cucurucho|cono|pote/, "IceCream"],
+  [/palito|paleta/, "Popsicle"],
+  [/cafe|capuch|cortado|latte|espresso|submarino/, "Coffee"],
+  [/postre|torta|pasteler|tarta|cheesecake/, "Cake"],
+  [/galleti|cookie|alfajor|budin|medialuna|factura/, "Cookie"],
+  [/licuado|frappe|smoothie|batido|trago|coctel|cocktail/, "Martini"],
+  [/vino|bodega/, "Wine"],
+  [/pizza/, "Pizza"],
+  [/hamburgues|burger/, "Hamburger"],
+  [/ensalada|bowl|poke/, "BowlFood"],
+  [/menu|almuerzo|cena|plato|comida/, "ForkKnife"],
+];
+
+/**
+ * Ícono para un producto o servicio del cliente: el que nombra su texto si lo reconoce, si no el de la lista del rubro
+ * en la posición `i` (como antes). Así una heladería no muestra una hamburguesa en el catálogo.
+ */
+export function iconoParaOferta(texto: string, rubro: Rubro, i = 0): string {
+  const t = texto.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const propio = ICONO_POR_PALABRA.find(([re]) => re.test(t))?.[1];
+  const delRubro = ICONOS[BIBLIOTECA_RUBRO[rubro].iconosSugeridos[0]];
+  return propio && TODOS_LOS_ICONOS.includes(propio) ? propio : delRubro[i % delRubro.length];
+}
 
 /** Opacidad del ícono decorativo: 15-25% (cap. 5). */
 export const OPACIDAD_ICONO_DECO = { min: 0.15, max: 0.25, uso: 0.2 };

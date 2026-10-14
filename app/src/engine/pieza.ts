@@ -3,6 +3,7 @@
 import {
   BIBLIOTECA_RUBRO,
   ICONOS,
+  iconoParaOferta,
   rellenosDisponibles,
   type EstiloIconos,
   type Patron,
@@ -11,10 +12,15 @@ import {
 } from "./biblioteca";
 import type { IdDecoracion } from "./decoraciones";
 import type { RecursosPropios } from "./recursos";
+import type { ObjetivoMarketing } from "./marketing";
 import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
 import type { Foco, LadoTexto, Proteccion } from "./fotografia";
+import type { Degradado } from "./palette";
+import type { Sujeto } from "./sujeto";
+import type { FotoEnForma, Insignia, PalabraGigante } from "./composicion";
+import { usaFotoFondo, type BordeBanda } from "./protagonista";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -29,6 +35,8 @@ export interface Pieza {
     h1: string;
     body: string | null;
     cta: string | null;
+    /** Slot Cifra (cap. 6b, E16): número u oferta protagonista ("25% OFF"). Es información; solo en las variantes nuevas. */
+    cifra?: string | null;
   };
   /** Itálica en el body: solo si la marca la tiene habilitada (cap. 4 paso 3). */
   body_italica: boolean;
@@ -42,20 +50,46 @@ export interface Pieza {
   contacto?: DatoContacto[];
   /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
   items?: ItemCatalogo[];
-  /** Variante F (texto sobre foto, E6): foto a sangre de fondo, como data URL. */
+  /**
+   * Foto propia de la pieza, como data URL. En la F (texto sobre foto, E6) y la FT va a sangre; en la FB, arriba de la
+   * banda; en la FP es el producto recortado.
+   */
   foto_fondo?: string | null;
+  /** FP: la foto trae transparencia (producto recortado). Se calcula al subirla. */
+  foto_recortada?: boolean;
+  /** FB: borde de la banda que corta la foto. Por defecto, onda. */
+  banda_borde?: BordeBanda;
   /** Punto focal de la foto (0-1): el encuadre lo deja cerca del centro de su caja (E6). */
   foto_foco?: Foco;
   /** Variante F: cómo se protege el contraste del texto sobre la foto. Por defecto, degradado. */
   proteccion?: Proteccion;
-  /** Variante F: de qué lado va el bloque de texto (en formatos verticales). Por defecto, abajo. */
+  /**
+   * Variantes F y FT: de qué lado va el bloque de texto (en formatos verticales). En la FP, de qué lado del producto va
+   * el mensaje. Por defecto, abajo (FP: arriba).
+   */
   foto_texto?: LadoTexto;
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
+  /** Fondo con degradado de marca (cap. 6b, E16). null o ausente = fondo liso, como siempre. */
+  degradado?: Degradado | null;
+  /**
+   * Sujeto PNG (cap. 6b, E16): refuerzo opcional de las variantes nuevas. Sin transparencia útil, la variante cae a su
+   * estado sin sujeto con la cadena de respaldo (`capaSujeto`).
+   */
+  sujeto?: Sujeto | null;
+  /** Recursos opcionales de las variantes nuevas (cap. 6b, E16): se dibujan dentro de cada variante. */
+  insignia?: Insignia | null;
+  foto_forma?: FotoEnForma | null;
+  palabra_gigante?: PalabraGigante | null;
   /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
   color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */
   aceptaciones?: Aceptacion[];
+  /**
+   * Qué quiere lograr la pieza (cap. 7b, E15). Viaja con la pieza porque `/api/render` vuelve a correr el checklist en
+   * el servidor. Sin objetivo, la pieza se comporta como antes y no corre ningún control de marketing.
+   */
+  objetivo?: ObjetivoMarketing;
 }
 
 /** Un aviso del checklist aceptado a propósito: qué control, por qué, quién y cuándo (E9). */
@@ -101,12 +135,18 @@ export interface ItemCatalogo {
   foto: string | null;
 }
 
+export type PoliticaCta = "si" | "no" | "opcional";
+
 export interface PlantillaVariante {
   nombre: string;
   descripcion: string;
   /** Orden de lectura de los slots (cap. 6). Es el mismo en todos los formatos: solo cambian las proporciones. */
   orden: ("logo" | "H1" | "body" | "cta")[];
-  tieneCta: boolean;
+  /**
+   * Si la variante lleva CTA (cap. 7b, E15): "si" lo espera, "opcional" lo dibuja solo si tiene texto (las variantes
+   * 2 y 3, con el orden de la 2B: el CTA va justo antes del logo) y "no" nunca lo lleva (P, solo carrusel).
+   */
+  politicaCta: PoliticaCta;
   /**
    * Tamaños en px sobre el lienzo feed; en story y estado se multiplican por el factor de escala (+15-20%).
    * `altoMax` es la fracción del alto de la pieza que puede ocupar el H1; `maxLineas` limita los renglones.
@@ -120,6 +160,8 @@ export interface PlantillaVariante {
   deco?: "lateral" | "inferior";
   /** Variantes con bloque informativo. */
   bloque?: "contacto" | "catalogo";
+  /** Variantes nuevas (cap. 6b): tamaño de letra máximo de la Cifra en px (escala feed). */
+  cifra?: number;
 }
 
 type AjusteVariante = Partial<Omit<PlantillaVariante, "h1" | "body">> & {
@@ -133,7 +175,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "1 · Base",
     descripcion: "Logo, mensaje, dato de apoyo y llamado a la acción. Pieza estándar.",
     orden: ["logo", "H1", "body", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 120, altoMax: 0.5 },
     body: { min: 26, max: 36 },
     cta: 34,
@@ -143,7 +185,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2 · H1 protagonista",
     descripcion: "Una frase o dato de alto impacto. Sin llamado a la acción.",
     orden: ["H1", "body", "logo"],
-    tieneCta: false,
+    politicaCta: "opcional",
     h1: { min: 64, max: 170, altoMax: 0.7 },
     body: { min: 26, max: 36 },
     cta: 34,
@@ -153,7 +195,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2B-L · Deco lateral",
     descripcion: "Mensaje a la izquierda y una capa decorativa a la derecha. Impacto con refuerzo visual.",
     orden: ["H1", "body", "cta", "logo"],
-    tieneCta: true,
+    politicaCta: "si",
     // La columna del mensaje es angosta (la mitad izquierda): el mínimo del H1 es más alto para sostener la jerarquía.
     h1: { min: 64, max: 104, altoMax: 0.42 },
     body: { min: 26, max: 32 },
@@ -165,7 +207,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "2B-S · Deco inferior",
     descripcion: "Mensaje arriba y una capa decorativa debajo. Impacto con refuerzo visual.",
     orden: ["H1", "body", "cta", "logo"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 116, altoMax: 0.34 },
     body: { min: 26, max: 32 },
     cta: 32,
@@ -176,7 +218,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "3 · Contacto",
     descripcion: "Ficha institucional: mensaje y hasta 4 datos de contacto con ícono. Sin llamado a la acción.",
     orden: ["H1", "body", "logo"],
-    tieneCta: false,
+    politicaCta: "opcional",
     h1: { min: 56, max: 104, altoMax: 0.34 },
     body: { min: 26, max: 32 },
     cta: 32,
@@ -187,7 +229,7 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "4 · Catálogo",
     descripcion: "Logo y mensaje, de 2 a 4 productos o servicios con foto o ícono, y llamado a la acción.",
     orden: ["logo", "H1", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 48, max: 92, altoMax: 0.24 },
     body: { min: 24, max: 30 },
     cta: 32,
@@ -198,17 +240,87 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     nombre: "F · Texto sobre foto",
     descripcion: "Foto a sangre con el mensaje encima, protegido con degradado, placa o zona limpia. Pide fotos propias.",
     orden: ["logo", "H1", "body", "cta"],
-    tieneCta: true,
+    politicaCta: "si",
     h1: { min: 56, max: 104, altoMax: 0.3 },
     body: { min: 26, max: 34 },
     cta: 34,
     logoPx: 90,
   },
+  // Variante 5 · Apilada (cap. 6b, E16, diseños 1 a 3): logo, H1 y body a la izquierda; medio opcional (Cifra, foto en
+  // forma o sujeto a sangre) y CTA. Tamaños medidos en 4:5: renglón del H1 de ~110 px (letra ~104), Cifra con
+  // mayúsculas de 111 px (letra ~150), logo de 63 px de alto visible.
+  "5": {
+    nombre: "5 · Apilada",
+    descripcion: "Logo, mensaje y dato a la izquierda; abajo una cifra, una foto o un producto recortado, y el llamado a la acción.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 56, max: 104, altoMax: 0.34 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+    cifra: 150,
+  },
+  // Variante 6 · Producto (cap. 6b, E16, diseños 4 y 5): todo centrado; la Cifra hace de H1 ("25% OFF", mayúsculas de
+  // 119 px: letra ~165), el producto sobre un círculo en tono de apoyo con resplandor radial, body opcional y CTA.
+  "6": {
+    nombre: "6 · Producto",
+    descripcion: "Una oferta grande arriba, el producto sobre un círculo, un dato opcional y el llamado a la acción. Todo centrado.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 72, max: 168, altoMax: 0.2, maxLineas: 2 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+  },
+  // Variante 7 · Cifra (cap. 6b, E16, diseño 6): todo centrado; H1 en hasta 2 líneas, la Cifra protagonista (mayúsculas
+  // de 111 px: letra ~150), el body y el CTA. Fondo vertical que aclara hacia abajo.
+  "7": {
+    nombre: "7 · Cifra",
+    descripcion: "Mensaje arriba, un número grande en el medio, el dato y el llamado a la acción. Todo centrado.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 56, max: 104, altoMax: 0.3, maxLineas: 2 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+    cifra: 150,
+  },
+  // Imagen protagonista: la foto es el sujeto y el H1 puede crecer mucho más (una cifra de oferta, una frase corta).
+  FP: {
+    nombre: "FP · Producto héroe",
+    descripcion: "El producto recortado (PNG con fondo transparente), grande, sobre el color del modo. Titular gigante.",
+    orden: ["H1", "body", "cta", "logo"],
+    politicaCta: "si",
+    h1: { min: 64, max: 200, altoMax: 0.3, maxLineas: 2 },
+    body: { min: 26, max: 34 },
+    cta: 32,
+    logoPx: 80,
+  },
+  FT: {
+    nombre: "FT · Titular sobre foto",
+    descripcion: "La foto a sangre es la protagonista y encima va un titular o una cifra gigante. Pide fotos propias.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 72, max: 220, altoMax: 0.34, maxLineas: 2 },
+    body: { min: 26, max: 34 },
+    cta: 32,
+    logoPx: 80,
+  },
+  FB: {
+    nombre: "FB · Foto con banda",
+    descripcion: "La foto arriba, a sangre, y una banda del color del modo abajo (recta u ondulada) con el mensaje.",
+    orden: ["H1", "body", "cta", "logo"],
+    politicaCta: "si",
+    h1: { min: 56, max: 150, altoMax: 0.22, maxLineas: 2 },
+    body: { min: 26, max: 32 },
+    cta: 32,
+    logoPx: 72,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
     orden: ["H1", "body"],
-    tieneCta: false,
+    politicaCta: "no",
     h1: { min: 56, max: 104, altoMax: 0.3 },
     body: { min: 26, max: 34 },
     cta: 32,
@@ -229,6 +341,12 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
     F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
+    "5": { h1: { max: 88, altoMax: 0.26, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
+    "6": { h1: { min: 64, max: 136, altoMax: 0.18 }, body: { max: 32 }, logoPx: 64 },
+    "7": { h1: { max: 88, altoMax: 0.24, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
+    FP: { h1: { max: 160, altoMax: 0.26 }, logoPx: 68 },
+    FT: { h1: { max: 180, altoMax: 0.3 }, logoPx: 68 },
+    FB: { h1: { max: 120, altoMax: 0.2 }, logoPx: 64 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -239,6 +357,12 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
     F: { h1: { altoMax: 0.3 } },
+    "5": { h1: { altoMax: 0.3 } },
+    "6": { h1: { altoMax: 0.16 } },
+    "7": { h1: { altoMax: 0.26 } },
+    FP: { h1: { altoMax: 0.24 } },
+    FT: { h1: { altoMax: 0.28 } },
+    FB: { h1: { altoMax: 0.18 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -248,6 +372,12 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
     F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "5": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
+    "6": { h1: { min: 56, max: 104, altoMax: 0.4 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "7": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
+    FP: { h1: { min: 56, max: 120, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
+    FT: { h1: { min: 56, max: 120, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
+    FB: { h1: { min: 52, max: 100, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
   },
 };
 
@@ -276,17 +406,26 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
 
-/** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
+/** Variantes nuevas de E16 (cap. 6b): en los tipos de contenido, en las prioritarias del rubro y en la grilla (paso 6). */
+export const VARIANTES_E16: Variante[] = ["5", "6", "7"];
+export const esVarianteE16 = (v: Variante) => VARIANTES_E16.includes(v);
+/**
+ * Variantes que la marca puede usar: las que llevan foto propia (F y las de imagen protagonista) solo con fotos propias
+ * habilitadas (E6).
+ */
 export function variantesDisponibles(marca: Marca): Variante[] {
-  return VARIANTES_HABILITADAS.filter((v) => v !== "F" || marca.identidad.fotos_habilitadas);
+  return VARIANTES_HABILITADAS.filter((v) => !usaFotoFondo(v) || marca.identidad.fotos_habilitadas);
 }
 
 /**
- * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2 y 3 se permite centrado
+ * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2, 3 y FP se permite centrado
  * según el rubro; el resto de las variantes va a la izquierda.
  */
 export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alineacion[] {
-  return variante === "2" || variante === "3" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
+  // Variantes nuevas (cap. 6b): alineación propia, la regla del rubro no rige.
+  if (variante === "6" || variante === "7") return ["centrado"];
+  // El producto héroe va al eje del producto: puede centrarse como la 2 y la 3.
+  return variante === "2" || variante === "3" || variante === "FP" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
 }
 
 /** Secuencia de modo del rubro, invertida si el color heredado es claro (cap. 3 paso 8). */
@@ -379,11 +518,99 @@ export function piezaNueva(marca: Marca): Pieza {
     ],
     // La oferta real del cliente (E12) nombra los ítems del catálogo.
     items: [
-      { texto: oferta[0] ?? "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
-      { texto: oferta[1] ?? "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
-      { texto: oferta[2] ?? "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
+      { texto: oferta[0] ?? "Producto uno", icono: iconoParaOferta(oferta[0] ?? "", marca.rubro, 0), foto: null },
+      { texto: oferta[1] ?? "Producto dos", icono: iconoParaOferta(oferta[1] ?? "", marca.rubro, 1), foto: null },
+      { texto: oferta[2] ?? "Producto tres", icono: iconoParaOferta(oferta[2] ?? "", marca.rubro, 2), foto: null },
     ],
   };
+}
+
+/**
+ * Degradado de marca que se dibuja de verdad (cap. 6b, E16). En la variante F con foto la foto tapa el fondo, así que
+ * no hay degradado que medir.
+ */
+export function degradadoActivo(marca: Marca, pieza: Pieza): Degradado | null {
+  // Con foto propia (F y las de imagen protagonista) la foto o el producto mandan: no hay degradado que medir.
+  if (usaFotoFondo(pieza.variante) && marca.identidad.fotos_habilitadas && pieza.foto_fondo) return null;
+  // `null` es fondo liso elegido a propósito; sin el campo vale el de la variante: liso en las de siempre (nada cambia)
+  // y el de su referencia en las nuevas (cap. 6b).
+  if (pieza.degradado !== undefined) return pieza.degradado;
+  return degradadoDeVariante(marca, pieza);
+}
+
+/** Degradado por defecto de cada variante nueva (cap. 6b): la 5 lleva el diagonal, con la zona clara detrás del sujeto. */
+export function degradadoDeVariante(marca: Marca, pieza: Pieza): Degradado | null {
+  if (pieza.variante === "5") return { forma: "diagonal", esquina: medioApilada(pieza) === "sujeto" ? "abajo-derecha" : "arriba-derecha" };
+  // La 7 aclara hacia abajo (diseño 6).
+  if (pieza.variante === "7") return { forma: "vertical" };
+  // La 6 lleva el resplandor radial detrás del círculo (diseños 4 y 5).
+  if (pieza.variante === "6") {
+    // En 1200×630 el escenario va en la columna derecha: el resplandor se centra ahí.
+    const f = FORMATOS[pieza.formato];
+    if (f.columnaMensaje) return { forma: "radial", centro: { x: (f.columnaMensaje + 40 / f.ancho + 1 - f.zona.x) / 2, y: 0.5 } };
+    return { forma: "radial", centro: { x: 0.5, y: pieza.contenido.body?.trim() ? 0.497 : 0.547 } };
+  }
+  return null;
+}
+
+/**
+ * Escenario de la variante 6 (diseños 4 y 5, medido en 4:5): el círculo en tono de apoyo y la caja donde entra el
+ * producto, que lo desborda. Sin body el círculo mide 0,39 del ancho y el producto hasta 0,70; con body, 0,28 y 0,51
+ * (el body le quita alto). En 1:1 y 9:16 el alto se lleva a la zona segura de cada formato, sin pasar el ancho
+ * (derivado); en 1200×630 el escenario ocupa la columna derecha (derivado). Px del lienzo.
+ */
+export function geometriaEscenario(formato: Formato, conBody: boolean): { diametro: number; alto: number; anchoSujeto: number } {
+  const f = FORMATOS[formato];
+  if (f.columnaMensaje) {
+    const ancho = f.ancho * (1 - f.columnaMensaje) - 40 - f.ancho * f.zona.x;
+    const alto = f.alto * (1 - f.zona.arriba - f.zona.abajo);
+    return { diametro: Math.min(ancho, alto) * 0.8, alto, anchoSujeto: ancho };
+  }
+  const ref = FORMATOS["4:5"];
+  const zonaRef = ref.alto * (1 - ref.zona.arriba - ref.zona.abajo);
+  const zona = f.alto * (1 - f.zona.arriba - f.zona.abajo);
+  const k = Math.min(1.175, zona / zonaRef);
+  const d = (conBody ? 0.28 : 0.39) * ref.ancho * k;
+  const alto = (conBody ? 0.225 : 0.31) * ref.alto * k;
+  const anchoSujeto = Math.min(f.ancho * (1 - 2 * f.zona.x), (conBody ? 0.51 : 0.7) * ref.ancho * k);
+  return { diametro: Math.min(d, anchoSujeto), alto: Math.max(alto, Math.min(d, anchoSujeto)), anchoSujeto };
+}
+
+/**
+ * Medio de la variante 5 (cap. 6b): el sujeto PNG si tiene transparencia útil; si no (estado sin sujeto), la Cifra si
+ * tiene texto; si no, la foto en forma si hay foto; si no, nada.
+ */
+export function medioApilada(pieza: Pieza): "sujeto" | "cifra" | "foto" | null {
+  if (pieza.sujeto?.transparente && pieza.sujeto.mascara) return "sujeto";
+  if (pieza.contenido.cifra?.trim()) return "cifra";
+  if (pieza.foto_forma?.src) return "foto";
+  return null;
+}
+
+/**
+ * Caja del sujeto a sangre de la variante 5 (diseño 3): entra contenido en una zona que arranca en el 22% del ancho y
+ * el 58,5% del alto (50% en 9:16, que tiene más alto libre; derivado) y se sale del lienzo por la derecha y por abajo
+ * (8% y 6%, derivado), pegado a esa esquina. En
+ * 1200×630 va contenido en la columna derecha (derivado). Px del lienzo.
+ */
+export function geometriaSujetoApilada(formato: Formato, aspecto: number): { x: number; y: number; w: number; h: number } {
+  const f = FORMATOS[formato];
+  const zona = f.columnaMensaje
+    ? { x0: f.ancho * f.columnaMensaje + 40, y0: f.alto * f.zona.arriba, x1: f.ancho * (1 - f.zona.x), y1: f.alto * (1 - f.zona.abajo) }
+    : { x0: f.ancho * 0.22, y0: f.alto * (formato === "9:16" ? 0.5 : 0.585), x1: f.ancho * 1.08, y1: f.alto * 1.06 };
+  const zw = zona.x1 - zona.x0;
+  const zh = zona.y1 - zona.y0;
+  const w = Math.min(zw, zh * aspecto);
+  const h = w / aspecto;
+  // Vertical: pegado abajo a la derecha (sale del lienzo). Horizontal: centrado en su columna.
+  return f.columnaMensaje
+    ? { x: zona.x0 + (zw - w) / 2, y: zona.y0 + (zh - h) / 2, w, h }
+    : { x: zona.x1 - w, y: zona.y1 - h, w, h };
+}
+
+/** La variante puede llevar CTA: lo espera o lo admite como opcional (cap. 7b). */
+export function admiteCta(variante: Variante): boolean {
+  return PLANTILLAS[variante]?.politicaCta !== "no";
 }
 
 /** Al cambiar de canal, el formato pasa al primero habilitado de ese canal. */
@@ -448,16 +675,31 @@ export function geometria2BLImagen(formato: Formato): {
 }
 
 /**
+ * `n` variantes rotando la lista sin repetir la misma dos veces seguidas, tampoco al dar la vuelta (la última contra
+ * la primera, como se lee una grilla que se repite). Con una sola variante no hay forma de evitarlo.
+ */
+export function secuenciaSinRepetir(variantes: Variante[], n: number): Variante[] {
+  const unicas = [...new Set(variantes)];
+  const sec = Array.from({ length: n }, (_, i) => unicas[i % unicas.length]);
+  if (n > 2 && unicas.length > 2 && sec[n - 1] === sec[0]) {
+    sec[n - 1] = unicas.find((v) => v !== sec[0] && v !== sec[n - 2])!;
+  }
+  return sec;
+}
+
+/**
  * Piezas para la grilla del feed en la presentación (E13): la variante va rotando (primero las prioritarias del rubro)
  * y el modo sigue la secuencia de la marca (cap. 7), así el cliente ve el ritmo real del perfil.
  */
 export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
   const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
-  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
+  // Las variantes con foto propia no entran: la grilla de muestra no tiene fotos del cliente.
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => !usaFotoFondo(v) && !prioritarias.includes(v))];
+  const orden = secuenciaSinRepetir(variantes, n);
   const secuencia = secuenciaModo(marca);
   const base = piezaNueva(marca);
   return Array.from({ length: n }, (_, i) => {
-    const variante = variantes[i % variantes.length];
+    const variante = orden[i];
     return {
       ...base,
       id: `${base.id}-${i}`,
@@ -465,12 +707,13 @@ export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 
       formato: "4:5",
       variante,
       modo: secuencia[i % secuencia.length],
-      alineacion: "izquierda",
+      alineacion: alineacionesPermitidas(marca.rubro, variante)[0],
       contenido: {
         h1: contenido.h1,
         // El catálogo (4) necesita body aunque no lo nombre en su orden: sin él, el texto no entra en el slot.
         body: PLANTILLAS[variante]?.orden.includes("body") || variante === "4" ? contenido.body : null,
-        cta: PLANTILLAS[variante]?.tieneCta ? contenido.cta : null,
+        // Solo las variantes que esperan CTA: en las de CTA opcional (2 y 3) la grilla sigue mostrándolas sin él.
+        cta: PLANTILLAS[variante]?.politicaCta === "si" ? contenido.cta : null,
       },
     };
   });

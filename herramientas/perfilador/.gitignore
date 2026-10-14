@@ -1,0 +1,4 @@
+node_modules/
+.env
+# Las salidas del perfilador traen material de terceros: se versiona solo el ejemplo.
+salida/

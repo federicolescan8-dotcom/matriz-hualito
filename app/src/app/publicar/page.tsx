@@ -10,12 +10,14 @@ import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
 import { descargar, renderizar, slug } from "@/lib/exportar";
-import { armarPieza, ORDEN_TIPOS, textoSugerido, TIPOS_CONTENIDO, type CamposContenido, type TipoContenido } from "@/engine/contenidos";
+import { armarPieza, ORDEN_TIPOS, varianteDeTipo, textoSugerido, TIPOS_CONTENIDO, type CamposContenido, type TipoContenido } from "@/engine/contenidos";
+import { ctaPorDefecto, OBJETIVOS, objetivoPorDefecto, objetivosDe, ordenDeLectura, type ObjetivoMarketing } from "@/engine/marketing";
 import { registrarEnHistorial, type Marca } from "@/engine/diagnostico";
 import { marcaParaPublicar, versionAprobada } from "@/engine/versiones";
 import { CANALES, FORMATOS, type Canal, type Formato } from "@/engine/formatos";
 import {
   aceptarControl,
+  admiteCta,
   alineacionesPermitidas,
   formatoDeCanal,
   piezaNueva,
@@ -24,14 +26,16 @@ import {
   quitarAceptacion,
   secuenciaModo,
   varianteSugerida,
+  esVarianteE16,
   variantesDisponibles,
   type Pieza as TPieza,
 } from "@/engine/pieza";
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
+import { usaFotoFondo } from "@/engine/protagonista";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { useSesion } from "@/lib/sesion";
-import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion, EditorFotoFondo } from "@/components/EditoresPieza";
+import { EditorCatalogo, EditorComposicion, EditorContacto, EditorDeco, EditorDecoracion, EditorFondo, EditorFotoFondo } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
 const VISTA_MAX = { ancho: 460, alto: 640 };
@@ -107,10 +111,13 @@ export default function PublicarPage() {
   function elegirTipo(t: TipoContenido | null) {
     setContenidoTipo(t);
     setResultado(null);
-    if (!t) return;
-    const sugeridos = textoSugerido(t, marca!);
+    // "Sin tipo" no tiene objetivo (cap. 7b): la pieza vuelve a comportarse como antes de E15.
+    if (!t) return set({ objetivo: undefined });
+    // El tipo arranca con su objetivo por defecto (el primero de la tabla, cap. 7b).
+    const objetivo = objetivoPorDefecto(t);
+    const sugeridos = textoSugerido(t, marca!, objetivo);
     setCampos(sugeridos);
-    const armada = armarPieza(t, sugeridos, marca!);
+    const armada = armarPieza(t, sugeridos, marca!, objetivo);
     setPieza({ ...armada, modo: actual!.modo });
     setErrorExport(null);
   }
@@ -119,9 +126,28 @@ export default function PublicarPage() {
   function editarCampo(id: string, valor: string) {
     const nuevos = { ...campos, [id]: valor };
     setCampos(nuevos);
-    const armada = armarPieza(contenidoTipo!, nuevos, marca!);
-    const conCta = { ...armada.contenido, cta: PLANTILLAS[actual!.variante]!.tieneCta ? armada.contenido.cta ?? actual!.contenido.cta : null };
+    const armada = armarPieza(contenidoTipo!, nuevos, marca!, actual!.objetivo);
+    // Cargar o borrar la Cifra (E16) cambia la variante del tipo (la 7 la pide), salvo que la variante se haya elegido a
+    // mano: entonces se respeta.
+    if (id === "cifra" && actual!.variante === varianteDeTipo(contenidoTipo!, marca!, campos) && armada.variante !== actual!.variante) {
+      set({ variante: armada.variante, contenido: armada.contenido, alineacion: alineacionesPermitidas(marca!.rubro, armada.variante)[0] });
+      return;
+    }
+    // Si lo que se edita es el CTA del tipo (promoción y evento, cap. 7b), vale lo que dice el campo, también vacío.
+    const ctaArmado = id === "cta" ? armada.contenido.cta : armada.contenido.cta ?? actual!.contenido.cta;
+    const conCta = { ...armada.contenido, cta: admiteCta(actual!.variante) ? ctaArmado : null };
     set({ contenido: conCta, contacto: armada.contacto ?? actual!.contacto, items: armada.items ?? actual!.items });
+  }
+
+  /**
+   * Cambiar el objetivo (cap. 7b) se comporta como editar un campo: actualiza el objetivo y solo completa el CTA por
+   * defecto si está vacío y la variante lo admite. No toca variante, formato, modo ni lo ya escrito.
+   */
+  function elegirObjetivo(objetivo: ObjetivoMarketing) {
+    const porDefecto = ctaPorDefecto(objetivo);
+    const completar = !actual!.contenido.cta?.trim() && admiteCta(actual!.variante) && !!porDefecto;
+    if (completar && plantillaTipo?.campos.some((c) => c.id === "cta")) setCampos({ ...campos, cta: porDefecto! });
+    set({ objetivo, contenido: completar ? { ...actual!.contenido, cta: porDefecto } : actual!.contenido });
   }
 
   async function exportar() {
@@ -245,6 +271,7 @@ export default function PublicarPage() {
           {plantillaTipo && (
             <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
               <p className="text-xs text-neutral-600">{plantillaTipo.descripcion}</p>
+              <SelectorObjetivo tipo={contenidoTipo!} objetivo={actual.objetivo} onChange={elegirObjetivo} />
               {plantillaTipo.campos.map((c) => (
                 <label key={c.id} className="flex flex-col gap-1">
                   <span className="text-xs font-medium">{c.etiqueta}</span>
@@ -313,7 +340,7 @@ export default function PublicarPage() {
                 key={v}
                 type="button"
                 title={PLANTILLAS[v]!.descripcion}
-                onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : "izquierda" })}
+                onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : alineacionesPermitidas(marca.rubro, v)[0] })}
                 className={`rounded-lg border px-3 py-2 text-left text-xs ${actual.variante === v ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
               >
                 <span className="font-medium">{PLANTILLAS[v]!.nombre}</span>
@@ -368,15 +395,17 @@ export default function PublicarPage() {
             Dato de apoyo en itálica (tono, no jerarquía)
           </label>
         )}
-        {plantilla.tieneCta && (
+        {plantilla.politicaCta !== "no" && (
           <label className="flex flex-col gap-1">
             <span className="font-medium">Llamado a la acción</span>
             <input value={actual.contenido.cta ?? ""} onChange={(e) => setContenido({ cta: e.target.value || null })} className="rounded-md border border-neutral-300 px-3 py-2" />
           </label>
         )}
-        {actual.variante === "F" && <EditorFotoFondo pieza={actual} onChange={set} />}
+        {usaFotoFondo(actual.variante) && <EditorFotoFondo pieza={actual} onChange={set} />}
         {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
-        {actual.variante !== "F" && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
+        {!usaFotoFondo(actual.variante) && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
+        {!(usaFotoFondo(actual.variante) && actual.foto_fondo) && <EditorFondo marca={marca} pieza={actual} onChange={set} />}
+        {esVarianteE16(actual.variante) && <EditorComposicion pieza={actual} onChange={set} />}
         {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
         {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>
@@ -421,6 +450,8 @@ export default function PublicarPage() {
                 setResultado(r);
                 setMedicion(m);
               }}
+              // E16 paso 7: el producto recortado se arrastra en esta vista; el motor lo deja donde no tape nada.
+              onAjusteSujeto={(a) => actual.sujeto && set({ sujeto: { ...actual.sujeto, ajuste: a } })}
             />
             {guias && <Guias formato={actual.formato} medicion={medicion} escala={escala} />}
           </div>
@@ -648,5 +679,35 @@ function HojaContactos({
         })}
       </div>
     </section>
+  );
+}
+
+/** "¿Qué querés lograr?" (cap. 7b): los objetivos que admite el tipo y, debajo, su orden de lectura. */
+function SelectorObjetivo({ tipo, objetivo, onChange }: { tipo: TipoContenido; objetivo?: ObjetivoMarketing; onChange: (o: ObjetivoMarketing) => void }) {
+  const opciones = objetivosDe(tipo);
+  const actual = objetivo && opciones.includes(objetivo) ? objetivo : opciones[0];
+  return (
+    <div className="flex flex-col gap-1" data-selector-objetivo>
+      <span className="text-xs font-medium">¿Qué querés lograr?</span>
+      {opciones.length === 1 ? (
+        <span className="text-xs" title={OBJETIVOS[actual].pregunta}>Objetivo: {OBJETIVOS[actual].nombre}</span>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {opciones.map((o) => (
+            <button
+              key={o}
+              type="button"
+              title={OBJETIVOS[o].pregunta}
+              aria-pressed={o === actual}
+              onClick={() => onChange(o)}
+              className={`rounded-md border px-2.5 py-1 text-xs ${o === actual ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
+            >
+              {OBJETIVOS[o].nombre}
+            </button>
+          ))}
+        </div>
+      )}
+      <span className="text-[11px] text-neutral-500">Orden de lectura: {ordenDeLectura(actual)}</span>
+    </div>
   );
 }

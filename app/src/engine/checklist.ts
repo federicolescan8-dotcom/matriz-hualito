@@ -6,21 +6,30 @@ import { contraste, mezclar, type HSL } from "./color";
 import type { Marca } from "./diagnostico";
 import { FORMATOS } from "./formatos";
 import {
+  colorClaroDegradado,
   coloresModo,
   controlesCtaModoA,
   controlesCtaModoB,
   controlesCtaSobre,
   ctaModoA,
   ctaModoB,
+  estiloCta,
   fondoCapaDecorativa,
+  fondosBajoCaja,
+  geometriaDegradado,
   MIN_GRAFICO,
   MIN_TEXTO,
+  PASO_INTENSIDAD,
+  tocaZonaClara,
 } from "./palette";
-import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
+import { alineacionesPermitidas, degradadoActivo, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
+import { capaSujeto, tocaSujeto } from "./sujeto";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
+import { bloquesDeTexto, ctaHablaAlLector, MAX_BLOQUES_TEXTO, OBJETIVOS, tieneOferta, tieneVigencia } from "./marketing";
 import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
+import { esProtagonista, usaFotoFondo } from "./protagonista";
 
 export interface Rect {
   x: number;
@@ -81,9 +90,28 @@ export interface Medicion {
    * tratamiento y su protección). El texto del CTA va sobre su propio botón, que ya controla el CTA.
    */
   contrasteSobreFoto?: { h1: number; body?: number };
+  /** Caja donde quedó dibujado el sujeto PNG (cap. 6b, E16), en px del lienzo. Puede salirse del lienzo. */
+  sujeto?: Rect | null;
+  /**
+   * Intensidad con la que quedó dibujado el degradado (0-1, cap. 6b): la pieza la baja sola hasta que el degradado no
+   * suma avisos (`intensidadSegura`). Sin el dato, 1.
+   */
+  intensidadDegradado?: number;
+  /** Círculo de la variante 6 (cap. 6b): su geometría y su color, para medir el texto que lo pise. Es decoración. */
+  circulo?: { cx: number; cy: number; r: number; color: HSL } | null;
+  /** Slot Cifra (cap. 6b, E16): número u oferta protagonista. Es información, pero no cuenta para la jerarquía del H1. */
+  cifra?: MedidaTexto | null;
+  /** Insignias dibujadas (cap. 6b): su caja, el tamaño de su texto y sus dos colores. */
+  insignias?: { caja: Rect; px: number; texto: HSL; relleno: HSL }[];
+  /** Caja de la foto en forma (cap. 6b). */
+  fotoForma?: Rect | null;
+  /** Palabra gigante (cap. 6b): su caja y su color. Es decoración: no informa. */
+  palabra?: { caja: Rect; color: HSL } | null;
+  /** FP: caja visible del producto recortado. */
+  producto?: Rect | null;
 }
 
-export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido";
+export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido" | "Marketing";
 
 /**
  * Nivel de cada regla (replanteo, E9):
@@ -182,6 +210,7 @@ export function elementosInformativos(m: Medicion): { nombre: string; cajas: Rec
     { nombre: "body", cajas: m.body?.lineas ?? [] },
     { nombre: "CTA", cajas: m.cta ? [m.cta.caja] : [] },
     { nombre: "logo", cajas: m.logo ? [m.logo] : [] },
+    { nombre: "Cifra", cajas: m.cifra?.lineas ?? [] },
     ...(m.contacto ?? []).flatMap((k, i) => [
       { nombre: `ícono de contacto ${i + 1}`, cajas: [k.icono] },
       { nombre: `dato de contacto ${i + 1}`, cajas: k.texto.lineas },
@@ -192,6 +221,14 @@ export function elementosInformativos(m: Medicion): { nombre: string; cajas: Rec
     ]),
   ];
   return lista.filter((e) => e.cajas.length > 0);
+}
+
+/**
+ * Todo lo que el sujeto PNG no puede tapar: los elementos informativos más la insignia. Lo usan el control del
+ * sujeto y el motor del movimiento manual (`posicionValida`).
+ */
+export function cajasQueInforman(m: Medicion): { nombre: string; cajas: Rect[] }[] {
+  return [...elementosInformativos(m), ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] }))];
 }
 
 /** Pares de elementos informativos que se pisan (más que un roce), con la zona donde se cruzan. */
@@ -242,10 +279,21 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const r = (v: number) => `${v.toFixed(1)}:1`;
 
-  // Fondo efectivo detrás de un bloque: el fondo de la pieza, o la forma mezclada si se superponen.
+  // Degradado de marca (cap. 6b, E16): misma fórmula que dibuja el SVG de la pieza.
+  const degradado = degradadoActivo(marca, pieza);
+  const geoDeg = degradado ? geometriaDegradado(degradado, f.ancho, f.alto) : null;
+  const intDeg = m.intensidadDegradado ?? 1;
+  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo, intDeg) : null;
+  // Fondo efectivo detrás de un bloque: el fondo de la pieza (con degradado, los colores que hay bajo cada caja), y la
+  // forma mezclada encima si se superponen.
   const fondosDe = (cajas: Rect[]): HSL[] => {
-    const fondos = [c.fondo];
-    if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(mezclar(c.fondo, m.forma.color, m.forma.opacidad));
+    const base = geoDeg && claroDeg ? cajas.flatMap((k) => fondosBajoCaja(c.fondo, claroDeg, geoDeg, k)) : [];
+    const fondos = base.length ? base : [c.fondo];
+    if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(...fondos.map((b) => mezclar(b, m.forma!.color, m.forma!.opacidad)));
+    // Palabra gigante (cap. 6b): el texto que la pisa se mide contra el peor entre el fondo y la palabra.
+    if (m.palabra && cajas.some((k) => seTocan(k, m.palabra!.caja))) fondos.push(m.palabra.color);
+    // Círculo de la 6: el texto que lo pisa se mide también contra su color.
+    if (m.circulo && cajas.some((k) => tocaCirculo(k, m.circulo!))) fondos.push(m.circulo.color);
     return fondos;
   };
   const peorContraste = (color: HSL, cajas: Rect[]) => Math.min(...fondosDe(cajas).map((b) => contraste(color, b)));
@@ -253,6 +301,11 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // ── Bloque 1: color y contraste ──
   const cH1 = peorContraste(c.texto, m.h1.lineas);
   add("Color y contraste", "H1 grande sobre su fondo", cH1 >= MIN_GRAFICO, `${r(cH1)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cH1));
+  // Cifra (cap. 6b): es texto grande e información, con el mismo mínimo que el H1.
+  if (m.cifra?.lineas.length) {
+    const cC = peorContraste(c.texto, m.cifra.lineas);
+    add("Color y contraste", "Cifra sobre su fondo", cC >= MIN_GRAFICO, `${r(cC)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cC));
+  }
   if (m.body) {
     const cBody = peorContraste(c.texto, m.body.lineas);
     add("Color y contraste", "Body sobre su fondo", cBody >= MIN_TEXTO, `${r(cBody)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cBody));
@@ -270,8 +323,35 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       add("Color y contraste", `CTA (${modo}): ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "elegir otro tratamiento del CTA o corregir el acento", k.control.includes("texto") ? nivelTexto(k.valor) : "aviso");
     }
   }
+  // Con degradado, el borde del botón (su contorno, si lleva) se mide contra el peor color del fondo bajo su caja.
+  if (m.cta && !cupula && geoDeg) {
+    const e = estiloCta(p, pieza.modo);
+    const borde = e.anillo?.color ?? e.fondo;
+    const cB = Math.min(...fondosDe([m.cta.caja]).map((b) => contraste(borde, b)));
+    add("Color y contraste", "CTA sobre el degradado", cB >= MIN_GRAFICO, `${r(cB)} (mín. 3:1)`, "mover el CTA o cambiar la forma del degradado");
+  }
+  // Insignia (cap. 6b): contraste propio. Su texto contra su relleno, y el relleno contra el peor fondo bajo ella.
+  const insignias = m.insignias ?? [];
+  if (insignias.length) {
+    const cT = Math.min(...insignias.map((k) => contraste(k.texto, k.relleno)));
+    add("Color y contraste", "Texto de la insignia sobre su relleno", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "cambiar los colores de la insignia", nivelTexto(cT));
+    const cR = Math.min(...insignias.map((k) => Math.min(...fondosDe([k.caja]).map((b) => contraste(k.relleno, b)))));
+    add("Color y contraste", "Insignia sobre su fondo", cR >= MIN_GRAFICO, `${r(cR)} (mín. 3:1)`, "cambiar el relleno de la insignia o moverla");
+  }
   const contacto = m.contacto ?? [];
   const items = m.items ?? [];
+  // Zona clara declarada (cap. 6b): el degradado aclara donde no hay texto.
+  if (geoDeg) {
+    const textosDeg = [
+      { nombre: "H1", cajas: m.h1.lineas },
+      { nombre: "body", cajas: m.body?.lineas ?? [] },
+      { nombre: "Cifra", cajas: m.cifra?.lineas ?? [] },
+      ...contacto.map((k, i) => ({ nombre: `dato de contacto ${i + 1}`, cajas: k.texto.lineas })),
+      ...items.map((k, i) => ({ nombre: `texto del ítem ${i + 1}`, cajas: k.texto.lineas })),
+    ];
+    const enZona = textosDeg.filter((t) => t.cajas.some((k) => tocaZonaClara(geoDeg, k, intDeg))).map((t) => t.nombre);
+    add("Color y contraste", "Texto fuera de la zona clara del degradado", enZona.length === 0, enZona.join(", "), "mover la zona clara a otra esquina o cambiar la forma del degradado");
+  }
   if (contacto.length) {
     const cT = Math.min(...contacto.map((k) => peorContraste(c.texto, k.texto.lineas)));
     add("Color y contraste", "Datos de contacto sobre su fondo", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cT));
@@ -345,7 +425,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   // ── Bloque 3: composición ──
   // Espacio negativo: cuenta todo lo que informa (texto, CTA, logo, contacto, ítems). La capa decorativa no.
-  const textos = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cta ? [m.cta.caja] : [])];
+  const textos = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cifra?.lineas ?? []), ...(m.cta ? [m.cta.caja] : [])];
   const contenido = [
     ...textos,
     ...(m.logo ? [m.logo] : []),
@@ -403,7 +483,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     }
   }
   // Decoración de plantilla (v1.1): sus figuras nunca pasan por debajo de un texto ni del logo.
-  const decoracion = pieza.variante === "F" ? null : decoracionEfectiva(pieza);
+  // Con foto propia (F y las de imagen protagonista) no hay decoración de plantilla: la foto ya ocupa ese lugar.
+  const decoracion = usaFotoFondo(pieza.variante) ? null : decoracionEfectiva(pieza);
   if (decoracion) {
     const g = decoracion.geometria(pieza.formato);
     const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => tocaDecoracion(k, g)));
@@ -415,6 +496,51 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       "recortar texto o quitar la decoración",
       "bloqueante",
     );
+  }
+  // Sujeto PNG (cap. 6b, E16): es decoración y puede salirse del lienzo, pero nunca tapa lo que informa. Se mide contra
+  // lo opaco de la imagen (su máscara), no contra su caja: el aire transparente de alrededor no cuenta.
+  const capa = pieza.sujeto ? capaSujeto(marca, pieza) : null;
+  if (capa?.tipo === "png" && m.sujeto) {
+    const tapados = cajasQueInforman(m).filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
+    add(
+      "Composición",
+      "Sujeto sin tapar texto, logo ni CTA",
+      tapados.length === 0,
+      tapados.map((e) => e.nombre).join(", "),
+      "achicar o mover el sujeto, o recortar el texto",
+      "bloqueante",
+    );
+  }
+  // Insignia (cap. 6b): una sola, con letra legible, sin pisar el H1 ni el CTA.
+  if (insignias.length) {
+    add("Composición", "Una insignia por pieza", insignias.length <= 1, `${insignias.length}`, "dejar una sola insignia");
+    const minBody = Math.round(24 * escala);
+    const chica = Math.min(...insignias.map((k) => k.px));
+    add("Tipografía", `Texto de la insignia de ${minBody} px o más`, chica >= minBody, `${chica} px (mín. ${minBody})`, "agrandar la insignia o acortar su texto");
+    const clave = [...m.h1.lineas, ...(m.cta ? [m.cta.caja] : [])];
+    const pisa = insignias.some((k) => clave.some((c) => seTocan(achicar(k.caja, ROCE), c)));
+    add("Composición", "Insignia sin pisar el H1 ni el CTA", !pisa, pisa ? "se superpone" : "", "mover la insignia");
+  }
+  // Foto en forma (cap. 6b): va sin overlay, así que ningún texto puede ir encima.
+  if (m.fotoForma) {
+    const textosEncima = [
+      { nombre: "H1", cajas: m.h1.lineas },
+      { nombre: "body", cajas: m.body?.lineas ?? [] },
+      { nombre: "CTA", cajas: m.cta ? [m.cta.caja] : [] },
+      ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] })),
+    ].filter((t) => t.cajas.some((k) => seTocan(achicar(k, ROCE), m.fotoForma!)));
+    add("Composición", "Foto en forma sin texto encima", textosEncima.length === 0, textosEncima.map((t) => t.nombre).join(", "), "mover el texto fuera de la foto", "bloqueante");
+  }
+  // Palabra gigante (cap. 6b): no comparte la pieza con otra decoración protagonista.
+  if (m.palabra) {
+    const otras = [m.forma ? "forma de fondo" : null, decoracion ? "decoración de plantilla" : null, m.deco ? "capa decorativa" : null, m.circulo ? "círculo del producto" : null].filter(Boolean);
+    add("Composición", "Una sola decoración protagonista", otras.length === 0, otras.length ? `palabra gigante con ${otras.join(", ")}` : "", "quitar la palabra gigante o la otra decoración");
+  }
+  // Producto héroe: el producto es el sujeto, pero nunca pasa por debajo de un texto ni del logo.
+  if (m.producto) {
+    const prod = m.producto;
+    const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => seTocan(achicar(k, ROCE), prod)));
+    add("Composición", "Producto sin tapar texto ni logo", tapados.length === 0, tapados.map((e) => e.nombre).join(", "), "recortar texto o achicar el producto", "bloqueante");
   }
   if (plantilla?.bloque === "contacto") {
     const n = contacto.length;
@@ -441,6 +567,9 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     k.y >= f.alto * zm.arriba - 0.5 &&
     k.x + k.w <= f.ancho * (1 - zm.x) + 0.5 &&
     k.y + k.h <= f.alto * (1 - zm.abajo) + 0.5;
+  if (m.insignias?.length) {
+    add("Zonas seguras", "Insignia dentro del margen seguro", m.insignias.every((k) => dentro(k.caja)), "", "mover la insignia hacia adentro", "bloqueante");
+  }
   add("Zonas seguras", "Logo dentro del margen seguro", !m.logo || dentro(m.logo), m.logo ? "" : "sin logo", "reubicar");
   // Logo como sistema (E4): tamaño mínimo, área de seguridad y contraste con su fondo, sobre la caja visible del logo.
   // Solo con un logo cargado: el nombre en texto que lo reemplaza no es el logo.
@@ -455,7 +584,9 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       .map((e) => e.nombre);
     add("Zonas seguras", "Área de seguridad del logo", invade.length === 0, invade.length ? `invade: ${invade.join(", ")}` : "", "separar el logo de los otros elementos");
     if (m.logoColor && m.logoFondo) {
-      const cL = contraste(m.logoColor, m.logoFondo);
+      // Sobre el fondo de la pieza con degradado, el peor color bajo la caja del logo (una placa tiene su propio fondo).
+      const sobreFondo = geoDeg && contraste(m.logoFondo, c.fondo) < 1.01;
+      const cL = sobreFondo ? Math.min(...fondosDe([m.logo]).map((b) => contraste(m.logoColor!, b))) : contraste(m.logoColor, m.logoFondo);
       add("Color y contraste", "Logo contrasta con su fondo", cL >= MIN_GRAFICO, `${r(cL)} (mín. 3:1)`, "usar la versión monocromo o una placa detrás");
     }
   }
@@ -489,7 +620,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (f.recorteGrilla && pieza.canal === "feed_ig") {
     const izq = f.ancho * f.recorteGrilla;
     const der = f.ancho - izq;
-    const clave = elementosInformativos(m).filter((e) => e.nombre === "H1" || e.nombre === "CTA" || e.nombre === "logo");
+    const clave = elementosInformativos(m).filter((e) => e.nombre === "H1" || e.nombre === "CTA" || e.nombre === "logo" || e.nombre === "Cifra");
     const cortados = clave.filter((e) => e.cajas.some((k) => k.x < izq - 0.5 || k.x + k.w > der + 0.5));
     add(
       "Zonas seguras",
@@ -503,13 +634,14 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (f.columnaMensaje) {
     const limite = f.ancho * f.columnaMensaje;
     // Solo el mensaje (texto, CTA y logo): la capa decorativa, el contacto o los ítems van a la derecha (cap. 6).
-    const fuera = [...textos, ...(m.logo ? [m.logo] : [])].filter((k) => k.x + k.w > limite + 0.5).length;
+    // La Cifra de las variantes nuevas va en la columna derecha en 1200×630 (cap. 6b): no cuenta como mensaje acá.
+    const fuera = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cta ? [m.cta.caja] : []), ...(m.logo ? [m.logo] : [])].filter((k) => k.x + k.w > limite + 0.5).length;
     add("Zonas seguras", `Mensaje en el ${Math.round(f.columnaMensaje * 100)}% izquierdo del ancho`, fuera === 0, fuera ? `${fuera} elemento(s) pasan el límite` : "", "recortar texto");
   }
 
   // ── Bloque 5: contenido ──
   add("Contenido", "Un mensaje principal", pieza.contenido.h1.trim().length > 0, pieza.contenido.h1.trim() ? "" : "falta el H1", "completar el H1", "bloqueante");
-  if (plantilla && !plantilla.tieneCta) {
+  if (plantilla && plantilla.politicaCta === "no") {
     add("Contenido", "Variante sin CTA", !m.cta, m.cta ? "la variante no lleva CTA" : "", "quitar el CTA");
   }
   const fotoPedida = pieza.deco?.relleno === "foto";
@@ -518,11 +650,60 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     "Contenido",
     "Funciona sin foto",
     true,
-    usaFoto ? "la foto es una capa opcional" : fotoPedida ? "sin foto cargada: se usa la capa del rubro" : "la pieza no usa foto",
+    esProtagonista(pieza.variante) ? "la foto es la protagonista: la variante la pide" : usaFoto ? "la foto es una capa opcional" : fotoPedida ? "sin foto cargada: se usa la capa del rubro" : "la pieza no usa foto",
     "—",
   );
+  // Imagen protagonista: la foto es el sujeto, sin ella la variante no tiene pieza.
+  if (esProtagonista(pieza.variante)) {
+    const conFoto = !!pieza.foto_fondo && marca.identidad.fotos_habilitadas;
+    add("Contenido", "Foto protagonista cargada", conFoto, conFoto ? "" : "la variante necesita su foto", "cargar la foto o usar otra variante", "bloqueante");
+    if (pieza.variante === "FP" && conFoto) {
+      const recortada = pieza.foto_recortada === true;
+      add(
+        "Contenido",
+        "Producto recortado (PNG con fondo transparente)",
+        recortada,
+        recortada ? "" : "la foto tiene fondo: va dentro de una forma",
+        "subir el producto recortado en PNG con transparencia",
+      );
+    }
+  }
   const sinForma = m.fotosSinForma ?? 0;
   add("Contenido", "Fotos dentro de una forma de contención", sinForma === 0, sinForma ? `${sinForma} sin recortar` : "", "recortar en una forma");
+
+  // ── Bloque Marketing (cap. 7b, E15): solo con objetivo. Nunca bloqueante: aviso lo estructural, sugerencia el resto ──
+  if (pieza.objetivo) {
+    const objetivo = OBJETIVOS[pieza.objetivo];
+    if (objetivo.politicaCta === "requerido") {
+      const tiene = !!m.cta && !!pieza.contenido.cta?.trim();
+      add("Marketing", "El objetivo pide un CTA", tiene, tiene ? "" : `"${objetivo.nombre}" necesita un llamado a la acción`, "escribir un CTA o elegir una variante que lo lleve");
+    }
+    const parte = parteDelH1(m);
+    sugerir(
+      "Marketing",
+      "El H1 domina la lectura",
+      parte >= AREA_H1_MIN,
+      `H1 ${Math.round(parte * 100)}% del área de texto (mín. ${Math.round(AREA_H1_MIN * 100)}%)`,
+      "acortar el body o el CTA para que el mensaje principal se lea primero",
+    );
+    // Heurísticas de texto (paso 7): aproximaciones, por eso solo sugieren.
+    const ctaPieza = m.cta ? pieza.contenido.cta?.trim() ?? "" : "";
+    if (ctaPieza) {
+      sugerir("Marketing", "El CTA le habla al lector", ctaHablaAlLector(ctaPieza), `"${ctaPieza}"`, "arrancar con un verbo («Reservá», «Escribinos») o hablarle de vos al lector");
+    }
+    const textoPieza = [pieza.contenido.h1, pieza.contenido.body ?? "", ctaPieza].join(" ");
+    if (tieneOferta(textoPieza)) {
+      sugerir("Marketing", "La oferta tiene vigencia", tieneVigencia(textoPieza), "", "decir hasta cuándo vale («hasta el domingo», «hasta agotar stock»)");
+    }
+    const bloques = bloquesDeTexto(pieza.contenido);
+    sugerir(
+      "Marketing",
+      "Un solo mensaje (aproximado por cantidad de bloques de texto)",
+      bloques <= MAX_BLOQUES_TEXTO,
+      `${bloques} bloques (máx. ${MAX_BLOQUES_TEXTO})`,
+      "dejar una idea por pieza: acortar el body o pasarlo a un carrusel",
+    );
+  }
 
   // Excepción v1.1 (decisión del cliente): con colores ajustados a mano o con el color heredado sin versión funcional,
   // los contrastes que no cumplen se aceptan con aviso. Un bloqueante nunca se acepta (E9).
@@ -533,6 +714,21 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   const motivos_revision = m.desborde ? ["El texto no entra en el slot ni siquiera en el tamaño mínimo permitido."] : [];
   return { estado: estadoDe(controles, motivos_revision), controles, motivos_revision };
+}
+
+/**
+ * Parte mínima del área de texto que ocupa el H1 (cap. 7b). La jerarquía del cap. 4 compara tamaños de letra; esta
+ * compara cuánto ocupa cada cosa: con un H1 de pocas palabras y un body largo, la pieza se lee por el body aunque el
+ * H1 tenga el doble de cuerpo.
+ */
+export const AREA_H1_MIN = 0.5;
+
+/** Fracción del área de texto (cajas reales de las líneas de H1, body y CTA) que ocupa el H1. */
+export function parteDelH1(m: Pick<Medicion, "h1" | "body" | "cta">): number {
+  const area = (lineas: Rect[] = []) => lineas.reduce((s, r) => s + r.w * r.h, 0);
+  const h1 = area(m.h1.lineas);
+  const total = h1 + area(m.body?.lineas) + area(m.cta?.lineas);
+  return total > 0 ? h1 / total : 1;
 }
 
 /**
@@ -554,4 +750,22 @@ export function aplicarAceptaciones(controles: Control[], aceptaciones: Aceptaci
 export function estadoDe(controles: Control[], motivos_revision: string[]): ResultadoChecklist["estado"] {
   if (motivos_revision.length) return "revision_manual";
   return controles.every((k) => k.ok || k.aceptado || k.nivel === "sugerencia") ? "ok" : "rechazado";
+}
+
+/**
+ * Intensidad automática del degradado (cap. 6b, E16): la más alta, de 1 hacia abajo en pasos de 5%, con la que el
+ * degradado no suma ningún control fallido respecto del fondo liso (intensidad 0). Mide sobre las cajas reales de la
+ * pieza: con una marca de buen contraste queda en 1 (el degradado de la referencia); con una más justa, aclara menos.
+ * Lo que ya falla con fondo liso no es culpa del degradado y no lo baja.
+ */
+export function intensidadSegura(marca: Marca, pieza: Pieza, m: Medicion): number {
+  if (!degradadoActivo(marca, pieza)) return 1;
+  const fallas = (k: number) =>
+    new Set(evaluarPieza(marca, pieza, { ...m, intensidadDegradado: k }).controles.filter((c) => !c.ok).map((c) => c.control));
+  const base = fallas(0);
+  for (let i = Math.round(1 / PASO_INTENSIDAD); i > 0; i--) {
+    const k = i * PASO_INTENSIDAD;
+    if ([...fallas(k)].every((c) => base.has(c))) return k;
+  }
+  return 0;
 }

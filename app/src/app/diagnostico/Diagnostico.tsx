@@ -13,6 +13,8 @@ import {
   valorDiagnostico,
   type Chip,
   type ContenidoCliente,
+  MAX_PUBLICO,
+  type PublicoCliente,
   type Diagnostico,
   type Marca,
 } from "@/engine/diagnostico";
@@ -32,6 +34,13 @@ import { pixelesDeImagen, recortarTransparencia } from "@/lib/imagen";
 const PASOS = ["Marca", "Personalidad", "Color", "Insumos", "Resultado"] as const;
 
 /** Tono y valor se derivan de los ejes (E12): la fórmula de paleta y las marcas viejas los siguen usando. */
+/** Público (E15, paso 9): tres preguntas opcionales que solo alimentan las propuestas de copy. */
+const PREGUNTAS_PUBLICO: { id: keyof PublicoCliente; pregunta: string; ejemplo: string }[] = [
+  { id: "aquien", pregunta: "¿A quién le vende?", ejemplo: "Ej. Familias del barrio que compran para el desayuno" },
+  { id: "motiva", pregunta: "¿Qué lo mueve a comprar?", ejemplo: "Ej. Pan del día, sin conservantes" },
+  { id: "frena", pregunta: "¿Qué lo frena antes de contactar?", ejemplo: "Ej. Cree que es más caro que el súper" },
+];
+
 function conEjes(d: Diagnostico, ejes: Ejes): Diagnostico {
   return { ...d, ejes, personalidad: { tono: tonoDeEjes(ejes), valor: valorDeEjes(ejes) } };
 }
@@ -304,6 +313,26 @@ export function DiagnosticoWizard({ editar = null }: { editar?: string | null })
                   className="rounded-md border border-neutral-300 px-3 py-2"
                 />
               </label>
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-1 font-medium">Público (opcional)</h2>
+            <p className="mb-3 text-sm text-neutral-600">
+              Alimenta las propuestas de copy; no cambia el diseño ni el checklist.
+            </p>
+            <div className="grid gap-4 text-sm">
+              {PREGUNTAS_PUBLICO.map((q) => (
+                <label key={q.id} className="flex flex-col gap-1">
+                  {q.pregunta}
+                  <input
+                    value={d.publico?.[q.id] ?? ""}
+                    maxLength={MAX_PUBLICO}
+                    onChange={(e) => setD((x) => ({ ...x, publico: { aquien: "", motiva: "", frena: "", ...x.publico, [q.id]: e.target.value } }))}
+                    placeholder={q.ejemplo}
+                    className="rounded-md border border-neutral-300 px-3 py-2"
+                  />
+                </label>
+              ))}
             </div>
           </div>
         </section>

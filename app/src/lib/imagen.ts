@@ -1,6 +1,7 @@
 // Utilidades de imagen del lado del navegador.
 
 import { svgADataUrl } from "@/engine/logo";
+import { analizarAlfa, mascaraOpaca, pareceDamero, type Sujeto } from "@/engine/sujeto";
 
 export interface ImagenRecortada {
   dataUrl: string;
@@ -58,9 +59,10 @@ export async function recortarTransparencia(dataUrl: string): Promise<ImagenReco
 
 /**
  * Reduce una foto a `max` px de lado mayor y la pasa a JPEG. Las fotos de celular pesan varios MB y viajan dentro de
- * la pieza hasta el render; con 1600 px alcanza para cualquier formato de la matriz.
+ * la pieza hasta el render; con 1600 px alcanza para cualquier formato de la matriz. Con `conservarAlfa`, una imagen
+ * con transparencia (el producto recortado de la FP) sale en PNG para no perder el recorte.
  */
-export async function reducirFoto(file: File, max = 1600): Promise<string> {
+export async function reducirFoto(file: File, max = 1600, opciones: { conservarAlfa?: boolean } = {}): Promise<string> {
   const original = await new Promise<string>((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(String(r.result));
@@ -72,8 +74,30 @@ export async function reducirFoto(file: File, max = 1600): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(img.naturalWidth * k);
   canvas.height = Math.round(img.naturalHeight * k);
-  canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  if (opciones.conservarAlfa && hayTransparencia(ctx.getImageData(0, 0, canvas.width, canvas.height).data)) return canvas.toDataURL("image/png");
   return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+/** Algún píxel bastante transparente: con unos pocos alcanza para saber que la imagen viene recortada. */
+function hayTransparencia(rgba: Uint8ClampedArray): boolean {
+  let n = 0;
+  for (let i = 3; i < rgba.length; i += 4) if (rgba[i] < 250 && ++n > 32) return true;
+  return false;
+}
+
+/** La imagen tiene transparencia (un producto recortado, no una foto con fondo). */
+export async function tieneTransparencia(src: string): Promise<boolean> {
+  const img = await cargar(src);
+  const k = Math.min(1, 400 / Math.max(img.naturalWidth, img.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(img.naturalWidth * k));
+  canvas.height = Math.max(1, Math.round(img.naturalHeight * k));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return false;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return hayTransparencia(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
 }
 
 /** Píxeles de una imagen reducida a `lado` px de lado mayor, para extraer sus colores (laboratorio de color, E3). */
@@ -199,4 +223,40 @@ export async function svgAPng(svg: string, ladoMayor = 1000): Promise<Uint8Array
   } catch {
     return null;
   }
+}
+
+/**
+ * Carga un sujeto PNG (cap. 6b, E16) conservando el alfa: a diferencia de `reducirFoto`, nunca pasa a JPEG (perdería la
+ * transparencia). Reduce a `max` px de lado mayor, mide la transparencia con el motor y, si sirve, recorta a lo visible
+ * y arma la máscara de lo opaco que usa el checklist. Sin transparencia útil la imagen se guarda igual (para avisar
+ * por qué) y la variante cae al estado sin sujeto.
+ */
+export async function cargarSujeto(file: File, max = 1600): Promise<Sujeto> {
+  const original = await new Promise<string>((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const img = await cargar(original);
+  const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.max(1, Math.round(img.naturalWidth * k));
+  const h = Math.max(1, Math.round(img.naturalHeight * k));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  const { data } = ctx.getImageData(0, 0, w, h);
+  const alfa = analizarAlfa(data, w, h);
+  const damero = !alfa.transparente && pareceDamero(data, w, h);
+  if (!alfa.transparente || !alfa.caja) {
+    return { src: canvas.toDataURL("image/png"), ancho: w, alto: h, transparente: false, damero, mascara: null };
+  }
+  const c = alfa.caja;
+  const out = document.createElement("canvas");
+  out.width = c.w;
+  out.height = c.h;
+  out.getContext("2d")!.drawImage(canvas, c.x, c.y, c.w, c.h, 0, 0, c.w, c.h);
+  return { src: out.toDataURL("image/png"), ancho: c.w, alto: c.h, transparente: true, damero: false, mascara: mascaraOpaca(data, w, c) };
 }
