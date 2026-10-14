@@ -80,7 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
-45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Paso 2 hecho: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara). Lo demás sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 y 3 hechos: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara) y el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante (todavía no se dibuja: llega con las variantes, paso 5). Lo demás sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -887,7 +887,7 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 
 ## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
 
-> **Estado: solo especificación.** Nada de este capítulo está implementado todavía; se construye en los pasos 2 a 6 de E16 (`docs/replanteo.md`). Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+> **Estado: en construcción.** Están implementados el degradado de marca (paso 2) y el sujeto PNG sin dibujar (paso 3); lo demás es solo especificación y se construye en los pasos 4 a 6 de E16 (`docs/replanteo.md`). Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
 
 ### Objetivo del capítulo
 
@@ -932,8 +932,11 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 **2. Sujeto PNG.** Refuerzo opcional, nunca requisito. Foto recortada con transparencia, hecha por el equipo; también fotos de pyme sacadas con celular, por eso los controles no asumen un recorte profesional.
 
 - Requiere transparencia real. Si la imagen no tiene alfa útil, la variante cae a su **estado sin sujeto**. Se recorta a la caja de los píxeles opacos.
-- Cadena de respaldo: **PNG → ícono → forma o patrón → nada**.
-- Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja.
+- **Carga y análisis** *(v1.1, implementado)*: se reduce a 1600 px de lado mayor y se guarda siempre en **PNG** (nunca JPEG, que perdería el alfa). Un píxel es transparente si su alfa es menor que 8. Hay **transparencia útil** si al menos el 50% del borde de la imagen y al menos el 5% de toda la imagen son transparentes: un recorte deja al sujeto rodeado de aire; una foto común no llega, ni un sujeto que llena la imagen con un rincón transparente. Sin transparencia útil se guarda igual, para explicarle al usuario por qué, y la variante cae al estado sin sujeto.
+- **Damero falso** *(v1.1)*: si el borde está casi todo pintado de dos grises claros neutros (blanco y ~#e6e6e6, cada uno con 25% o más del borde y alternándose), es un "PNG sin fondo" con el damero dibujado en los píxeles, sin canal alfa. Se avisa con ese motivo; con o sin damero, sin alfa cae al respaldo.
+- **Máscara** *(v1.1)*: grilla de 48 celdas sobre el lado mayor; una celda es opaca si tiene algún píxel con alfa de 128 o más (criterio conservador). Viaja con la pieza, porque el checklist del servidor no lee la imagen.
+- Cadena de respaldo: **PNG → ícono → forma o patrón → nada**. *(v1.1, implementado)* El PNG entra solo con transparencia útil; si no, rige el respaldo elegido (por defecto el ícono sugerido del rubro; "forma" usa primero la forma propia de la marca y, si no hay, la del rubro con su patrón; "nada" no dibuja).
+- Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja: un texto puede pasar sobre el aire transparente del PNG. *(v1.1, implementado el control; el dibujo llega con las variantes 5 y 6, paso 5.)*
 - Uno por pieza. Sin overlay (no lleva texto encima).
 
 **3. Insignia** *(opcional, cualquier variante nueva; sin referencia en los 6 diseños: todo derivado)*.
@@ -1231,6 +1234,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Decoración de plantilla sin tapar texto ni logo *(v1.1)* | ninguna figura de la decoración pasa por debajo de un elemento que informa | recortar texto o quitar la decoración |
 | Íconos sobre su soporte *(v1.1)* | 3:1 entre el ícono y el cuadrado de soporte | corregir colores del soporte |
 | Área de seguridad del logo *(v1.1, E4, aviso, solo con logo cargado)* | ningún otro elemento informativo toca la caja del logo agrandada 25% de su alto por lado | separar el logo de los otros elementos |
+| Sujeto sin tapar texto, logo ni CTA *(v1.1, E16, bloqueante, solo con un sujeto PNG válido dibujado)* | ningún elemento informativo (H1, body, CTA, logo, íconos, contacto e ítems; la Cifra se suma cuando exista) toca el área opaca del sujeto; puede salirse del lienzo y no cuenta para el espacio negativo | reubicar el sujeto o el texto, o usar el estado sin sujeto |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -1429,6 +1433,7 @@ pieza: {
   foto_fondo?: string | null,        // (v1.1, E6) variante F: foto a sangre
   foto_texto?: "arriba | abajo",     // (v1.1, E6) variante F: lugar del bloque de texto
   proteccion?: "degradado | placa | zona"   // (v1.1, E6) variante F; por defecto degradado
+  sujeto?: { src, ancho, alto, transparente, damero, mascara, respaldo?: "icono | forma | nada" } | null   // (v1.1, E16) PNG con su máscara; null o ausente = estado sin sujeto
   degradado?: { forma: "diagonal | vertical | radial", esquina?: "arriba-derecha | abajo-derecha", centro?: { x, y } } | null   // (v1.1, E16) null o ausente = fondo liso
 }
 ```

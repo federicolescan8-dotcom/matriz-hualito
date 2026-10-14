@@ -23,6 +23,7 @@ import {
 } from "./palette";
 import { alineacionesPermitidas, degradadoActivo, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
+import { capaSujeto, tocaSujeto } from "./sujeto";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
 import { bloquesDeTexto, ctaHablaAlLector, MAX_BLOQUES_TEXTO, OBJETIVOS, tieneOferta, tieneVigencia } from "./marketing";
@@ -87,6 +88,8 @@ export interface Medicion {
    * tratamiento y su protección). El texto del CTA va sobre su propio botón, que ya controla el CTA.
    */
   contrasteSobreFoto?: { h1: number; body?: number };
+  /** Caja donde quedó dibujado el sujeto PNG (cap. 6b, E16), en px del lienzo. Puede salirse del lienzo. */
+  sujeto?: Rect | null;
 }
 
 export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido" | "Marketing";
@@ -443,6 +446,20 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       tapados.length === 0,
       tapados.map((e) => e.nombre).join(", "),
       "recortar texto o quitar la decoración",
+      "bloqueante",
+    );
+  }
+  // Sujeto PNG (cap. 6b, E16): es decoración y puede salirse del lienzo, pero nunca tapa lo que informa. Se mide contra
+  // lo opaco de la imagen (su máscara), no contra su caja: el aire transparente de alrededor no cuenta.
+  const capa = pieza.sujeto ? capaSujeto(marca, pieza) : null;
+  if (capa?.tipo === "png" && m.sujeto) {
+    const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
+    add(
+      "Composición",
+      "Sujeto sin tapar texto, logo ni CTA",
+      tapados.length === 0,
+      tapados.map((e) => e.nombre).join(", "),
+      "achicar o mover el sujeto, o recortar el texto",
       "bloqueante",
     );
   }

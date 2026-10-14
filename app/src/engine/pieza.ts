@@ -17,6 +17,7 @@ import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
 import type { Foco, LadoTexto, Proteccion } from "./fotografia";
 import type { Degradado } from "./palette";
+import type { Sujeto } from "./sujeto";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -56,6 +57,11 @@ export interface Pieza {
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
   /** Fondo con degradado de marca (cap. 6b, E16). null o ausente = fondo liso, como siempre. */
   degradado?: Degradado | null;
+  /**
+   * Sujeto PNG (cap. 6b, E16): refuerzo opcional de las variantes nuevas. Sin transparencia útil, la variante cae a su
+   * estado sin sujeto con la cadena de respaldo (`capaSujeto`).
+   */
+  sujeto?: Sujeto | null;
   /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
   color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */

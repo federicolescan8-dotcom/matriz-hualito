@@ -311,6 +311,8 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
       : null,
     deco: medirDeco(root),
     iconos: root.querySelectorAll("[data-icono]").length,
+    // Sujeto PNG (E16): la caja del <img>, que se dibuja con la proporción de la imagen (sin aire de object-fit).
+    sujeto: q(root, "sujeto") ? relativo(root, q(root, "sujeto")!.getBoundingClientRect()) : null,
     contacto: [...root.querySelectorAll<HTMLElement>('[data-slot="contacto-item"]')].map((fila) => {
       const icono = q(fila, "contacto-icono")!;
       return {

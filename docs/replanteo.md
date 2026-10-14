@@ -329,7 +329,7 @@ manuales.
   tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
   checklist; objetivo a nivel de marca.
 
-### E16 · Recursos y variantes de composición · [ ] en curso (paso 1 y 2 hechos) · depende de E6, E7 y E15
+### E16 · Recursos y variantes de composición · [ ] en curso (pasos 1 a 3 hechos) · depende de E6, E7 y E15
 - **Por qué:** las piezas se sienten monótonas (pocas variantes, fondo liso). Se suman recursos gráficos medibles y tres
   variantes nuevas sacadas de 6 diseños de referencia del cliente interno (4:5, medidos en píxeles). Solo digital
   (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos. Especificación en el cap. 6b del manual.
@@ -355,7 +355,7 @@ manuales.
      clara. **Hecho.** Quedó: degradado diagonal, vertical y radial con el color claro a croma relativo constante, contraste de texto y logo medido bajo cada caja, avisos de CTA y de zona clara, 17 tests en `degradado.test.ts`; falta el selector en Publicaciones, y `colorDetalle`, el número de la P, la forma de fondo y la decoración de plantilla se siguen calculando contra el fondo liso.
   3. **Sujeto PNG.** Carga que conserve el alfa (no `reducirFoto`, que pasa a JPEG), recorte de transparencia, campo en
      `Pieza`, superposición medida sobre el área opaca, cadena de respaldo. *Aceptación:* tests con sujeto con y sin
-     transparencia; el estado sin sujeto pasa el checklist.
+     transparencia; el estado sin sujeto pasa el checklist. **Hecho.** Quedó: `engine/sujeto.ts` (análisis de alfa con transparencia útil, detección del damero pintado, máscara de 48 celdas, cadena de respaldo), `cargarSujeto` en `lib/imagen.ts` (PNG hasta 1600 px, recortado a lo visible), `Pieza.sujeto`, `Medicion.sujeto` y el control bloqueante "Sujeto sin tapar texto, logo ni CTA", con 16 tests en `sujeto.test.ts`; falta dibujarlo en `Pieza.tsx` y la carga en Publicaciones, que llegan en el paso 5 porque el lugar lo define cada variante.
   4. **Insignia, foto en forma y palabra gigante.** *Aceptación:* un control por regla, con su test.
   5. **Las variantes 5, 6 y 7**, una por una, con verificación visual. *Aceptación:* pasan el checklist en los 4
      formatos o se documenta cuál no y por qué.
