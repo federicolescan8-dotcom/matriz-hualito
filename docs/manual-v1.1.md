@@ -80,7 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
-45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variante 5 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5 y 6 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La variante 7 y la conexión a los tipos de contenido siguen siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variantes 5, 6 y 7 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5, 6 y 7 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La **7 · Cifra** cierra el paso 5: logo → H1 → Cifra → body → CTA, todo centrado, con degradado vertical por defecto; es solo tipográfica y sus 16 piezas de prueba aprueban. La conexión a los tipos de contenido y a la variante sugerida por rubro (paso 6) sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -765,7 +765,7 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 
 ### Las seis variantes de layout
 
-Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla. Las variantes 5, 6 y 7 *(v1.1, E16)* están en el cap. 6b (por ahora solo la 5 está implementada y se elige a mano en Publicaciones).
+Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla. Las variantes 5, 6 y 7 *(v1.1, E16)* están en el cap. 6b (las tres están implementadas y se eligen a mano en Publicaciones).
 
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
@@ -831,7 +831,7 @@ El carrusel es el formato orgánico de más alcance y guardados en Instagram, y 
 
 ### Alineación del mensaje (variantes 2 y 3)
 
-Estas reglas, y la de rubro, no rigen para las variantes 5, 6 y 7 *(v1.1, E16)*: cada una tiene su alineación propia (cap. 6b; la 6 es siempre centrada, `alineacionesPermitidas(rubro, "6")`).
+Estas reglas, y la de rubro, no rigen para las variantes 5, 6 y 7 *(v1.1, E16)*: cada una tiene su alineación propia (cap. 6b; la 6 y la 7 son siempre centradas, `alineacionesPermitidas(rubro, "6")` y `(rubro, "7")`).
 
 - Valores permitidos: izquierda o centrado. La alineación derecha y el justificado quedan prohibidos en todo el sistema, para no romper la lógica de atención del público.
 - Belleza/lifestyle y gastronomía/retail: izquierda o centrado. Servicios/B2B y tech/digital: solo izquierda.
@@ -887,7 +887,7 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 
 ## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
 
-> **Estado: en construcción.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y las **variantes 5 · Apilada y 6 · Producto**, que los dibujan (paso 5, dos de tres variantes). La variante 7 es solo especificación y se construye en el resto del paso 5; la conexión a los tipos de contenido y a la variante sugerida por rubro es el paso 6 de E16 (`docs/replanteo.md`). La 5 y la 6 todavía no entran en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro: se eligen a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+> **Estado: en construcción.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y las **variantes 5 · Apilada, 6 · Producto y 7 · Cifra**, que los dibujan (paso 5 completo). La conexión a los tipos de contenido y a la variante sugerida por rubro es el paso 6 de E16 (`docs/replanteo.md`). La 5, la 6 y la 7 todavía no entran en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro: se eligen a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
 
 ### Objetivo del capítulo
 
@@ -1053,15 +1053,35 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 - Fondo: degradado vertical (aclara hacia abajo desde el 50%).
 - Sin sujeto por diseño. Con centrado, el body se limita a 3-4 líneas (regla existente del cap. 6).
 
+**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones (como la 5 y la 6: no entra en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro, paso 6).
+
+- **Orden:** logo → H1 (hasta 2 líneas) → Cifra → body → CTA, todo centrado. La fila del logo es la misma de la 6 (`filaLogoCentrada`), con la insignia pegada a la derecha sin descentrar el logo.
+- **Aire alrededor de la Cifra** *(medido en el diseño 6)*: ~70 px entre el H1 y la Cifra y ~80 px hasta el body. Sobre el hueco de 28 px del bloque, la Cifra lleva 44 px arriba y 52 abajo.
+- **Alineación propia:** centrada siempre (`alineacionesPermitidas(rubro, "7")`); la regla del rubro no rige. En 1200×630, logo, H1, body y CTA van a la izquierda y la Cifra en la columna derecha.
+- **Solo tipográfica:** no lleva sujeto ni producto. El editor muestra Cifra, insignia y palabra gigante (no producto ni foto en forma).
+- **Fondo por defecto:** degradado **vertical** (aclara hacia abajo, como el diseño 6), con la intensidad automática. *(Hallazgo de la verificación.)* Con la marca de prueba en Modo B el CTA cae en la parte que aclara y el acento celeste no se distingue del verde más claro, así que la intensidad automática baja casi a 0 y el degradado casi no se ve. En Modo A el vertical oscurece el neutro hacia abajo y se ve grisáceo: queda pendiente decidir el degradado en Modo A (sin referencia).
+- **Tamaños:**
+
+| Formato | H1 | Body | CTA | Logo | Cifra |
+|---|---|---|---|---|---|
+| 4:5 | 56–104 px, alto máx. 30%, 2 líneas | 26–36 px | 34 px | 80 px | hasta 150 px |
+| 1:1 | hasta 88 px, alto 24%, 2 líneas | hasta 32 px | — | 64 px | hasta 120 px |
+| 9:16 | alto 26% (y ×1,175) | — | — | — | — |
+| 1200×630 | 48–76 px, alto 42% | 24–28 px | 26 px | 56 px | hasta 120 px |
+
+  "—" significa que el formato no define un valor propio (se toma el de la plantilla de la variante).
+- **Checklist:** la cubren las reglas existentes: la Cifra (contraste, grilla 3:4, superposición, interfaz) y "Body centrado en 4 líneas o menos".
+- **Verificación:** PNG reales de 16 casos (4 formatos × Modo A/B × con/sin body): todos aprueban.
+
 ### Formatos *(derivados, sin referencia: solo hay diseños en 4:5)*
 
-Se derivan con reglas fijas, no pieza a pieza. El paso 5 de E16 los verifica con el checklist en los 4 formatos, o documenta cuál no pasa y por qué. La variante 5 ya está verificada: las 16 piezas (4 formatos × sin medio, Cifra, foto y sujeto) aprueban; con la Cifra en 4:5 pasa los 26 controles. La 6 también: 16 piezas (4 formatos × producto/sin producto × con/sin body) aprueban.
+Se derivan con reglas fijas, no pieza a pieza. El paso 5 de E16 los verifica con el checklist en los 4 formatos, o documenta cuál no pasa y por qué. La variante 5 ya está verificada: las 16 piezas (4 formatos × sin medio, Cifra, foto y sujeto) aprueban; con la Cifra en 4:5 pasa los 26 controles. La 6 también: 16 piezas (4 formatos × producto/sin producto × con/sin body) aprueban. Y la 7: 16 piezas (4 formatos × Modo A/B × con/sin body) aprueban.
 
 | Formato | Regla |
 |---|---|
 | 1:1 | Margen lateral del 14% y grilla 3:4 como hoy (cap. 6); H1 en 2 líneas como máximo. El medio de la variante 5 se achica hasta un mínimo y, si no entra, se omite (cae al estado sin medio); la Cifra entra en el control de la grilla 3:4 *(v1.1, implementado)*. En la 6, el escenario se escala con el alto de la zona segura sin pasar el ancho útil (el círculo baja al mínimo medido, 0,28 del ancho, con body) |
 | 9:16 | Contenido entre el 15% y el 80% del alto, tamaños ×1,175. Las columnas apiladas entran sin cambios de orden |
-| 1200×630 | Reacomodo horizontal, como el resto del sistema: mensaje en el 50% izquierdo, alineado a la izquierda. 5: el medio va a la derecha. 6: sujeto sobre círculo a la derecha; Cifra, body y CTA a la izquierda *(v1.1, implementado)*. 7: H1, body y CTA a la izquierda; Cifra a la derecha. El orden de lectura no cambia (regla de coherencia entre formatos). La Cifra va a la derecha y por eso no cuenta para "Mensaje en el 50% izquierdo" *(v1.1, implementado en la 5)* |
+| 1200×630 | Reacomodo horizontal, como el resto del sistema: mensaje en el 50% izquierdo, alineado a la izquierda. 5: el medio va a la derecha. 6: sujeto sobre círculo a la derecha; Cifra, body y CTA a la izquierda *(v1.1, implementado)*. 7: logo, H1, body y CTA a la izquierda; Cifra a la derecha *(v1.1, implementado)*. El orden de lectura no cambia (regla de coherencia entre formatos). La Cifra va a la derecha y por eso no cuenta para "Mensaje en el 50% izquierdo" *(v1.1, implementado en la 5)* |
 
 ---
 
@@ -1484,7 +1504,7 @@ pieza: {
   marca_id,
   canal: "feed_ig | stories_ig | estados_wa | feed_fb",
   formato: "4:5 | 1:1 | 9:16 | 1200x630",
-  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | 6 | F",   // (v1.1, E6) F solo con fotos habilitadas; (v1.1, E16) 5 · Apilada, 6 · Producto
+  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | 6 | 7 | F",   // (v1.1, E6) F solo con fotos habilitadas; (v1.1, E16) 5 · Apilada, 6 · Producto, 7 · Cifra
   contenido: {
     h1: string,
     body: string | null,

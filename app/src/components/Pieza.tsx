@@ -78,7 +78,7 @@ export function Pieza({
   // Variantes nuevas (cap. 6b, E16): cada una tiene su alineación propia. La 5 apila el mensaje a la izquierda.
   const e16 = esVarianteE16(pieza.variante);
   // La 6 va centrada (en 1200×630 el mensaje queda a la izquierda, con el producto a la derecha).
-  const centrado = (pieza.variante === "6" && f.columnaMensaje == null) || (pieza.alineacion === "centrado" && pieza.variante !== "5" && pieza.variante !== "6");
+  const centrado = ((pieza.variante === "6" || pieza.variante === "7") && f.columnaMensaje == null) || (pieza.alineacion === "centrado" && !e16);
   const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
   // Con CTA opcional (2 y 3, cap. 7b) el botón aparece solo si tiene texto: sin él, la pieza queda como antes.
@@ -681,27 +681,48 @@ export function Pieza({
     );
   }
 
+  // Fila del logo de las variantes centradas: la insignia va pegada a la derecha sin descentrar el logo.
+  const filaLogoCentrada = (
+    <div style={{ position: "relative", display: "flex", justifyContent: justificar, flexShrink: 0 }}>
+      {logo}
+      {insigniaEl && <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, display: "flex", alignItems: "center" }}>{insigniaEl}</div>}
+    </div>
+  );
+
   let contenidoPieza: React.ReactNode;
-  if (pieza.variante === "6") {
-    // 6 · Producto (cap. 6b, diseños 4 y 5): logo, la Cifra como H1, el escenario, el body opcional y el CTA, todo
-    // centrado. En 1200×630 el mensaje va a la izquierda y el escenario en la columna derecha.
-    const filaLogo6 = (
-      <div style={{ position: "relative", display: "flex", justifyContent: justificar, flexShrink: 0 }}>
-        {logo}
-        {insigniaEl && <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, display: "flex", alignItems: "center" }}>{insigniaEl}</div>}
-      </div>
-    );
+  if (pieza.variante === "7") {
+    // 7 · Cifra (cap. 6b, diseño 6): logo, H1, Cifra, body y CTA, todo centrado. En 1200×630 el mensaje va a la
+    // izquierda y la Cifra en la columna derecha.
     contenidoPieza = horizontal ? (
       <>
         <div data-columna style={colIzq}>
-          {filaLogo6}
+          {filaLogoCentrada}
+          {mensaje(botonCta)}
+        </div>
+        {cifraEl && <div style={{ ...colDer, flexDirection: "column" }}>{cifraEl}</div>}
+      </>
+    ) : (
+      <div data-columna style={colIzq}>
+        {filaLogoCentrada}
+        {/* Diseño 6: ~70 px de aire entre el H1 y la Cifra, y ~80 px hasta el body (el hueco del bloque es 28 px). */}
+        {mensaje(undefined, undefined, undefined, cifraEl && <div style={{ width: "100%", padding: `${px(44)}px 0 ${px(52)}px` }}>{cifraEl}</div>)}
+        {botonCta}
+      </div>
+    );
+  } else if (pieza.variante === "6") {
+    // 6 · Producto (cap. 6b, diseños 4 y 5): logo, la Cifra como H1, el escenario, el body opcional y el CTA, todo
+    // centrado. En 1200×630 el mensaje va a la izquierda y el escenario en la columna derecha.
+    contenidoPieza = horizontal ? (
+      <>
+        <div data-columna style={colIzq}>
+          {filaLogoCentrada}
           {mensaje(botonCta)}
         </div>
         <div style={{ ...colDer, flexDirection: "column" }}>{escenario}</div>
       </>
     ) : (
       <div data-columna style={colIzq}>
-        {filaLogo6}
+        {filaLogoCentrada}
         {mensaje(undefined, undefined, undefined, escenario)}
         {botonCta}
       </div>

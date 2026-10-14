@@ -409,6 +409,8 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
   const campo = "rounded-md border border-neutral-300 px-3 py-2";
   // En la 6 la Cifra hace de H1 (va en el mensaje principal) y no hay foto en forma.
   const v6 = pieza.variante === "6";
+  // La 7 es solo tipográfica: Cifra, insignia y palabra gigante; no lleva producto ni foto.
+  const v7 = pieza.variante === "7";
   return (
     <div className="flex flex-col gap-3">
       {v6 && <p className="text-xs text-neutral-500">En esta variante la oferta (&quot;25% OFF&quot;) va en el mensaje principal. Sin producto, en el círculo va un ícono del rubro.</p>}
@@ -422,7 +424,7 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
         />
         <span className="text-xs text-neutral-500">Número u oferta protagonista. No cuenta para la jerarquía del H1.</span>
       </label>}
-      <div className="flex flex-col gap-1 text-xs">
+      {!v7 && <div className="flex flex-col gap-1 text-xs">
         <span className="text-sm font-medium">Producto recortado (PNG con fondo transparente)</span>
         <input
           type="file"
@@ -447,8 +449,8 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
             </button>
           </span>
         )}
-      </div>
-      {!v6 && <div className="flex flex-col gap-1 text-xs">
+      </div>}
+      {!v6 && !v7 && <div className="flex flex-col gap-1 text-xs">
         <span className="text-sm font-medium">Foto en forma</span>
         <input
           type="file"

@@ -260,6 +260,19 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     cta: 34,
     logoPx: 80,
   },
+  // Variante 7 · Cifra (cap. 6b, E16, diseño 6): todo centrado; H1 en hasta 2 líneas, la Cifra protagonista (mayúsculas
+  // de 111 px: letra ~150), el body y el CTA. Fondo vertical que aclara hacia abajo.
+  "7": {
+    nombre: "7 · Cifra",
+    descripcion: "Mensaje arriba, un número grande en el medio, el dato y el llamado a la acción. Todo centrado.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 56, max: 104, altoMax: 0.3, maxLineas: 2 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+    cifra: 150,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -287,6 +300,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
     "5": { h1: { max: 88, altoMax: 0.26, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
     "6": { h1: { min: 64, max: 136, altoMax: 0.18 }, body: { max: 32 }, logoPx: 64 },
+    "7": { h1: { max: 88, altoMax: 0.24, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -299,6 +313,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     F: { h1: { altoMax: 0.3 } },
     "5": { h1: { altoMax: 0.3 } },
     "6": { h1: { altoMax: 0.16 } },
+    "7": { h1: { altoMax: 0.26 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -310,6 +325,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
     "5": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
     "6": { h1: { min: 56, max: 104, altoMax: 0.4 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "7": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
   },
 };
 
@@ -342,7 +358,7 @@ export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).fil
  * Variantes nuevas de E16 (cap. 6b). Se eligen a mano en Publicaciones; todavía no entran en la grilla de la
  * presentación, en los tipos de contenido ni en la sugerida del rubro (paso 6 de E16).
  */
-export const VARIANTES_E16: Variante[] = ["5", "6"];
+export const VARIANTES_E16: Variante[] = ["5", "6", "7"];
 export const esVarianteE16 = (v: Variante) => VARIANTES_E16.includes(v);
 
 /** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
@@ -356,7 +372,7 @@ export function variantesDisponibles(marca: Marca): Variante[] {
  */
 export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alineacion[] {
   // Variantes nuevas (cap. 6b): alineación propia, la regla del rubro no rige.
-  if (variante === "6") return ["centrado"];
+  if (variante === "6" || variante === "7") return ["centrado"];
   return variante === "2" || variante === "3" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
 }
 
@@ -472,6 +488,8 @@ export function degradadoActivo(marca: Marca, pieza: Pieza): Degradado | null {
 /** Degradado por defecto de cada variante nueva (cap. 6b): la 5 lleva el diagonal, con la zona clara detrás del sujeto. */
 export function degradadoDeVariante(marca: Marca, pieza: Pieza): Degradado | null {
   if (pieza.variante === "5") return { forma: "diagonal", esquina: medioApilada(pieza) === "sujeto" ? "abajo-derecha" : "arriba-derecha" };
+  // La 7 aclara hacia abajo (diseño 6).
+  if (pieza.variante === "7") return { forma: "vertical" };
   // La 6 lleva el resplandor radial detrás del círculo (diseños 4 y 5).
   if (pieza.variante === "6") {
     // En 1200×630 el escenario va en la columna derecha: el resplandor se centra ahí.
