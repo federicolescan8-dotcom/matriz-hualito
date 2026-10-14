@@ -18,6 +18,7 @@ Documento interno — agencia y desarrollo
 - Capítulo 4 — Sistema tipográfico
 - Capítulo 5 — Biblioteca de elementos gráficos
 - Capítulo 6 — Grillas de layout por plataforma
+- Capítulo 6b — Recursos y variantes de composición
 - Capítulo 7 — Variantes por rubro
 - Capítulo 7b — Estructura de marketing
 - Capítulo 8 — Checklist de control de calidad
@@ -79,6 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Es solo especificación: todavía no hay nada implementado. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -713,6 +715,9 @@ Un layout no es un lienzo libre: es una plantilla con posiciones predefinidas. C
 | CTA | llamado a la acción, precio u oferta | 1, 2B-L, 2B-S, 4, F; opcional en 2 y 3 *(v1.1, E15)* |
 | Contacto | íconos y datos de ubicación, teléfono y redes | 3 |
 | Ítem | foto o ícono más dato corto, repetible | 4 |
+| Cifra *(v1.1, E16)* | número u oferta protagonista ("25% OFF", un precio) | 5 (opcional), 6, 7 |
+
+La Cifra es información, no decoración, y tiene sus reglas en el cap. 6b.
 
 ### Reglas duras de combinación
 
@@ -760,7 +765,7 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 
 ### Las seis variantes de layout
 
-Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla.
+Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla. Las variantes 5, 6 y 7 *(v1.1, E16)* están en el cap. 6b.
 
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
@@ -826,6 +831,8 @@ El carrusel es el formato orgánico de más alcance y guardados en Instagram, y 
 
 ### Alineación del mensaje (variantes 2 y 3)
 
+Estas reglas, y la de rubro, no rigen para las variantes 5, 6 y 7 *(v1.1, E16)*: cada una tiene su alineación propia (cap. 6b).
+
 - Valores permitidos: izquierda o centrado. La alineación derecha y el justificado quedan prohibidos en todo el sistema, para no romper la lógica de atención del público.
 - Belleza/lifestyle y gastronomía/retail: izquierda o centrado. Servicios/B2B y tech/digital: solo izquierda.
 - H1 y body siempre comparten alineación, nunca se mezclan dentro de la pieza.
@@ -875,6 +882,125 @@ El logo se valida con el mismo mínimo que los elementos gráficos, 3:1 contra e
 ### Regla de coherencia entre formatos
 
 La variante elegida para una pieza mantiene su orden de lectura en todos los formatos. Solo cambian las proporciones de cada zona, nunca el orden de los slots.
+
+---
+
+## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
+
+> **Estado: solo especificación.** Nada de este capítulo está implementado todavía; se construye en los pasos 2 a 6 de E16 (`docs/replanteo.md`). Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+
+### Objetivo del capítulo
+
+Las piezas se sienten monótonas: pocas variantes y fondo liso. Este capítulo suma recursos gráficos medibles y tres variantes nuevas, sacadas de 6 diseños de referencia del cliente interno (4:5, 1080×1350, medidos en píxeles; no se guardan en el repo). Las referencias se usan por estructura, nunca por sus textos, logos ni caras. Solo digital (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos.
+
+### Reglas globales y reglas por variante
+
+- **Globales.** Solo rigen las **bloqueantes** del cap. 8: contraste, zonas seguras y tamaños mínimos.
+- **Por variante.** Cada variante nueva tiene sus reglas propias (tabla y subsecciones de abajo), que pisan las generales no bloqueantes: por ejemplo la alineación por rubro del cap. 6 y la regla de que los slots de cierre siguen el eje del H1.
+- Una sola decoración protagonista por pieza: en 5, 6 y 7 no van la forma de fondo automática ni las decoraciones de plantilla del cap. 6.
+
+### Slot Cifra
+
+Número u oferta protagonista ("25% OFF", un precio). Es **información**, no decoración: cumple contraste como el H1 (cap. 8), entra en el control de la grilla 3:4 y en el de la interfaz de stories. No cuenta para la jerarquía del H1 (como el número de la variante P): el H1 ≥ 2× body y CTA sigue valiendo entre H1, body y CTA.
+
+- Medido en 4:5: alto de las mayúsculas y dígitos de 111 px (diseños con H1) y 119 px (variante 6, donde es el titular), unos 8-9% del alto; ancho de hasta ~62% del ancho.
+- Va centrada en el lienzo en las tres variantes.
+- Largo: hasta ~10 caracteres *(derivado, sin referencia: la referencia tiene 7)*.
+- Una sola por pieza.
+
+### Recursos
+
+**1. Degradado de marca.** Fondo opcional en todas las variantes; el default es liso, así que nada cambia si no se elige.
+
+- Siempre **tono sobre tono** del fondo del modo: mismo matiz (±3° en OKLCH en la referencia), cambia la luminosidad. No cruza colores. Medido en Modo B: base #00685a (OKLCH L 0,46) a zona clara #09ae9d (L 0,68), es decir **+0,21 de L**.
+- Con paleta extendida, cruzar a un secundario queda pendiente *(sin referencia)*. En Modo A (fondo neutro ya claro) la dirección se invierte: oscurece con la misma magnitud *(derivado, sin referencia)*.
+- Tres formas, medidas:
+
+| Forma | Diseños | Geometría |
+|---|---|---|
+| Diagonal | 1, 2, 3 | Lineal desde una esquina (la zona clara) que se funde con la base hacia el 60% de la diagonal. Esquina arriba a la derecha (1, 2) o abajo a la derecha, detrás del sujeto (3) |
+| Vertical | 6 | Liso hasta el 50% del alto y aclara hacia abajo hasta #00ab99 (L 0,67) en el borde inferior |
+| Radial detrás del sujeto | 4, 5 | #008677 (+0,09 de L) en el centro del sujeto, que se funde con la base en ~0,37 del ancho |
+
+- **Zona clara declarada.** El degradado declara su zona clara y ningún texto va ahí. El contraste se mide bajo **cada caja de texto**, sobre el degradado real y tomando el peor píxel (como la variante F con foto). Dato de la medición: texto #e6f0ec sobre #00685a da 5,8:1; sobre #008071, 4,2:1 (un body ahí no pasa 4,5:1); sobre #09ae9d, 2,4:1. En el diseño 6 el body cae cerca del límite de 4,5:1: el control tiene que poder decirlo.
+- **Logo:** 3:1 contra el peor píxel del degradado bajo su caja; la tabla de versión del logo (cap. 6) se aplica con el color de ese peor caso.
+- **CTA:** el botón tiene su fondo propio; su borde se mide contra el degradado bajo su caja con el mínimo de elementos gráficos (3:1).
+- Los detalles que hoy asumen fondo liso (sombra mínima, forma de fondo, decoración de plantilla) se revisan en el paso 2 de E16.
+
+**2. Sujeto PNG.** Refuerzo opcional, nunca requisito. Foto recortada con transparencia, hecha por el equipo; también fotos de pyme sacadas con celular, por eso los controles no asumen un recorte profesional.
+
+- Requiere transparencia real. Si la imagen no tiene alfa útil, la variante cae a su **estado sin sujeto**. Se recorta a la caja de los píxeles opacos.
+- Cadena de respaldo: **PNG → ícono → forma o patrón → nada**.
+- Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja.
+- Uno por pieza. Sin overlay (no lleva texto encima).
+
+**3. Insignia** *(opcional, cualquier variante nueva; sin referencia en los 6 diseños: todo derivado)*.
+
+- Máximo 1 por pieza.
+- Su texto no baja del tamaño mínimo del body del formato.
+- Contraste propio: texto 4,5:1 contra su relleno y relleno 3:1 contra el fondo bajo ella.
+- No pisa el H1 ni el CTA (cajas medidas) y va dentro de la zona segura.
+
+**4. Foto en forma** (diseño 2). Foto contenida en una forma de la biblioteca (cap. 5). La referencia es un rectángulo redondeado (radio ~16 px, 1,5% del ancho), de proporción 2,5:1 y del ancho del contenido (x de 10% a 91%), entre el 50% y el 76% del alto. Usa el tratamiento de foto de la marca; sin overlay porque no lleva texto encima. Nunca va texto sobre la foto.
+
+**5. Palabra gigante** *(sin referencia: derivado)*. Decoración tipográfica detrás del contenido, tono sobre tono. No cuenta como información ni para la jerarquía. El texto que la pisa se mide contra el **peor** entre el fondo y la palabra. Puede salirse del lienzo. No va junto con otra decoración protagonista (forma de fondo, decoración de plantilla, círculo de la variante 6).
+
+Insignia, foto en forma y palabra gigante se suman a las variantes: no son variantes aparte.
+
+### Medidas comunes de los 6 diseños (4:5)
+
+- Logo: 63 px de alto, entre el 14,9% y el 19,5% del alto, 21% del ancho; a la izquierda en x 10% (grupo A) o centrado (B, C).
+- CTA: 366×90 px, centrado entre el 78,4% y el 85% del alto (salvo con sujeto en la variante 5).
+- Margen lateral del texto: 10%.
+
+### Las tres variantes *(números provisorios)*
+
+| | 5 · Apilada | 6 · Producto | 7 · Cifra |
+|---|---|---|---|
+| Diseños de referencia | 1, 2, 3 | 4, 5 | 6 |
+| Orden de slots | logo → H1 → body → [medio opcional] → CTA | logo → Cifra (hace de H1) → sujeto sobre círculo → (body) → CTA | logo → H1 → Cifra → body → CTA |
+| Alineación | logo, H1 y body a la izquierda (x 10%); Cifra y CTA centrados | todo centrado | todo centrado |
+| Fondo por defecto | degradado diagonal, zona clara arriba a la derecha (con sujeto, abajo a la derecha) | radial detrás del sujeto | degradado vertical |
+| Estado sin sujeto | Cifra si la hay; si no, foto en forma si hay foto; si no, sin medio | cadena de respaldo dentro del círculo | no aplica (sin sujeto por diseño) |
+| CTA | sí | sí | sí |
+
+Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es el último elemento (regla de cierre de la variante 1). Las reglas por rubro de alineación del cap. 6 (tech y servicios solo izquierda) **no rigen**: cada variante tiene su alineación fija.
+
+**5 · Apilada** (diseños 1, 2, 3)
+
+- Logo, H1 y body a la izquierda (x 10%). Paso de renglón del H1 medido: ~110 px en 4:5.
+- Medio opcional, uno de:
+  - **Cifra**: centrada, entre el 61,5% y el 69,6% del alto;
+  - **foto en forma**: medidas del recurso 4;
+  - **sujeto a sangre**: sale por la derecha y por abajo (x 22-100%, y 58,5-100%).
+- Regla propia de alineación: la Cifra y el CTA van **centrados** en el lienzo aunque el texto vaya a la izquierda (diseños 1 y 2). Con sujeto, el CTA sube y va a la **izquierda**, justo debajo del body (55-61% del alto) (diseño 3).
+- Fondo: degradado diagonal con la zona clara arriba a la derecha; con sujeto, abajo a la derecha, detrás del sujeto.
+- Estado sin sujeto: Cifra si la hay; si no, foto en forma si hay foto; si no, sin medio (logo, H1, body y CTA). Los tres estados tienen que pasar el checklist.
+
+**6 · Producto** (diseños 4, 5)
+
+- Orden: logo → Cifra (hace de H1) → sujeto sobre círculo → (body) → CTA. Todo centrado.
+- Cifra arriba (26-28% del alto). En esta variante la Cifra es el titular: el H1 de la pieza es la Cifra (hasta ~10 caracteres).
+- Círculo opaco en tono de apoyo (#3cc9b6 en la referencia), centrado en x 50%, diámetro de 0,28 a 0,39 del ancho, centro entre el 50% y el 55% del alto. El sujeto desborda el círculo (0,5-0,7 del ancho). Resplandor radial detrás (recurso 1, forma radial).
+- Body opcional, centrado, hasta 2 líneas (65-72% del alto).
+- Estado sin sujeto: la cadena de respaldo dentro del círculo: ícono → forma o patrón → solo el círculo.
+
+**7 · Cifra** (diseño 6)
+
+- Orden: logo → H1 → Cifra → body → CTA. Todo centrado.
+- H1 hasta 2 líneas (28,6-42,7% del alto); Cifra 48-56%; body 62-70%; CTA 78-85%.
+- Fondo: degradado vertical (aclara hacia abajo desde el 50%).
+- Sin sujeto por diseño. Con centrado, el body se limita a 3-4 líneas (regla existente del cap. 6).
+
+### Formatos *(derivados, sin referencia: solo hay diseños en 4:5)*
+
+Se derivan con reglas fijas, no pieza a pieza. El paso 5 de E16 los verifica con el checklist en los 4 formatos, o documenta cuál no pasa y por qué.
+
+| Formato | Regla |
+|---|---|
+| 1:1 | Margen lateral del 14% y grilla 3:4 como hoy (cap. 6); H1 en 2 líneas como máximo. El medio de la variante 5 se achica hasta un mínimo y, si no entra, se omite (cae al estado sin medio). En la 6, el círculo baja al mínimo medido (0,28 del ancho) |
+| 9:16 | Contenido entre el 15% y el 80% del alto, tamaños ×1,175. Las columnas apiladas entran sin cambios de orden |
+| 1200×630 | Reacomodo horizontal, como el resto del sistema: mensaje en el 50% izquierdo, alineado a la izquierda. 5: el medio va a la derecha. 6: sujeto sobre círculo a la derecha; Cifra, body y CTA a la izquierda. 7: H1, body y CTA a la izquierda; Cifra a la derecha. El orden de lectura no cambia (regla de coherencia entre formatos) |
 
 ---
 
@@ -1004,6 +1130,7 @@ Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcion
 - Los 7 tipos tienen al menos un objetivo y, con el CTA opcional de 2 y 3, todas las variantes de cada tipo admiten la política de su objetivo por defecto. Testimonio con objetivo "ninguno" en la variante 1 (que tiene lugar para CTA) simplemente no lo completa. Nota: la variante 1 del testimonio hoy solo se alcanza si la 2 no está habilitada, y las seis variantes están habilitadas para todos los rubros (cap. 7).
 - Variantes prioritarias por rubro (cap. 7): todas admiten CTA (2 y 3 como opcional), así que cualquier objetivo con CTA requerido se puede cumplir con las prioritarias de cualquier rubro.
 - Carrusel: el objetivo no se aplica al carrusel (fuera de alcance). Su control sigue mandando: un único CTA, en el cierre; el CTA opcional de 2 y 3 no habilita CTA en los slides de contenido.
+- Variantes 5, 6 y 7 *(v1.1, E16, solo especificación)*: respetan este capítulo (orden de lectura y política de CTA: las tres llevan CTA "sí", con la regla de cierre de la variante 1: el CTA es el último elemento). Su conexión a los tipos de contenido es el paso 6 de E16, todavía no.
 
 ### Controles de marketing
 
@@ -1066,6 +1193,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Color heredado: versión funcional en texto | — | generar versión funcional |
 
 **Contraste sobre la foto** *(v1.1, E6)*. En la variante F el contraste no se calcula contra un color plano: se dibuja la foto con su encuadre, su tratamiento y su protección en un lienzo a mitad de tamaño, y se muestrean los píxeles que quedan bajo cada línea del H1 y del body. Se toma el percentil 5% (el "peor" contraste, que ignora el 5% de píxeles más extremos), no el promedio, porque una sola zona clara ya vuelve ilegible una palabra. Por debajo de 3:1 es bloqueante; entre 3:1 y 4,5:1 es aviso (cap. 8, niveles).
+
+**Contraste sobre degradado y recursos de composición** *(v1.1, E16, solo especificación)*. Con el degradado de marca (cap. 6b) el contraste se mide bajo cada caja de texto, sobre el degradado real y tomando el peor caso, no contra el color base. La Cifra cuenta como información: cumple contraste como el H1, y entra en el control de la grilla 3:4 y en el de la interfaz de stories. El sujeto PNG, la palabra gigante y el degradado son decoración: pueden pasar bajo la zona segura, el recorte 3:4 y la interfaz de stories, pero nunca tapan texto, logo, Cifra ni CTA. Cada regla del cap. 6b será un control del checklist (se implementa en los pasos 2 a 5 de E16).
 
 ### Bloque 2 — Tipografía
 

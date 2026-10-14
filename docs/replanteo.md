@@ -329,8 +329,43 @@ manuales.
   tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
   checklist; objetivo a nivel de marca.
 
+### E16 · Recursos y variantes de composición · [ ] en curso (paso 1 hecho) · depende de E6, E7 y E15
+- **Por qué:** las piezas se sienten monótonas (pocas variantes, fondo liso). Se suman recursos gráficos medibles y tres
+  variantes nuevas sacadas de 6 diseños de referencia del cliente interno (4:5, medidos en píxeles). Solo digital
+  (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos. Especificación en el cap. 6b del manual.
+- **Decisiones tomadas:**
+  - El sujeto PNG es viable como refuerzo opcional, nunca requisito: siempre hay un estado sin sujeto que pasa el
+    checklist, con la cadena de respaldo PNG → ícono → forma o patrón → nada.
+  - Cada variante nueva tiene sus reglas; globales solo las bloqueantes del cap. 8.
+  - Degradado opcional, tono sobre tono del fondo del modo, con zona clara declarada sin texto; el contraste se mide
+    bajo cada caja de texto sobre el degradado real (peor píxel).
+  - La decoración no es información. La palabra gigante se mide contra el peor entre el fondo y la palabra.
+  - Fotos de pyme: sin transparencia real, el sujeto cae al estado sin sujeto.
+  - Slot Cifra: es información (contraste, grilla 3:4, interfaz de stories) y no cuenta para la jerarquía del H1.
+  - Alineación propia de cada variante: la regla de rubro no rige para 5, 6 y 7.
+  - El sujeto puede salirse del lienzo, pero no tapa texto, logo, Cifra ni CTA.
+  - Formatos derivados por regla y verificados en el paso 5.
+  - Las referencias se usan por estructura, nunca textos, logos ni caras, y no se guardan en el repo.
+- **Pasos** (uno por vez; cada uno cierra con tests, typecheck y lint limpios, manuales actualizados y un commit):
+  1. **Manual sin código.** Cap. 6b del manual. *Aceptación:* lo no medido está marcado *(derivado, sin referencia)*;
+     sin contradicciones con los cap. 6, 7b y 8. **Hecho.**
+  2. **Degradado de marca.** Campo de fondo en `Pieza`, cálculo en `palette.ts`, raíz de `Pieza.tsx`,
+     `fondosDe`/`peorContraste` en `checklist.ts` midiendo bajo cada caja; revisar logo, CTA y detalles que asumen
+     fondo liso. *Aceptación:* default liso idéntico al de hoy; tests de contraste sobre degradado, incluida la zona
+     clara.
+  3. **Sujeto PNG.** Carga que conserve el alfa (no `reducirFoto`, que pasa a JPEG), recorte de transparencia, campo en
+     `Pieza`, superposición medida sobre el área opaca, cadena de respaldo. *Aceptación:* tests con sujeto con y sin
+     transparencia; el estado sin sujeto pasa el checklist.
+  4. **Insignia, foto en forma y palabra gigante.** *Aceptación:* un control por regla, con su test.
+  5. **Las variantes 5, 6 y 7**, una por una, con verificación visual. *Aceptación:* pasan el checklist en los 4
+     formatos o se documenta cuál no y por qué.
+  6. **Conexión a `TIPOS_CONTENIDO.variantes` y `varianteSugerida` por rubro**, sin repetir la misma variante seguida.
+     *Aceptación:* tests de selección.
+- **Fuera de alcance:** banco de matrices por ejemplos, ingredientes flotantes o realismo 3D, eliminación automática
+  de fondo.
+
 ## Orden sugerido
-E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10. E15 (capa de marketing) va después de E7 y deja el enganche para E14.
+E1 → **E9** → **E12** → E3 → **E13** → E2 → E4 → E11 (a, b, c) → E5 → E6 → E7 → E8 → **E14** → E10. E15 (capa de marketing) va después de E7 y deja el enganche para E14. E16 (recursos y variantes de composición) va después de E15.
 - **E9 primero:** es chica y libera las decisiones creativas que hoy chocan contra un control que bloquea.
 - **E12 y E3 antes que E2:** el diagnóstico abierto, el color y la tipografía son lo que más diferencia a una marca y
   lo más barato de construir.
