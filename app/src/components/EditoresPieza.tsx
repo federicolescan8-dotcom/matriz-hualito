@@ -16,7 +16,8 @@ import { FORMATOS } from "@/engine/formatos";
 import { hslCss } from "@/engine/color";
 import { decoEfectiva, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
 import { FOCO_CENTRO, PROTECCIONES, type Foco } from "@/engine/fotografia";
-import { reducirFoto } from "@/lib/imagen";
+import { BORDES_BANDA } from "@/engine/protagonista";
+import { recortarTransparencia, reducirFoto, tieneTransparencia } from "@/lib/imagen";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
 // Editores de los elementos gráficos de cada variante (fase 3b): capa decorativa (2B), contacto (3) y catálogo (4).
@@ -312,48 +313,96 @@ export function MiniaturaFoco({ src, foco, onChange }: { src: string; foco?: Foc
  * el bloque de texto. El checklist mide el contraste sobre la imagen real.
  */
 export function EditorFotoFondo({ pieza, onChange }: { pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
-  const proteccion = pieza.proteccion ?? "degradado";
-  const lado = pieza.foto_texto ?? "abajo";
+  const producto = pieza.variante === "FP";
+  const titular = pieza.variante === "FT";
+  const banda = pieza.variante === "FB";
+  // El titular sobre foto no usa placa (tapa a la protagonista); la FB y la FP llevan el texto sobre color plano.
+  const protecciones = titular ? PROTECCIONES.filter((pr) => pr.id !== "placa") : PROTECCIONES;
+  const proteccion = protecciones.find((pr) => pr.id === pieza.proteccion)?.id ?? "degradado";
+  const lado = pieza.foto_texto ?? (producto ? "arriba" : "abajo");
+  const borde = pieza.banda_borde ?? "onda";
   const horizontal = FORMATOS[pieza.formato].columnaMensaje != null;
+  const conProteccion = pieza.variante === "F" || titular;
   return (
     <div className="flex flex-col gap-2 text-xs">
-      <span className="text-sm font-medium">Foto de fondo</span>
+      <span className="text-sm font-medium">{producto ? "Producto" : "Foto protagonista"}</span>
+      {producto && <span className="text-neutral-500">Subí el producto recortado: PNG o WebP con fondo transparente.</span>}
       <input
         type="file"
-        accept="image/*"
+        accept={producto ? "image/png,image/webp,image/*" : "image/*"}
         onChange={async (e) => {
           const file = e.target.files?.[0];
-          if (file) onChange({ foto_fondo: await reducirFoto(file), foto_foco: undefined });
+          if (!file) return;
+          if (!producto) {
+            onChange({ foto_fondo: await reducirFoto(file), foto_foco: undefined });
+            return;
+          }
+          // El producto conserva su transparencia y se recorta a lo visible: así llena su caja.
+          const reducida = await reducirFoto(file, 1600, { conservarAlfa: true });
+          const recortada = await tieneTransparencia(reducida);
+          onChange({ foto_fondo: recortada ? (await recortarTransparencia(reducida)).dataUrl : reducida, foto_recortada: recortada, foto_foco: undefined });
         }}
       />
       {pieza.foto_fondo ? (
         <>
-          <MiniaturaFoco src={pieza.foto_fondo} foco={pieza.foto_foco} onChange={(foto_foco) => onChange({ foto_foco })} />
-          <button type="button" onClick={() => onChange({ foto_fondo: null, foto_foco: undefined })} className="self-start underline">Quitar foto</button>
+          {producto ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pieza.foto_fondo} alt="" className="h-24 w-24 self-start rounded border border-neutral-200 object-contain" />
+          ) : (
+            <MiniaturaFoco src={pieza.foto_fondo} foco={pieza.foto_foco} onChange={(foto_foco) => onChange({ foto_foco })} />
+          )}
+          {producto && !pieza.foto_recortada && (
+            <span className="text-amber-700">La imagen no tiene fondo transparente: va dentro de un rectángulo redondeado.</span>
+          )}
+          <button type="button" onClick={() => onChange({ foto_fondo: null, foto_foco: undefined, foto_recortada: undefined })} className="self-start underline">Quitar foto</button>
         </>
       ) : (
-        <span className="text-neutral-500">Sin foto cargada, la pieza usa el fondo del modo.</span>
+        <span className="text-neutral-500">
+          {pieza.variante === "F" ? "Sin foto cargada, la pieza usa el fondo del modo." : "Esta variante necesita su foto: sin ella no se puede exportar."}
+        </span>
       )}
-      <span className="text-sm font-medium">Protección del texto</span>
-      <div className="flex overflow-hidden rounded-md border border-neutral-300">
-        {PROTECCIONES.map((pr) => (
-          <button
-            key={pr.id}
-            type="button"
-            title={pr.descripcion}
-            onClick={() => onChange({ proteccion: pr.id })}
-            className={`flex-1 py-1.5 ${proteccion === pr.id ? "bg-neutral-900 text-white" : "bg-white"}`}
-          >
-            {pr.nombre}
-          </button>
-        ))}
-      </div>
-      <p className="text-neutral-500">{PROTECCIONES.find((x) => x.id === proteccion)!.descripcion}</p>
-      {!horizontal && (
+      {conProteccion && (
+        <>
+          <span className="text-sm font-medium">Protección del texto</span>
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {protecciones.map((pr) => (
+              <button
+                key={pr.id}
+                type="button"
+                title={pr.descripcion}
+                onClick={() => onChange({ proteccion: pr.id })}
+                className={`flex-1 py-1.5 ${proteccion === pr.id ? "bg-neutral-900 text-white" : "bg-white"}`}
+              >
+                {pr.nombre}
+              </button>
+            ))}
+          </div>
+          <p className="text-neutral-500">{PROTECCIONES.find((x) => x.id === proteccion)!.descripcion}</p>
+        </>
+      )}
+      {banda && (
+        <>
+          <span className="text-sm font-medium">Borde de la banda</span>
+          <div className="flex overflow-hidden rounded-md border border-neutral-300">
+            {BORDES_BANDA.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                title={b.descripcion}
+                onClick={() => onChange({ banda_borde: b.id })}
+                className={`flex-1 py-1.5 ${borde === b.id ? "bg-neutral-900 text-white" : "bg-white"}`}
+              >
+                {b.nombre}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {!horizontal && !banda && (
         <div className="flex overflow-hidden rounded-md border border-neutral-300">
           {(["arriba", "abajo"] as const).map((l) => (
             <button key={l} type="button" onClick={() => onChange({ foto_texto: l })} className={`flex-1 py-1.5 ${lado === l ? "bg-neutral-900 text-white" : "bg-white"}`}>
-              Texto {l}
+              {producto ? `Mensaje ${l} del producto` : `Texto ${l}`}
             </button>
           ))}
         </div>

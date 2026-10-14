@@ -29,6 +29,7 @@ import {
 } from "@/engine/pieza";
 import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
+import { usaFotoFondo } from "@/engine/protagonista";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { useSesion } from "@/lib/sesion";
 import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion, EditorFotoFondo } from "@/components/EditoresPieza";
@@ -374,9 +375,9 @@ export default function PublicarPage() {
             <input value={actual.contenido.cta ?? ""} onChange={(e) => setContenido({ cta: e.target.value || null })} className="rounded-md border border-neutral-300 px-3 py-2" />
           </label>
         )}
-        {actual.variante === "F" && <EditorFotoFondo pieza={actual} onChange={set} />}
+        {usaFotoFondo(actual.variante) && <EditorFotoFondo pieza={actual} onChange={set} />}
         {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
-        {actual.variante !== "F" && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
+        {!usaFotoFondo(actual.variante) && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
         {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
         {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>

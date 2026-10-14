@@ -15,6 +15,7 @@ import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
 import type { Foco, LadoTexto, Proteccion } from "./fotografia";
+import { usaFotoFondo, type BordeBanda } from "./protagonista";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -42,13 +43,23 @@ export interface Pieza {
   contacto?: DatoContacto[];
   /** Variante 4: de 2 a 4 ítems (3 en 1:1). */
   items?: ItemCatalogo[];
-  /** Variante F (texto sobre foto, E6): foto a sangre de fondo, como data URL. */
+  /**
+   * Foto propia de la pieza, como data URL. En la F (texto sobre foto, E6) y la FT va a sangre; en la FB, arriba de la
+   * banda; en la FP es el producto recortado.
+   */
   foto_fondo?: string | null;
+  /** FP: la foto trae transparencia (producto recortado). Se calcula al subirla. */
+  foto_recortada?: boolean;
+  /** FB: borde de la banda que corta la foto. Por defecto, onda. */
+  banda_borde?: BordeBanda;
   /** Punto focal de la foto (0-1): el encuadre lo deja cerca del centro de su caja (E6). */
   foto_foco?: Foco;
   /** Variante F: cómo se protege el contraste del texto sobre la foto. Por defecto, degradado. */
   proteccion?: Proteccion;
-  /** Variante F: de qué lado va el bloque de texto (en formatos verticales). Por defecto, abajo. */
+  /**
+   * Variantes F y FT: de qué lado va el bloque de texto (en formatos verticales). En la FP, de qué lado del producto va
+   * el mensaje. Por defecto, abajo (FP: arriba).
+   */
   foto_texto?: LadoTexto;
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
@@ -204,6 +215,37 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     cta: 34,
     logoPx: 90,
   },
+  // Imagen protagonista: la foto es el sujeto y el H1 puede crecer mucho más (una cifra de oferta, una frase corta).
+  FP: {
+    nombre: "FP · Producto héroe",
+    descripcion: "El producto recortado (PNG con fondo transparente), grande, sobre el color del modo. Titular gigante.",
+    orden: ["H1", "body", "cta", "logo"],
+    tieneCta: true,
+    h1: { min: 64, max: 200, altoMax: 0.3, maxLineas: 2 },
+    body: { min: 26, max: 34 },
+    cta: 32,
+    logoPx: 80,
+  },
+  FT: {
+    nombre: "FT · Titular sobre foto",
+    descripcion: "La foto a sangre es la protagonista y encima va un titular o una cifra gigante. Pide fotos propias.",
+    orden: ["logo", "H1", "body", "cta"],
+    tieneCta: true,
+    h1: { min: 72, max: 220, altoMax: 0.34, maxLineas: 2 },
+    body: { min: 26, max: 34 },
+    cta: 32,
+    logoPx: 80,
+  },
+  FB: {
+    nombre: "FB · Foto con banda",
+    descripcion: "La foto arriba, a sangre, y una banda del color del modo abajo (recta u ondulada) con el mensaje.",
+    orden: ["H1", "body", "cta", "logo"],
+    tieneCta: true,
+    h1: { min: 56, max: 150, altoMax: 0.22, maxLineas: 2 },
+    body: { min: 26, max: 32 },
+    cta: 32,
+    logoPx: 72,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -229,6 +271,9 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
     F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
+    FP: { h1: { max: 160, altoMax: 0.26 }, logoPx: 68 },
+    FT: { h1: { max: 180, altoMax: 0.3 }, logoPx: 68 },
+    FB: { h1: { max: 120, altoMax: 0.2 }, logoPx: 64 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -239,6 +284,9 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
     F: { h1: { altoMax: 0.3 } },
+    FP: { h1: { altoMax: 0.24 } },
+    FT: { h1: { altoMax: 0.28 } },
+    FB: { h1: { altoMax: 0.18 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -248,6 +296,9 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
     F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    FP: { h1: { min: 56, max: 120, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
+    FT: { h1: { min: 56, max: 120, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
+    FB: { h1: { min: 52, max: 100, altoMax: 0.5, maxLineas: 3 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 52 },
   },
 };
 
@@ -276,17 +327,21 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
 
-/** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
+/**
+ * Variantes que la marca puede usar: las que llevan foto propia (F y las de imagen protagonista) solo con fotos propias
+ * habilitadas (E6).
+ */
 export function variantesDisponibles(marca: Marca): Variante[] {
-  return VARIANTES_HABILITADAS.filter((v) => v !== "F" || marca.identidad.fotos_habilitadas);
+  return VARIANTES_HABILITADAS.filter((v) => !usaFotoFondo(v) || marca.identidad.fotos_habilitadas);
 }
 
 /**
- * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2 y 3 se permite centrado
+ * Alineación permitida (cap. 6): derecha y justificado prohibidos. En las variantes 2, 3 y FP se permite centrado
  * según el rubro; el resto de las variantes va a la izquierda.
  */
 export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alineacion[] {
-  return variante === "2" || variante === "3" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
+  // El producto héroe va al eje del producto: puede centrarse como la 2 y la 3.
+  return variante === "2" || variante === "3" || variante === "FP" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
 }
 
 /** Secuencia de modo del rubro, invertida si el color heredado es claro (cap. 3 paso 8). */
@@ -453,7 +508,8 @@ export function geometria2BLImagen(formato: Formato): {
  */
 export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
   const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
-  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
+  // Las variantes con foto propia no entran: la grilla de muestra no tiene fotos del cliente.
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => !usaFotoFondo(v) && !prioritarias.includes(v))];
   const secuencia = secuenciaModo(marca);
   const base = piezaNueva(marca);
   return Array.from({ length: n }, (_, i) => {
