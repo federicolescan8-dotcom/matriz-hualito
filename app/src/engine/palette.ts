@@ -760,14 +760,21 @@ export function geometriaDegradado(d: Degradado, ancho: number, alto: number): G
 }
 
 /**
- * Color de la zona más clara: el fondo con la luminosidad movida (aclara en Modo B, oscurece en Modo A), mismo matiz y
- * croma relativo constante (C/L). En la referencia el croma sube con la luz (0,084 a 0,119, la misma proporción que
- * L): con el croma fijo el claro sale lavado, a ΔE 12 del medido.
+ * En Modo A el degradado oscurece el fondo neutro, pero mucho menos (decisión del usuario, 14/10/2026): con 0,21 y el
+ * croma bajando con la luz, el neutro se volvía gris y opacaba el color de toda la pieza.
+ */
+export const DEGRADADO_DELTA_L_MODO_A = 0.08;
+
+/**
+ * Color de la zona más clara. Modo B: el fondo con +0,21 de luminosidad, mismo matiz y croma relativo constante (C/L);
+ * en la referencia el croma sube con la luz (0,084 a 0,119, la misma proporción que L), y con el croma fijo el claro
+ * sale lavado, a ΔE 12 del medido. Modo A: oscurece 0,08 y conserva el croma del neutro, así sigue teñido de la marca
+ * en vez de agrisarse.
  */
 export function colorClaroDegradado(fondo: HSL, modo: "A" | "B", intensidad = 1): HSL {
   const [L, C, h] = oklch(fondo);
-  const delta = DEGRADADO_DELTA_L * intensidad;
-  const destino = Math.min(1, Math.max(0, modo === "B" ? L + delta : L - delta));
+  if (modo === "A") return desdeOklch(Math.max(0, L - DEGRADADO_DELTA_L_MODO_A * intensidad), C, h);
+  const destino = Math.min(1, L + DEGRADADO_DELTA_L * intensidad);
   return desdeOklch(destino, L > 0 ? (C * destino) / L : C, h);
 }
 

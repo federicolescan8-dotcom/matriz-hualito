@@ -8,6 +8,7 @@ import {
   colorEnDegradado,
   coloresModo,
   DEGRADADO_DELTA_L,
+  DEGRADADO_DELTA_L_MODO_A,
   fondosBajoCaja,
   geometriaDegradado,
   mezclaDegradado,
@@ -67,9 +68,12 @@ describe("color del degradado", () => {
     expect(distanciaColor(claro, hexToHsl("#09ae9d", true)!)).toBeLessThan(4); // ΔE ~3: ruido del JPEG de la referencia
   });
 
-  it("Modo A: oscurece con la misma magnitud", () => {
+  it("Modo A: oscurece poco (0,08) y conserva el croma del neutro, para no agrisarse", () => {
     const neutro = hexToHsl("#e4f1ea", true)!;
-    expect(oklch(neutro)[0] - oklch(colorClaroDegradado(neutro, "A"))[0]).toBeCloseTo(DEGRADADO_DELTA_L, 2);
+    const oscuro = colorClaroDegradado(neutro, "A");
+    expect(oklch(neutro)[0] - oklch(oscuro)[0]).toBeCloseTo(DEGRADADO_DELTA_L_MODO_A, 2);
+    expect(oklch(oscuro)[1]).toBeGreaterThanOrEqual(oklch(neutro)[1] - 0.002);
+    expect(Math.abs(oklch(oscuro)[2] - oklch(neutro)[2])).toBeLessThan(3);
   });
 
   it("fuera de la zona del degradado el color es el fondo", () => {
