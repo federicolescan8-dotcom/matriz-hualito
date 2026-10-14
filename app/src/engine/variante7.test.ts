@@ -51,7 +51,7 @@ describe("variante 7 · Cifra", () => {
     expect(c.ok).toBe(false);
   });
 
-  it("todavía no entra en la grilla de la presentación (paso 6)", () => {
-    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "7")).toBe(false);
+  it("entra en la grilla de la presentación (paso 6)", () => {
+    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "7")).toBe(true);
   });
 });

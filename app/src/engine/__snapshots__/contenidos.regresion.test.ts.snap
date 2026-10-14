@@ -200,7 +200,7 @@ exports[`armarPieza sin objetivo (regresión E15) > belleza 1`] = `
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -542,7 +542,7 @@ exports[`armarPieza sin objetivo (regresión E15) > belleza con contenido del cl
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -884,7 +884,7 @@ exports[`armarPieza sin objetivo (regresión E15) > gastronomia 1`] = `
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -1226,7 +1226,7 @@ exports[`armarPieza sin objetivo (regresión E15) > gastronomia con contenido de
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -1568,7 +1568,7 @@ exports[`armarPieza sin objetivo (regresión E15) > servicios 1`] = `
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -1910,7 +1910,7 @@ exports[`armarPieza sin objetivo (regresión E15) > servicios con contenido del 
     "modo": "A",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -2252,7 +2252,7 @@ exports[`armarPieza sin objetivo (regresión E15) > tech 1`] = `
     "modo": "B",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",
@@ -2594,7 +2594,7 @@ exports[`armarPieza sin objetivo (regresión E15) > tech con contenido del clien
     "modo": "B",
     "soporte_iconos": false,
     "tipo": "lanzamiento",
-    "variante": "1",
+    "variante": "5",
   },
   {
     "alineacion": "izquierda",

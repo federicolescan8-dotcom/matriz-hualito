@@ -80,7 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
-45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variantes 5, 6 y 7 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5, 6 y 7 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La **7 · Cifra** cierra el paso 5: logo → H1 → Cifra → body → CTA, todo centrado, con degradado vertical por defecto; es solo tipográfica y sus 16 piezas de prueba aprueban. La conexión a los tipos de contenido y a la variante sugerida por rubro (paso 6) sigue siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, completa)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variantes 5, 6 y 7 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5, 6 y 7 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La **7 · Cifra** cierra el paso 5: logo → H1 → Cifra → body → CTA, todo centrado, con degradado vertical por defecto; es solo tipográfica y sus 16 piezas de prueba aprueban. **Paso 6, la conexión, cierra E16**: la Promoción suma el campo opcional Cifra (12 caracteres, sin ejemplo) y sale en 7, 6, 2, 4 (sin Cifra se saltean la 6 y la 7 y sale en la 2 como antes); Lanzamiento sale en 5, 1; Tip y Pregunta frecuente en 1, 5; cada rubro suma una variante nueva en segundo lugar de sus prioritarias (servicios 7, gastronomía 6, belleza 6, tech 5) sin cambiar la sugerida; la grilla de la presentación rota las tres sin repetir variante seguida (tampoco en la vuelta); y en Publicaciones la promoción cambia sola entre 2 y 7 al escribir o borrar la Cifra, salvo variante elegida a mano. *(Cap. 6, Cap. 6b, Cap. 7, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -794,19 +794,21 @@ Publicaciones arranca por el tipo de contenido. Cada tipo pide sus campos, se ar
 
 | Tipo | Variante (en orden) | Campos (máx. de caracteres) |
 |---|---|---|
-| Promoción | 2, 4 | Oferta o precio (32), Vigencia (60), Llamado a la acción (28, opcional) |
+| Promoción | 7, 6, 2, 4 *(v1.1, E16)* | Oferta o precio (32), Vigencia (60), Cifra (12, opcional, sin ejemplo) *(v1.1, E16)*, Llamado a la acción (28, opcional) |
 | Testimonio | 2, 1 | Cita (44), Autor (40) |
-| Tip o educativo | 1 | Título (48), El consejo (100), Llamado a la acción (28) |
-| Lanzamiento | 1 | Qué se lanza (40), Detalle (100), Llamado a la acción (28) |
+| Tip o educativo | 1, 5 *(v1.1, E16)* | Título (48), El consejo (100), Llamado a la acción (28) |
+| Lanzamiento | 5, 1 *(v1.1, E16)* | Qué se lanza (40), Detalle (100), Llamado a la acción (28) |
 | Evento | 3, 1 | Nombre (44), Fecha (30), Hora (14), Lugar (44), Llamado a la acción (28, opcional) |
-| Pregunta frecuente | 1 | Pregunta (48), Respuesta (100), Llamado a la acción (28) |
+| Pregunta frecuente | 1, 5 *(v1.1, E16)* | Pregunta (48), Respuesta (100), Llamado a la acción (28) |
 | Antes y después | 4 | Título (40), Antes (16), Después (16), Qué cambió (60), Llamado a la acción (28) |
 
+- **Variantes nuevas y Cifra** *(v1.1, E16)*. Se usa la primera de la lista que la marca tenga habilitada y que tenga su contenido: la 6 y la 7 piden Cifra, así que con la Cifra vacía se saltean y la promoción sale en la 2, como antes. Con Cifra sale en la 7: la oferta va al H1, la vigencia al body, la Cifra a su slot y el CTA por defecto del objetivo. Si se elige la 6 a mano, la Cifra hace de H1 y la oferta pasa al body junto con la vigencia. La Cifra no tiene ejemplo: no se adivina de la oferta. El lanzamiento sale en la 5 (el medio es lo que se cargue: foto, producto o nada); el tip y la pregunta frecuente siguen saliendo en la 1 y la 5 queda como alternativa. Testimonio, evento y antes y después no cambian. Las variantes 6 y 7 salen centradas.
 - **Texto sugerido.** Usa el contenido real del cliente (oferta, mensaje, apoyo, CTA) y lo recorta, sin cortar palabras, para que entre en los límites. El H1 sugerido tiene hasta 6 palabras en la variante 2 y hasta 9 en las demás. Lo que el cliente no cargó cae al ejemplo del tipo.
 - **Traducción a la pieza.** El mensaje va al H1 y el detalle al body. El testimonio lleva la cita entre comillas y el autor en el body; el evento lleva fecha y hora en el body y el lugar como dato de contacto (dirección); antes y después arma dos ítems del catálogo ("Antes: …" y "Después: …") con íconos del rubro. La variante 2 y la 3 admiten CTA opcional (E15, cap. 7b). Sin objetivo, Promoción en la 2 y Evento en la 3 siguen saliendo sin CTA, salvo que se escriba a mano en el campo "Llamado a la acción" (opcional, sin ejemplo de respaldo) *(v1.1)*. Con un objetivo de CTA requerido salen con CTA (cap. 7b). Borrar el campo quita el CTA. Desde Publicaciones el tipo arranca con su objetivo por defecto (cap. 7b), así que Promoción y Evento ya salen con CTA: el del diagnóstico de la marca o, si no hay, el del objetivo *(v1.1)*.
 - **Antes y después** lleva el campo "Qué cambió" en el body aunque el catálogo no lo dibuje: con el body vacío, el ajuste de texto da revisión manual ("el texto no entra").
 - **Edición.** Al cambiar un campo se reescribe solo contenido, contacto e ítems; el resto de la pieza (modo, decoración, elementos gráficos) no se toca. "Sin tipo" mantiene la edición libre. El tip ofrece pasar al carrusel.
-- **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas.
+- **Grilla del feed.** Muestra la pieza actual (en 4:5) y 8 piezas más, para revisar el ritmo de modos y la coherencia entre piezas. Las variantes 5, 6 y 7 *(v1.1, E16)* entran en la rotación y la secuencia nunca repite la misma variante dos veces seguidas, tampoco al dar la vuelta (la última contra la primera). En la grilla salen sin Cifra ni producto: la 5 sin medio, la 6 con el ícono del rubro y la 7 sin número. Cada pieza toma la alineación propia de su variante (las centradas, centradas).
+- **Publicaciones** *(v1.1, E16)*. Al escribir o borrar la Cifra de la promoción, la pieza cambia sola de variante (2 ↔ 7), salvo que la variante se haya elegido a mano. Con Cifra, el campo "Oferta o precio" se lee mejor como un mensaje ("Un plan especial para vos") que repitiendo el número.
 
 ### Carrusel 4:5 *(v1.1)*
 
@@ -887,7 +889,7 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 
 ## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
 
-> **Estado: en construcción.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y las **variantes 5 · Apilada, 6 · Producto y 7 · Cifra**, que los dibujan (paso 5 completo). La conexión a los tipos de contenido y a la variante sugerida por rubro es el paso 6 de E16 (`docs/replanteo.md`). La 5, la 6 y la 7 todavía no entran en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro: se eligen a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+> **Estado: E16 completa.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y las **variantes 5 · Apilada, 6 · Producto y 7 · Cifra**, que los dibujan (paso 5 completo). El paso 6 las conectó: la 5, la 6 y la 7 entran en los tipos de contenido (cap. 6), en las variantes prioritarias del rubro (cap. 7) y en la grilla de la presentación; la variante sugerida del rubro, que es la primera de las prioritarias, no cambia, y además se siguen pudiendo elegir a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
 
 ### Objetivo del capítulo
 
@@ -915,7 +917,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 
 - Siempre **tono sobre tono** del fondo del modo: mismo matiz (±3° en OKLCH en la referencia), cambia la luminosidad. No cruza colores. Medido en Modo B: base #00685a (OKLCH L 0,46) a zona clara #09ae9d (L 0,68), es decir **+0,21 de L** *(v1.1, implementado: `DEGRADADO_DELTA_L`)*.
 - **Color claro** *(v1.1)*: luminosidad ±0,21 con **croma relativo constante (C/L)**, no croma fijo. En la referencia el croma sube con la luz (0,084 → 0,119); con croma fijo el claro quedaba a ΔE 12 de #09ae9d, con croma relativo queda a ΔE ~3 (ruido del JPEG). Mismo matiz.
-- Con paleta extendida, cruzar a un secundario queda pendiente *(sin referencia)*. En Modo A (fondo neutro ya claro) la dirección se invierte: oscurece con la misma magnitud *(derivado, sin referencia; en la prueba se ve grisáceo, a confirmar con una referencia)*.
+- Con paleta extendida, cruzar a un secundario queda pendiente *(sin referencia)*. En Modo A (fondo neutro ya claro) la dirección se invierte: oscurece con la misma magnitud *(derivado, sin referencia; en la prueba se ve grisáceo; aprobado por el usuario tal como está el 14/10/2026)*.
 - Tres formas, medidas (las paradas son posición en el eje → mezcla del claro, de 0 = base a 1 = claro):
 
 | Forma | Diseños | Geometría |
@@ -997,7 +999,7 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 - Fondo: degradado diagonal con la zona clara arriba a la derecha; con sujeto, abajo a la derecha, detrás del sujeto.
 - Estado sin sujeto: Cifra si la hay; si no, foto en forma si hay foto; si no, sin medio (logo, H1, body y CTA). Los tres estados tienen que pasar el checklist.
 
-**Implementado** *(v1.1, E16 paso 5)*. Los números de arriba son los medidos en 4:5; esto es lo que dibuja el código. Se elige a mano en Publicaciones: todavía no entra en la grilla de la presentación, en los tipos de contenido ni en la variante sugerida del rubro (paso 6).
+**Implementado** *(v1.1, E16 paso 5)*. Los números de arriba son los medidos en 4:5; esto es lo que dibuja el código. Se elige a mano en Publicaciones y, desde el paso 6, entra en la grilla de la presentación, en los tipos de contenido (Lanzamiento, Tip, Pregunta frecuente) y en las prioritarias de tech.
 
 - **Orden y CTA:** logo → H1 → body → [medio] → CTA; el CTA es "sí". Logo, H1 y body van siempre a la izquierda: la alineación de la pieza no aplica a la 5. La fila del logo lleva la insignia a la derecha *(derivado)*.
 - **Medio** (`medioApilada`), por prioridad: sujeto con transparencia útil > Cifra con texto > foto en forma > nada (estado sin sujeto).
@@ -1024,7 +1026,7 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 - Body opcional, centrado, hasta 2 líneas (65-72% del alto).
 - Estado sin sujeto: la cadena de respaldo dentro del círculo: ícono → forma o patrón → solo el círculo.
 
-**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones (como la 5: no entra en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro, paso 6).
+**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones y, desde el paso 6, entra en la grilla de la presentación (con el ícono del rubro), en la Promoción (con Cifra, si se elige) y en las prioritarias de gastronomía y belleza.
 
 - **Orden y Cifra como H1:** logo → Cifra como H1 → escenario (producto sobre círculo) → body opcional → CTA, todo centrado. La oferta ("25% OFF") se escribe en el **mensaje principal**; el campo Cifra y la foto en forma no aparecen en el editor de la 6.
 - **Escenario** (`geometriaEscenario(formato, conBody)`, medido en 4:5 sobre los diseños 4 y 5): sin body, círculo de 0,39 del ancho, alto del escenario 0,31 del alto y producto de hasta 0,70 del ancho; con body, 0,28, 0,225 y 0,51. En 1:1 y 9:16 se escala con el alto de la zona segura respecto del 4:5 (tope ×1,175, derivado) sin pasar el ancho útil; en 1200×630 ocupa la columna derecha (círculo del 80% del lado menor de la columna, derivado). El escenario va **dentro del bloque del mensaje**, entre el H1 y el body, así el ajuste de texto lo cuenta y el H1 se achica si no entra.
@@ -1053,13 +1055,13 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 - Fondo: degradado vertical (aclara hacia abajo desde el 50%).
 - Sin sujeto por diseño. Con centrado, el body se limita a 3-4 líneas (regla existente del cap. 6).
 
-**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones (como la 5 y la 6: no entra en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro, paso 6).
+**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones y, desde el paso 6, entra en la grilla de la presentación (sin número), en la Promoción con Cifra (es la primera de su lista) y en las prioritarias de servicios.
 
 - **Orden:** logo → H1 (hasta 2 líneas) → Cifra → body → CTA, todo centrado. La fila del logo es la misma de la 6 (`filaLogoCentrada`), con la insignia pegada a la derecha sin descentrar el logo.
 - **Aire alrededor de la Cifra** *(medido en el diseño 6)*: ~70 px entre el H1 y la Cifra y ~80 px hasta el body. Sobre el hueco de 28 px del bloque, la Cifra lleva 44 px arriba y 52 abajo.
 - **Alineación propia:** centrada siempre (`alineacionesPermitidas(rubro, "7")`); la regla del rubro no rige. En 1200×630, logo, H1, body y CTA van a la izquierda y la Cifra en la columna derecha.
 - **Solo tipográfica:** no lleva sujeto ni producto. El editor muestra Cifra, insignia y palabra gigante (no producto ni foto en forma).
-- **Fondo por defecto:** degradado **vertical** (aclara hacia abajo, como el diseño 6), con la intensidad automática. *(Hallazgo de la verificación.)* Con la marca de prueba en Modo B el CTA cae en la parte que aclara y el acento celeste no se distingue del verde más claro, así que la intensidad automática baja casi a 0 y el degradado casi no se ve. En Modo A el vertical oscurece el neutro hacia abajo y se ve grisáceo: queda pendiente decidir el degradado en Modo A (sin referencia).
+- **Fondo por defecto:** degradado **vertical** (aclara hacia abajo, como el diseño 6), con la intensidad automática. *(Hallazgo de la verificación.)* Con la marca de prueba en Modo B el CTA cae en la parte que aclara y el acento celeste no se distingue del verde más claro, así que la intensidad automática baja casi a 0 y el degradado casi no se ve. En Modo A el vertical oscurece el neutro hacia abajo y se ve grisáceo; el usuario lo aprobó tal como está.
 - **Tamaños:**
 
 | Formato | H1 | Body | CTA | Logo | Cifra |
@@ -1107,7 +1109,7 @@ Reunir en una ficha por rubro los valores por defecto de los capítulos 3 a 6. E
 | Dependencia de foto | nula | alta | media | nula |
 | Capa decorativa (2B) | ícono, forma geométrica | foto con overlay | blob, foto con overlay | forma, patrón de grilla |
 | Alineación (variantes 2 y 3) | izquierda | izquierda o centrado | izquierda o centrado | izquierda |
-| Variantes prioritarias | 1, 2, 3 | 4, 2B, 1 | 2B, 2, 1 | 1, 2B, 4 |
+| Variantes prioritarias | 1, 7, 2, 3 *(v1.1, E16)* | 4, 6, 2B-L, 1 *(v1.1, E16)* | 2B-L, 6, 2, 1 *(v1.1, E16)* | 1, 5, 2B-L, 4 *(v1.1, E16)* |
 
 **Nota sobre el rango de gastronomía.** Si el cliente elige un matiz entre 15 y 20, la luminosidad del color de marca pasa a 42%, porque cae en la banda de rojos de la tabla del capítulo 3. Este es un ejemplo puntual de la regla general: la L del color de marca no es un valor de preset por rubro, sale siempre de la tabla por banda de matiz del capítulo 3, paso 3. La versión v1.0 de este manual tenía además una fila "L del color de marca" fija por rubro en esta ficha; se eliminó porque duplicaba —y en los bordes de banda, contradecía— la tabla del capítulo 3. *(v1.1)*
 
@@ -1122,7 +1124,7 @@ Cuando la foto está habilitada en un rubro de dependencia nula, se aplica con l
 
 ### Variantes prioritarias
 
-Las seis variantes de layout quedan habilitadas para todos los rubros. Las prioritarias son las que el automatizador elige con más frecuencia cuando el contenido no pide una variante específica. El resto se usa cuando el objetivo de la pieza lo requiere.
+Las seis variantes de layout quedan habilitadas para todos los rubros. Las prioritarias son las que el automatizador elige con más frecuencia cuando el contenido no pide una variante específica. El resto se usa cuando el objetivo de la pieza lo requiere. *(v1.1, E16)* Con las variantes 5, 6 y 7 cada rubro suma una nueva en segundo lugar (servicios 7, gastronomía 6, belleza 6, tech 5); la variante sugerida, que es la primera de la lista, no cambia.
 
 ### Secuencia de modo con conteo por canal
 
@@ -1152,17 +1154,17 @@ Las preguntas al cliente son una propuesta de redacción.
 
 ### Objetivos por tipo de contenido
 
-| Tipo | Objetivos (el primero es el que se usa por defecto) | Variantes (cap. 6, sin cambios) |
+| Tipo | Objetivos (el primero es el que se usa por defecto) | Variantes (las de cap. 6) |
 |---|---|---|
-| Promoción | Vender ahora, Generar consultas | 2, 4 |
+| Promoción | Vender ahora, Generar consultas | 7, 6, 2, 4 *(v1.1, E16)* |
 | Testimonio | Construir confianza (único) | 2, 1 |
-| Tip o educativo | Educar, Generar consultas | 1 |
-| Lanzamiento | Vender ahora, Generar consultas | 1 |
+| Tip o educativo | Educar, Generar consultas | 1, 5 *(v1.1, E16)* |
+| Lanzamiento | Vender ahora, Generar consultas | 5, 1 *(v1.1, E16)* |
 | Evento | Llenar un evento (único) | 3, 1 |
-| Pregunta frecuente | Educar, Generar consultas | 1 |
+| Pregunta frecuente | Educar, Generar consultas | 1, 5 *(v1.1, E16)* |
 | Antes y después | Generar consultas (único) | 4 |
 
-El objetivo no cambia la variante ni su orden: la variante sigue saliendo de la tabla de tipos del cap. 6.
+El objetivo no cambia la variante ni su orden: la variante sigue saliendo de la tabla de tipos del cap. 6 (la columna cambió en E16 por las variantes nuevas, no por el objetivo).
 
 ### Del orden de lectura a los slots
 
@@ -1211,7 +1213,7 @@ Política de CTA por variante: lleva CTA ("sí") en 1, 2B-L, 2B-S, 4 y F; opcion
 - Los 7 tipos tienen al menos un objetivo y, con el CTA opcional de 2 y 3, todas las variantes de cada tipo admiten la política de su objetivo por defecto. Testimonio con objetivo "ninguno" en la variante 1 (que tiene lugar para CTA) simplemente no lo completa. Nota: la variante 1 del testimonio hoy solo se alcanza si la 2 no está habilitada, y las seis variantes están habilitadas para todos los rubros (cap. 7).
 - Variantes prioritarias por rubro (cap. 7): todas admiten CTA (2 y 3 como opcional), así que cualquier objetivo con CTA requerido se puede cumplir con las prioritarias de cualquier rubro.
 - Carrusel: el objetivo no se aplica al carrusel (fuera de alcance). Su control sigue mandando: un único CTA, en el cierre; el CTA opcional de 2 y 3 no habilita CTA en los slides de contenido.
-- Variantes 5, 6 y 7 *(v1.1, E16, solo especificación)*: respetan este capítulo (orden de lectura y política de CTA: las tres llevan CTA "sí", con la regla de cierre de la variante 1: el CTA es el último elemento). Su conexión a los tipos de contenido es el paso 6 de E16, todavía no.
+- Variantes 5, 6 y 7 *(v1.1, E16)*: respetan este capítulo (orden de lectura y política de CTA: las tres llevan CTA "sí", con la regla de cierre de la variante 1: el CTA es el último elemento). Ya están conectadas a los tipos de contenido (cap. 6); la Promoción con Cifra en la 7 usa el CTA por defecto del objetivo.
 
 ### Controles de marketing
 

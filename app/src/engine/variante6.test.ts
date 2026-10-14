@@ -67,8 +67,8 @@ describe("reglas propias de la 6", () => {
     expect(capaSujeto(marca, pieza()).tipo).toBe("icono");
   });
 
-  it("todavía no entra en la grilla de la presentación (paso 6)", () => {
-    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "6")).toBe(false);
+  it("entra en la grilla de la presentación (paso 6)", () => {
+    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "6")).toBe(true);
   });
 });
 

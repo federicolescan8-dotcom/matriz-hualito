@@ -92,8 +92,8 @@ describe("slot Cifra", () => {
     expect(VARIANTES_HABILITADAS).toContain("5");
   });
 
-  it("todavía no entra en la grilla de la presentación (paso 6)", () => {
-    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "5")).toBe(false);
+  it("entra en la grilla de la presentación (paso 6)", () => {
+    expect(piezasDeGrilla(marca, { h1: "Hola", body: "x", cta: "y" }, 20).some((p) => p.variante === "5")).toBe(true);
   });
 
   it("cumple contraste como el H1 y no cuenta para la jerarquía", () => {

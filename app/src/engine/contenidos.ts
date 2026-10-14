@@ -6,7 +6,7 @@ import type { Marca } from "./diagnostico";
 import { ICONOS, BIBLIOTECA_RUBRO } from "./biblioteca";
 import type { Canal, Formato } from "./formatos";
 import { MAX_PALABRAS_H1_PROTAGONISTA } from "./checklist";
-import { admiteCta, piezaNueva, varianteSugerida, variantesDisponibles, type Pieza } from "./pieza";
+import { admiteCta, alineacionesPermitidas, piezaNueva, varianteSugerida, variantesDisponibles, type Pieza } from "./pieza";
 import { OBJETIVOS, type ObjetivoMarketing } from "./marketing";
 import type { Variante } from "./presets";
 
@@ -49,8 +49,11 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
       { id: "oferta", etiqueta: "Oferta o precio", ejemplo: "20% off esta semana", max: 32 },
       { id: "vigencia", etiqueta: "Vigencia", ejemplo: "Válido hasta el domingo", max: 60, multilinea: true },
       { id: "cta", etiqueta: "Llamado a la acción (opcional)", ejemplo: "", max: 28, opcional: true },
+      // Cifra (cap. 6b, E16): el número protagonista de las variantes 7 y 6. Opcional y sin ejemplo: no se adivina de la
+      // oferta. Vacía, la promoción sale en la 2 como antes.
+      { id: "cifra", etiqueta: "Cifra (opcional, p. ej. 20% OFF)", ejemplo: "", max: 12, opcional: true },
     ],
-    variantes: ["2", "4"],
+    variantes: ["7", "6", "2", "4"],
     canal: "feed_ig",
     formato: "4:5",
   },
@@ -75,7 +78,7 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
       { id: "detalle", etiqueta: "El consejo", ejemplo: "Separá un día fijo por semana para revisarlas.", max: 100, multilinea: true },
       { id: "cta", etiqueta: "Llamado a la acción", ejemplo: "Guardalo para después", max: 28 },
     ],
-    variantes: ["1"],
+    variantes: ["1", "5"],
     canal: "feed_ig",
     formato: "4:5",
     carrusel: true,
@@ -89,7 +92,7 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
       { id: "detalle", etiqueta: "Detalle", ejemplo: "Ya disponible, con stock limitado.", max: 100, multilinea: true },
       { id: "cta", etiqueta: "Llamado a la acción", ejemplo: "Conocela", max: 28 },
     ],
-    variantes: ["1"],
+    variantes: ["5", "1"],
     canal: "feed_ig",
     formato: "4:5",
   },
@@ -117,7 +120,7 @@ export const TIPOS_CONTENIDO: Record<TipoContenido, PlantillaContenido> = {
       { id: "respuesta", etiqueta: "Respuesta", ejemplo: "Sí, enviamos a todo el país en 48 horas.", max: 100, multilinea: true },
       { id: "cta", etiqueta: "Llamado a la acción", ejemplo: "Escribinos", max: 28 },
     ],
-    variantes: ["1"],
+    variantes: ["1", "5"],
     canal: "feed_ig",
     formato: "4:5",
   },
@@ -147,10 +150,17 @@ export function maxPalabrasH1(variante: Variante): number {
   return variante === "2" ? MAX_PALABRAS_H1_PROTAGONISTA : 9;
 }
 
-/** Variante que usa el tipo para esta marca: la primera de su lista que esté habilitada. */
-export function varianteDeTipo(tipo: TipoContenido, marca: Marca): Variante {
+/** Variantes que solo sirven con una Cifra cargada (cap. 6b): la 7 la muestra en el medio y en la 6 hace de H1. */
+const PIDEN_CIFRA: Variante[] = ["6", "7"];
+
+/**
+ * Variante que usa el tipo para esta marca: la primera de su lista que esté habilitada y que tenga su contenido (la 6
+ * y la 7 piden la Cifra; sin ella se saltean y la promoción sale en la 2, como antes de E16).
+ */
+export function varianteDeTipo(tipo: TipoContenido, marca: Marca, campos?: CamposContenido): Variante {
   const habilitadas = variantesDisponibles(marca);
-  return TIPOS_CONTENIDO[tipo].variantes.find((v) => habilitadas.includes(v)) ?? varianteSugerida(marca.rubro);
+  const conCifra = !!campos?.cifra?.trim();
+  return TIPOS_CONTENIDO[tipo].variantes.find((v) => habilitadas.includes(v) && (conCifra || !PIDEN_CIFRA.includes(v))) ?? varianteSugerida(marca.rubro);
 }
 
 /** Recorta a un máximo de palabras y de caracteres, sin cortar palabras a la mitad. */
@@ -226,12 +236,14 @@ export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: 
   const plantilla = TIPOS_CONTENIDO[tipo];
   const base = piezaNueva(marca);
   const v = (id: string) => (campos[id] ?? "").trim() || plantilla.campos.find((x) => x.id === id)?.ejemplo || "";
-  const variante = varianteDeTipo(tipo, marca);
+  const variante = varianteDeTipo(tipo, marca, campos);
   const pieza: Pieza = {
     ...base,
     canal: plantilla.canal,
     formato: plantilla.formato,
     variante,
+    // Las variantes centradas (6 y 7) tienen su alineación propia; las demás siguen como siempre.
+    alineacion: alineacionesPermitidas(marca.rubro, variante).includes(base.alineacion) ? base.alineacion : alineacionesPermitidas(marca.rubro, variante)[0],
     contenido: { h1: "", body: null, cta: null },
   };
   const cta = (id = "cta") => v(id) || null;
@@ -242,6 +254,9 @@ export function armarPieza(tipo: TipoContenido, campos: CamposContenido, marca: 
   switch (tipo) {
     case "promocion":
       pieza.contenido = { h1: v("oferta"), body: v("vigencia"), cta: escrito ? ctaEscrito : variante === "2" ? null : OBJETIVOS.vender.ctaPorDefecto };
+      // Cifra (E16): en la 7 va en el medio; en la 6 hace de H1 y la oferta pasa al body con la vigencia.
+      if (v("cifra")) pieza.contenido.cifra = v("cifra");
+      if (variante === "6") pieza.contenido = { ...pieza.contenido, h1: v("cifra"), body: `${v("oferta")}. ${v("vigencia")}`.replace(/\.\. /, ". ") };
       break;
     case "testimonio":
       pieza.contenido = { h1: `“${v("cita").replace(/^[“"«]|[”"»]$/g, "")}”`, body: `— ${v("autor").replace(/^[—–-]\s*/, "")}`, cta: variante === "2" ? null : CTA_TESTIMONIO };

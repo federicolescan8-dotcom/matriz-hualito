@@ -10,7 +10,7 @@ import type { Medicion, ResultadoChecklist } from "@/engine/checklist";
 import { Checklist } from "@/components/Checklist";
 import { PublicarCarrusel } from "@/components/PublicarCarrusel";
 import { descargar, renderizar, slug } from "@/lib/exportar";
-import { armarPieza, ORDEN_TIPOS, textoSugerido, TIPOS_CONTENIDO, type CamposContenido, type TipoContenido } from "@/engine/contenidos";
+import { armarPieza, ORDEN_TIPOS, varianteDeTipo, textoSugerido, TIPOS_CONTENIDO, type CamposContenido, type TipoContenido } from "@/engine/contenidos";
 import { ctaPorDefecto, OBJETIVOS, objetivoPorDefecto, objetivosDe, ordenDeLectura, type ObjetivoMarketing } from "@/engine/marketing";
 import { registrarEnHistorial, type Marca } from "@/engine/diagnostico";
 import { marcaParaPublicar, versionAprobada } from "@/engine/versiones";
@@ -126,6 +126,12 @@ export default function PublicarPage() {
     const nuevos = { ...campos, [id]: valor };
     setCampos(nuevos);
     const armada = armarPieza(contenidoTipo!, nuevos, marca!, actual!.objetivo);
+    // Cargar o borrar la Cifra (E16) cambia la variante del tipo (la 7 la pide), salvo que la variante se haya elegido a
+    // mano: entonces se respeta.
+    if (id === "cifra" && actual!.variante === varianteDeTipo(contenidoTipo!, marca!, campos) && armada.variante !== actual!.variante) {
+      set({ variante: armada.variante, contenido: armada.contenido, alineacion: alineacionesPermitidas(marca!.rubro, armada.variante)[0] });
+      return;
+    }
     // Si lo que se edita es el CTA del tipo (promoción y evento, cap. 7b), vale lo que dice el campo, también vacío.
     const ctaArmado = id === "cta" ? armada.contenido.cta : armada.contenido.cta ?? actual!.contenido.cta;
     const conCta = { ...armada.contenido, cta: admiteCta(actual!.variante) ? ctaArmado : null };

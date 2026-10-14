@@ -354,10 +354,7 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
 
-/**
- * Variantes nuevas de E16 (cap. 6b). Se eligen a mano en Publicaciones; todavía no entran en la grilla de la
- * presentación, en los tipos de contenido ni en la sugerida del rubro (paso 6 de E16).
- */
+/** Variantes nuevas de E16 (cap. 6b): en los tipos de contenido, en las prioritarias del rubro y en la grilla (paso 6). */
 export const VARIANTES_E16: Variante[] = ["5", "6", "7"];
 export const esVarianteE16 = (v: Variante) => VARIANTES_E16.includes(v);
 
@@ -622,16 +619,30 @@ export function geometria2BLImagen(formato: Formato): {
 }
 
 /**
+ * `n` variantes rotando la lista sin repetir la misma dos veces seguidas, tampoco al dar la vuelta (la última contra
+ * la primera, como se lee una grilla que se repite). Con una sola variante no hay forma de evitarlo.
+ */
+export function secuenciaSinRepetir(variantes: Variante[], n: number): Variante[] {
+  const unicas = [...new Set(variantes)];
+  const sec = Array.from({ length: n }, (_, i) => unicas[i % unicas.length]);
+  if (n > 2 && unicas.length > 2 && sec[n - 1] === sec[0]) {
+    sec[n - 1] = unicas.find((v) => v !== sec[0] && v !== sec[n - 2])!;
+  }
+  return sec;
+}
+
+/**
  * Piezas para la grilla del feed en la presentación (E13): la variante va rotando (primero las prioritarias del rubro)
  * y el modo sigue la secuencia de la marca (cap. 7), así el cliente ve el ritmo real del perfil.
  */
 export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
   const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
-  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !esVarianteE16(v) && !prioritarias.includes(v))];
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
+  const orden = secuenciaSinRepetir(variantes, n);
   const secuencia = secuenciaModo(marca);
   const base = piezaNueva(marca);
   return Array.from({ length: n }, (_, i) => {
-    const variante = variantes[i % variantes.length];
+    const variante = orden[i];
     return {
       ...base,
       id: `${base.id}-${i}`,
@@ -639,7 +650,7 @@ export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 
       formato: "4:5",
       variante,
       modo: secuencia[i % secuencia.length],
-      alineacion: "izquierda",
+      alineacion: alineacionesPermitidas(marca.rubro, variante)[0],
       contenido: {
         h1: contenido.h1,
         // El catálogo (4) necesita body aunque no lo nombre en su orden: sin él, el texto no entra en el slot.

@@ -42,7 +42,7 @@ export const PRESETS: Record<Rubro, PresetRubro> = {
     dependencia_foto: "nula",
     deco_2B: ["icono", "forma_geometrica", "foto_overlay si foto_habilitada"],
     alineacion_2_3: ["izquierda"],
-    prioritarias: ["1", "2", "3"],
+    prioritarias: ["1", "7", "2", "3"],
   },
   gastronomia: {
     nombre: "Gastronomía / retail",
@@ -58,7 +58,7 @@ export const PRESETS: Record<Rubro, PresetRubro> = {
     dependencia_foto: "alta",
     deco_2B: ["foto_overlay"],
     alineacion_2_3: ["izquierda", "centrado"],
-    prioritarias: ["4", "2B-L", "1"],
+    prioritarias: ["4", "6", "2B-L", "1"],
   },
   belleza: {
     nombre: "Belleza / lifestyle",
@@ -74,7 +74,7 @@ export const PRESETS: Record<Rubro, PresetRubro> = {
     dependencia_foto: "media",
     deco_2B: ["blob", "foto_overlay"],
     alineacion_2_3: ["izquierda", "centrado"],
-    prioritarias: ["2B-L", "2", "1"],
+    prioritarias: ["2B-L", "6", "2", "1"],
   },
   tech: {
     nombre: "Tech / digital",
@@ -90,7 +90,7 @@ export const PRESETS: Record<Rubro, PresetRubro> = {
     dependencia_foto: "nula",
     deco_2B: ["forma", "patron_grilla", "foto_overlay si foto_habilitada"],
     alineacion_2_3: ["izquierda"],
-    prioritarias: ["1", "2B-L", "4"],
+    prioritarias: ["1", "5", "2B-L", "4"],
   },
 };
 
