@@ -96,6 +96,8 @@ export interface Medicion {
    * suma avisos (`intensidadSegura`). Sin el dato, 1.
    */
   intensidadDegradado?: number;
+  /** Círculo de la variante 6 (cap. 6b): su geometría y su color, para medir el texto que lo pise. Es decoración. */
+  circulo?: { cx: number; cy: number; r: number; color: HSL } | null;
   /** Slot Cifra (cap. 6b, E16): número u oferta protagonista. Es información, pero no cuenta para la jerarquía del H1. */
   cifra?: MedidaTexto | null;
   /** Insignias dibujadas (cap. 6b): su caja, el tamaño de su texto y sus dos colores. */
@@ -279,6 +281,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(...fondos.map((b) => mezclar(b, m.forma!.color, m.forma!.opacidad)));
     // Palabra gigante (cap. 6b): el texto que la pisa se mide contra el peor entre el fondo y la palabra.
     if (m.palabra && cajas.some((k) => seTocan(k, m.palabra!.caja))) fondos.push(m.palabra.color);
+    // Círculo de la 6: el texto que lo pisa se mide también contra su color.
+    if (m.circulo && cajas.some((k) => tocaCirculo(k, m.circulo!))) fondos.push(m.circulo.color);
     return fondos;
   };
   const peorContraste = (color: HSL, cajas: Rect[]) => Math.min(...fondosDe(cajas).map((b) => contraste(color, b)));
@@ -518,7 +522,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   }
   // Palabra gigante (cap. 6b): no comparte la pieza con otra decoración protagonista.
   if (m.palabra) {
-    const otras = [m.forma ? "forma de fondo" : null, decoracion ? "decoración de plantilla" : null, m.deco ? "capa decorativa" : null].filter(Boolean);
+    const otras = [m.forma ? "forma de fondo" : null, decoracion ? "decoración de plantilla" : null, m.deco ? "capa decorativa" : null, m.circulo ? "círculo del producto" : null].filter(Boolean);
     add("Composición", "Una sola decoración protagonista", otras.length === 0, otras.length ? `palabra gigante con ${otras.join(", ")}` : "", "quitar la palabra gigante o la otra decoración");
   }
   if (plantilla?.bloque === "contacto") {

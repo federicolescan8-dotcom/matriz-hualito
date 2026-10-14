@@ -407,9 +407,12 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
   const [cargando, setCargando] = useState(false);
   const motivo = pieza.sujeto ? motivoSinSujeto(pieza.sujeto) : null;
   const campo = "rounded-md border border-neutral-300 px-3 py-2";
+  // En la 6 la Cifra hace de H1 (va en el mensaje principal) y no hay foto en forma.
+  const v6 = pieza.variante === "6";
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1">
+      {v6 && <p className="text-xs text-neutral-500">En esta variante la oferta (&quot;25% OFF&quot;) va en el mensaje principal. Sin producto, en el círculo va un ícono del rubro.</p>}
+      {!v6 && <label className="flex flex-col gap-1">
         <span className="font-medium">Cifra</span>
         <input
           value={pieza.contenido.cifra ?? ""}
@@ -418,7 +421,7 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
           className={campo}
         />
         <span className="text-xs text-neutral-500">Número u oferta protagonista. No cuenta para la jerarquía del H1.</span>
-      </label>
+      </label>}
       <div className="flex flex-col gap-1 text-xs">
         <span className="text-sm font-medium">Producto recortado (PNG con fondo transparente)</span>
         <input
@@ -445,7 +448,7 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-1 text-xs">
+      {!v6 && <div className="flex flex-col gap-1 text-xs">
         <span className="text-sm font-medium">Foto en forma</span>
         <input
           type="file"
@@ -463,7 +466,7 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
             Quitar foto
           </button>
         )}
-      </div>
+      </div>}
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
           <span className="font-medium">Insignia</span>

@@ -80,7 +80,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 42. **Plantillas por tipo de contenido (E7)**: Publicaciones arranca por el tipo de lo que se quiere publicar (promoción, testimonio, tip o educativo, lanzamiento, evento, pregunta frecuente, antes y después). Cada tipo tiene campos propios con límite de caracteres, una variante sugerida y un texto de ejemplo armado con el contenido real del cliente. No hay diseños nuevos: reutiliza las variantes del capítulo 6. Se suma la pestaña "Grilla del feed", que muestra la pieza actual junto a otras 8 para revisar el ritmo de modos. *(Cap. 6, Cap. 8)*
 43. **Entregables de identidad (E8)**: la identidad aprobada se entrega como manual de marca en PDF (A4 vertical, hecho con el mismo motor de render que el PNG) y como kit en ZIP (logos, paleta, tipografías, recursos propios, brief del logo). El manual refleja la versión aprobada y lo dice en la portada. Además se corrige la variante 4 en la grilla del feed y en el manual: ahora recibe el body, sin el cual su H1 salía diminuto. *(Cap. 9)*
 44. **Estructura de marketing (E15, en curso)**: cada pieza digital puede declarar un objetivo opcional (cinco objetivos, con orden de lectura y política de CTA), las variantes 2 y 3 admiten CTA opcional con el orden de la 2B (ya implementado), la tabla de objetivos en el motor (ya implementado), el objetivo en la pieza y en las plantillas por tipo (ya implementado), el selector de objetivo en Publicaciones (ya implementado), y los controles de marketing nunca bloquean, con el bloque Marketing del checklist (ya implementado), y los controles heurísticos (el CTA le habla al lector, la oferta tiene vigencia y un solo mensaje por proxy), todos sugerencia (ya implementado), y el subagente `disenador-marketing` para revisar piezas (ya implementado), y el público opcional en el diagnóstico (ya implementado). Las tendencias quedan fuera del manual, en `docs/tendencias.md`. *(Cap. 2, Cap. 6, Cap. 7b, Cap. 8)*
-45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variante 5 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, primera variante hecha: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). En Publicaciones se elige a mano el fondo y los recursos. Las variantes 6 y 7 y la conexión a los tipos de contenido siguen siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
+45. **Recursos y variantes de composición (E16, en curso)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variante 5 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5 y 6 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La variante 7 y la conexión a los tipos de contenido siguen siendo solo especificación. *(Cap. 6, Cap. 6b, Cap. 7b, Cap. 8)*
 
 ---
 
@@ -831,7 +831,7 @@ El carrusel es el formato orgánico de más alcance y guardados en Instagram, y 
 
 ### Alineación del mensaje (variantes 2 y 3)
 
-Estas reglas, y la de rubro, no rigen para las variantes 5, 6 y 7 *(v1.1, E16)*: cada una tiene su alineación propia (cap. 6b).
+Estas reglas, y la de rubro, no rigen para las variantes 5, 6 y 7 *(v1.1, E16)*: cada una tiene su alineación propia (cap. 6b; la 6 es siempre centrada, `alineacionesPermitidas(rubro, "6")`).
 
 - Valores permitidos: izquierda o centrado. La alineación derecha y el justificado quedan prohibidos en todo el sistema, para no romper la lógica de atención del público.
 - Belleza/lifestyle y gastronomía/retail: izquierda o centrado. Servicios/B2B y tech/digital: solo izquierda.
@@ -887,7 +887,7 @@ La variante elegida para una pieza mantiene su orden de lectura en todos los for
 
 ## Capítulo 6b — Recursos y variantes de composición *(v1.1, E16)*
 
-> **Estado: en construcción.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y la **variante 5 · Apilada**, que los dibuja (paso 5, primera variante). Las variantes 6 y 7 son solo especificación y se construyen en el resto del paso 5; la conexión a los tipos de contenido y a la variante sugerida por rubro es el paso 6 de E16 (`docs/replanteo.md`). La 5 todavía no entra en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro: se elige a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
+> **Estado: en construcción.** Están implementados el degradado de marca (paso 2, con la intensidad automática del paso 5), el sujeto PNG (paso 3), la insignia, la foto en forma y la palabra gigante (paso 4), el slot Cifra y las **variantes 5 · Apilada y 6 · Producto**, que los dibujan (paso 5, dos de tres variantes). La variante 7 es solo especificación y se construye en el resto del paso 5; la conexión a los tipos de contenido y a la variante sugerida por rubro es el paso 6 de E16 (`docs/replanteo.md`). La 5 y la 6 todavía no entran en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro: se eligen a mano en Publicaciones. Todo lo que no sale de una medición va marcado *(derivado, sin referencia)*.
 
 ### Objetivo del capítulo
 
@@ -897,7 +897,7 @@ Las piezas se sienten monótonas: pocas variantes y fondo liso. Este capítulo s
 
 - **Globales.** Solo rigen las **bloqueantes** del cap. 8: contraste, zonas seguras y tamaños mínimos.
 - **Por variante.** Cada variante nueva tiene sus reglas propias (tabla y subsecciones de abajo), que pisan las generales no bloqueantes: por ejemplo la alineación por rubro del cap. 6 y la regla de que los slots de cierre siguen el eje del H1.
-- Una sola decoración protagonista por pieza: en 5, 6 y 7 no van la forma de fondo automática ni las decoraciones de plantilla del cap. 6.
+- Una sola decoración protagonista por pieza: en 5, 6 y 7 no van la forma de fondo automática ni las decoraciones de plantilla del cap. 6. En la 6 el círculo del producto es esa decoración *(v1.1, implementado)*.
 
 ### Slot Cifra
 
@@ -907,7 +907,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 - Va centrada en el lienzo en las tres variantes.
 - Largo: hasta ~10 caracteres *(derivado, sin referencia: la referencia tiene 7)*.
 - Una sola por pieza.
-- **Implementado** *(v1.1, E16 paso 5)*: el texto va en `contenido.cifra` y se dibuja en la variante 5 (la única que existe por ahora). Control "Cifra sobre su fondo": 3:1 como el H1 (bloqueante bajo 3:1), medido sobre el degradado real. Cuenta como información en la superposición del sujeto PNG, en la interfaz de stories, en la grilla 3:4 del 1:1, en la zona segura y en el espacio negativo. En 1200×630 va en la columna derecha, así que **no cuenta** para "Mensaje en el 50% izquierdo". El ajuste de texto la arranca en su tamaño máximo y la achica de a 4 px hasta que entra en una línea (sin bajar de la mitad), antes de buscar el tamaño del H1.
+- **Implementado** *(v1.1, E16 paso 5)*: el texto va en `contenido.cifra` y se dibuja en la variante 5. En la 6 la Cifra es el H1: la oferta se escribe en el mensaje principal y el campo Cifra no aparece en el editor de la 6. Control "Cifra sobre su fondo": 3:1 como el H1 (bloqueante bajo 3:1), medido sobre el degradado real. Cuenta como información en la superposición del sujeto PNG, en la interfaz de stories, en la grilla 3:4 del 1:1, en la zona segura y en el espacio negativo. En 1200×630 va en la columna derecha, así que **no cuenta** para "Mensaje en el 50% izquierdo". El ajuste de texto la arranca en su tamaño máximo y la achica de a 4 px hasta que entra en una línea (sin bajar de la mitad), antes de buscar el tamaño del H1.
 
 ### Recursos
 
@@ -922,7 +922,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 |---|---|---|
 | Diagonal | 1, 2, 3 | Sigue la convención "hacia la esquina" de CSS: el eje sale de la esquina clara y es perpendicular a la diagonal que une las otras dos esquinas, así la mitad del recorrido pasa por ellas (en la referencia la esquina de arriba a la izquierda apenas aclara). Paradas: 0 → 1, 0,3 → 0,34, 0,6 → 0 (se funde con la base en el 60%). Esquina arriba a la derecha (1, 2) o abajo a la derecha, detrás del sujeto (3) |
 | Vertical | 6 | Eje desde la mitad del alto hasta el borde inferior: liso hasta la mitad y aclara cada vez más rápido. Paradas: 0 → 0, 0,57 → 0,39, 1 → 1 (en el borde inferior, #00ab99, L 0,67) |
-| Radial detrás del sujeto | 4, 5 | El centro llega a 0,57 del claro (≈ +0,12 de L; el +0,09 medido antes era cerca del círculo) y se funde con la base en un radio de **0,42 del ancho** (`RADIO_RADIAL`). Centro configurable en fracción del lienzo, por defecto el centro de la pieza; en la variante 6 irá detrás del sujeto. Medido en los diseños 4 y 5: centro del resplandor en (0,51 W; 0,47 H) y (0,51 W; 0,52 H) |
+| Radial detrás del sujeto | 4, 5 | El centro llega a 0,57 del claro (≈ +0,12 de L; el +0,09 medido antes era cerca del círculo) y se funde con la base en un radio de **0,42 del ancho** (`RADIO_RADIAL`). Centro configurable en fracción del lienzo, por defecto el centro de la pieza; en la variante 6 va detrás del círculo del producto *(v1.1, implementado)*. Medido en los diseños 4 y 5: centro del resplandor en (0,51 W; 0,47 H) y (0,51 W; 0,52 H) |
 
 - **Dibujo** *(v1.1)*: capa SVG en coordenadas del lienzo, debajo de todo, con las paradas en hex ya mezcladas. Es la misma fórmula que evalúa el checklist. En la variante F con foto no hay degradado (la foto tapa el fondo).
 - **Zona clara declarada.** El degradado declara su zona clara y ningún texto va ahí: es donde la mezcla llega al **50%** (`ZONA_CLARA`). El contraste se mide bajo **cada caja de texto**, sobre el degradado real y tomando el peor píxel (como la variante F con foto): 9 muestras entre la mezcla mínima y máxima de la caja, más las paradas intermedias que caen adentro, y la forma de fondo se mezcla encima de cada color. Dato de la medición: texto #e6f0ec sobre #00685a da 5,8:1; sobre #008071, 4,2:1 (un body ahí no pasa 4,5:1); sobre #09ae9d, 2,4:1. En el diseño 6 el body cae cerca del límite de 4,5:1: el control tiene que poder decirlo. Con el diagonal de la referencia, un body que se extiende hacia la derecha da ~4,0:1 (aviso, aceptable con justificación); en el diseño 1 de referencia el body también cae en ~4,2:1. El radial centrado detrás del texto da un bloqueante (H1 2,9:1): está pensado para ir detrás del sujeto, no del texto.
@@ -939,7 +939,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 - **Damero falso** *(v1.1)*: si el borde está casi todo pintado de dos grises claros neutros (blanco y ~#e6e6e6, cada uno con 25% o más del borde y alternándose), es un "PNG sin fondo" con el damero dibujado en los píxeles, sin canal alfa. Se avisa con ese motivo; con o sin damero, sin alfa cae al respaldo.
 - **Máscara** *(v1.1)*: grilla de 48 celdas sobre el lado mayor; una celda es opaca si tiene algún píxel con alfa de 128 o más (criterio conservador). Viaja con la pieza, porque el checklist del servidor no lee la imagen.
 - Cadena de respaldo: **PNG → ícono → forma o patrón → nada**. *(v1.1, implementado)* El PNG entra solo con transparencia útil; si no, rige el respaldo elegido (por defecto el ícono sugerido del rubro; "forma" usa primero la forma propia de la marca y, si no hay, la del rubro con su patrón; "nada" no dibuja).
-- Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja: un texto puede pasar sobre el aire transparente del PNG. *(v1.1, implementado el control; se dibuja en la variante 5, la 6 llega después. En Publicaciones se carga con "producto recortado", que explica el motivo si no sirve: damero o sin transparencia.)*
+- Es decoración: no cuenta como información. Puede salirse del lienzo y pasar bajo la zona segura, el recorte de la grilla 3:4 y la interfaz de stories (como la decoración de plantilla), pero **nunca tapa texto, logo, Cifra ni CTA**. La superposición se mide sobre el área opaca real, no sobre su caja: un texto puede pasar sobre el aire transparente del PNG. *(v1.1, implementado el control; se dibuja en la variante 5 y, como producto sobre el círculo, en la 6. En Publicaciones se carga con "producto recortado", que explica el motivo si no sirve: damero o sin transparencia.)*
 - Uno por pieza. Sin overlay (no lleva texto encima).
 
 **3. Insignia** *(opcional, cualquier variante nueva; sin referencia en los 6 diseños: todo derivado)*. *(v1.1, implementados el motor y los controles; se dibuja en la variante 5.)*
@@ -950,6 +950,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 - Contraste propio: texto 4,5:1 contra su relleno (bajo 3:1 es bloqueante, si no aviso) y relleno 3:1 contra el peor fondo bajo ella, degradado incluido (aviso).
 - **Colores por defecto** *(v1.1, derivado)*: relleno en el acento con su color de texto (el par del CTA), si el acento cumple 4,5:1 con su texto y 3:1 contra el fondo del modo. Si no (acento claro sobre el neutro del Modo A, que con la marca de prueba no llega a 3:1, igual que el CTA, que por eso usa contorno), el par invertido: relleno en el color del texto y letra en el color del fondo, como el soporte de los íconos de contacto. Cumple en los dos modos.
 - No pisa el H1 ni el CTA (cajas medidas; aviso) y va dentro de la zona segura global (bloqueante). Es información: el sujeto PNG tampoco puede taparla.
+- En la variante 6 va en la fila del logo, pegada a la derecha, sin descentrar el logo *(v1.1, implementado)*.
 
 **4. Foto en forma** (diseño 2). Foto contenida en una forma de la biblioteca (cap. 5). La referencia es un rectángulo redondeado (radio ~16 px, 1,5% del ancho), de proporción 2,5:1 y del ancho del contenido (x de 10% a 91%), entre el 50% y el 76% del alto. Usa el tratamiento de foto de la marca; sin overlay porque no lleva texto encima. Nunca va texto sobre la foto. *(v1.1, implementados el motor y el control; se dibuja en la variante 5, con el punto focal de la foto.)*
 
@@ -962,7 +963,7 @@ Número u oferta protagonista ("25% OFF", un precio). Es **información**, no de
 - **Hallazgo:** con la palabra gigante debajo del CTA, "CTA sobre el degradado" da 2,4:1 aun con fondo liso (la palabra aclara bajo el botón). Es un aviso correcto; se resuelve sin palabra o con otro texto o ubicación.
 - **Color** *(v1.1, derivado)*: tono sobre tono del fondo, con luminosidad OKLCH ±0,06 (`DELTA_L_PALABRA`; aclara en Modo B, oscurece en Modo A) y croma relativo constante, como el degradado. Es poco a propósito, para que se lea como textura y no compita con el texto.
 - Los textos que la pisan (H1, body, contacto, ítems, CTA sobre degradado e insignia) se miden contra el peor entre el fondo y la palabra. No entra en la zona segura ni en el espacio negativo.
-- **Aviso** "Una sola decoración protagonista": palabra gigante junto con forma de fondo, decoración de plantilla o capa decorativa 2B. El círculo de la variante 6 se sumará a este control en el paso 5.
+- **Aviso** "Una sola decoración protagonista": palabra gigante junto con forma de fondo, decoración de plantilla o capa decorativa 2B. *(v1.1, implementado)* El círculo del producto de la variante 6 también cuenta: con palabra gigante es aviso.
 
 Insignia, foto en forma y palabra gigante se suman a las variantes: no son variantes aparte.
 
@@ -978,7 +979,7 @@ Insignia, foto en forma y palabra gigante se suman a las variantes: no son varia
 |---|---|---|---|
 | Diseños de referencia | 1, 2, 3 | 4, 5 | 6 |
 | Orden de slots | logo → H1 → body → [medio opcional] → CTA | logo → Cifra (hace de H1) → sujeto sobre círculo → (body) → CTA | logo → H1 → Cifra → body → CTA |
-| Alineación | logo, H1 y body a la izquierda (x 10%); Cifra y CTA centrados | todo centrado | todo centrado |
+| Alineación | logo, H1 y body a la izquierda (x 10%); Cifra y CTA centrados | todo centrado (en 1200×630, mensaje a la izquierda y escenario a la derecha) | todo centrado |
 | Fondo por defecto | degradado diagonal, zona clara arriba a la derecha (con sujeto, abajo a la derecha) | radial detrás del sujeto | degradado vertical |
 | Estado sin sujeto | Cifra si la hay; si no, foto en forma si hay foto; si no, sin medio | cadena de respaldo dentro del círculo | no aplica (sin sujeto por diseño) |
 | CTA | sí | sí | sí |
@@ -1023,6 +1024,28 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 - Body opcional, centrado, hasta 2 líneas (65-72% del alto).
 - Estado sin sujeto: la cadena de respaldo dentro del círculo: ícono → forma o patrón → solo el círculo.
 
+**Implementado** *(v1.1, E16 paso 5)*. Se elige a mano en Publicaciones (como la 5: no entra en la grilla de la presentación, en los tipos de contenido ni en la sugerida del rubro, paso 6).
+
+- **Orden y Cifra como H1:** logo → Cifra como H1 → escenario (producto sobre círculo) → body opcional → CTA, todo centrado. La oferta ("25% OFF") se escribe en el **mensaje principal**; el campo Cifra y la foto en forma no aparecen en el editor de la 6.
+- **Escenario** (`geometriaEscenario(formato, conBody)`, medido en 4:5 sobre los diseños 4 y 5): sin body, círculo de 0,39 del ancho, alto del escenario 0,31 del alto y producto de hasta 0,70 del ancho; con body, 0,28, 0,225 y 0,51. En 1:1 y 9:16 se escala con el alto de la zona segura respecto del 4:5 (tope ×1,175, derivado) sin pasar el ancho útil; en 1200×630 ocupa la columna derecha (círculo del 80% del lado menor de la columna, derivado). El escenario va **dentro del bloque del mensaje**, entre el H1 y el body, así el ajuste de texto lo cuenta y el H1 se achica si no entra.
+- **Círculo y producto:** círculo opaco en el tono de apoyo (`data-slot="circulo"`, con su color). El producto (PNG con transparencia útil) va centrado sobre el círculo, contenido en el ancho del producto por el alto del escenario, y desborda el círculo.
+- **Sin producto** (estado sin sujeto): en el círculo va el ícono sugerido del rubro (50% del diámetro) o la forma (60%), en el color del texto o del fondo, el que más contraste dé con el tono de apoyo *(derivado)*; con respaldo "nada", solo el círculo. Todavía no hay selector del respaldo en Publicaciones: sin producto va el ícono.
+- **Alineación propia:** centrada siempre (`alineacionesPermitidas(rubro, "6")`); la regla del rubro no rige. Al elegir la variante en Publicaciones, la alineación pasa a la primera permitida si la actual no vale. En 1200×630 el mensaje (logo, Cifra/H1, body, CTA) va a la izquierda y el escenario a la derecha.
+- **Insignia:** en la fila del logo, pegada a la derecha, sin descentrar el logo.
+- **Fondo por defecto:** resplandor radial (`degradadoDeVariante`) centrado en x 0,5 y en y 0,547 sin body o 0,497 con body (los centros del círculo medidos); en 1200×630, centrado en la columna derecha. La intensidad automática sigue valiendo.
+- **Tamaños:**
+
+| Formato | H1 (Cifra) | Body | CTA | Logo |
+|---|---|---|---|---|
+| 4:5 | 72–168 px, alto máx. 20%, 2 líneas | 26–36 px | 34 px | 80 px |
+| 1:1 | 64–136 px, alto 18% | hasta 32 px | — | 64 px |
+| 9:16 | alto 16% (y ×1,175) | — | — | — |
+| 1200×630 | 56–104 px, alto 40% | 24–28 px | 26 px | 56 px |
+
+  "—" significa que el formato no define un valor propio (se toma el de la plantilla de la variante).
+- **Checklist:** la medición lee el círculo (`Medicion.circulo`: centro, radio y color). El texto que pisa el círculo se mide también contra su color. El círculo suma al aviso "Una sola decoración protagonista" (con palabra gigante). El producto se controla con el control bloqueante del sujeto (no tapa texto, logo, Cifra, CTA ni insignia).
+- **Verificación:** PNG reales de 16 casos (4 formatos × producto/sin producto × con/sin body): todos aprueban, y se parecen a los diseños 4 y 5.
+
 **7 · Cifra** (diseño 6)
 
 - Orden: logo → H1 → Cifra → body → CTA. Todo centrado.
@@ -1032,13 +1055,13 @@ Las tres siguen el orden de lectura y la política de CTA del cap. 7b: el CTA es
 
 ### Formatos *(derivados, sin referencia: solo hay diseños en 4:5)*
 
-Se derivan con reglas fijas, no pieza a pieza. El paso 5 de E16 los verifica con el checklist en los 4 formatos, o documenta cuál no pasa y por qué. La variante 5 ya está verificada: las 16 piezas (4 formatos × sin medio, Cifra, foto y sujeto) aprueban; con la Cifra en 4:5 pasa los 26 controles.
+Se derivan con reglas fijas, no pieza a pieza. El paso 5 de E16 los verifica con el checklist en los 4 formatos, o documenta cuál no pasa y por qué. La variante 5 ya está verificada: las 16 piezas (4 formatos × sin medio, Cifra, foto y sujeto) aprueban; con la Cifra en 4:5 pasa los 26 controles. La 6 también: 16 piezas (4 formatos × producto/sin producto × con/sin body) aprueban.
 
 | Formato | Regla |
 |---|---|
-| 1:1 | Margen lateral del 14% y grilla 3:4 como hoy (cap. 6); H1 en 2 líneas como máximo. El medio de la variante 5 se achica hasta un mínimo y, si no entra, se omite (cae al estado sin medio); la Cifra entra en el control de la grilla 3:4 *(v1.1, implementado)*. En la 6, el círculo baja al mínimo medido (0,28 del ancho) |
+| 1:1 | Margen lateral del 14% y grilla 3:4 como hoy (cap. 6); H1 en 2 líneas como máximo. El medio de la variante 5 se achica hasta un mínimo y, si no entra, se omite (cae al estado sin medio); la Cifra entra en el control de la grilla 3:4 *(v1.1, implementado)*. En la 6, el escenario se escala con el alto de la zona segura sin pasar el ancho útil (el círculo baja al mínimo medido, 0,28 del ancho, con body) |
 | 9:16 | Contenido entre el 15% y el 80% del alto, tamaños ×1,175. Las columnas apiladas entran sin cambios de orden |
-| 1200×630 | Reacomodo horizontal, como el resto del sistema: mensaje en el 50% izquierdo, alineado a la izquierda. 5: el medio va a la derecha. 6: sujeto sobre círculo a la derecha; Cifra, body y CTA a la izquierda. 7: H1, body y CTA a la izquierda; Cifra a la derecha. El orden de lectura no cambia (regla de coherencia entre formatos). La Cifra va a la derecha y por eso no cuenta para "Mensaje en el 50% izquierdo" *(v1.1, implementado en la 5)* |
+| 1200×630 | Reacomodo horizontal, como el resto del sistema: mensaje en el 50% izquierdo, alineado a la izquierda. 5: el medio va a la derecha. 6: sujeto sobre círculo a la derecha; Cifra, body y CTA a la izquierda *(v1.1, implementado)*. 7: H1, body y CTA a la izquierda; Cifra a la derecha. El orden de lectura no cambia (regla de coherencia entre formatos). La Cifra va a la derecha y por eso no cuenta para "Mensaje en el 50% izquierdo" *(v1.1, implementado en la 5)* |
 
 ---
 
@@ -1235,7 +1258,7 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 
 **Contraste sobre la foto** *(v1.1, E6)*. En la variante F el contraste no se calcula contra un color plano: se dibuja la foto con su encuadre, su tratamiento y su protección en un lienzo a mitad de tamaño, y se muestrean los píxeles que quedan bajo cada línea del H1 y del body. Se toma el percentil 5% (el "peor" contraste, que ignora el 5% de píxeles más extremos), no el promedio, porque una sola zona clara ya vuelve ilegible una palabra. Por debajo de 3:1 es bloqueante; entre 3:1 y 4,5:1 es aviso (cap. 8, niveles).
 
-**Contraste sobre degradado y recursos de composición** *(v1.1, E16)*. Con el degradado de marca (cap. 6b, implementado en el paso 2) el contraste del texto (H1, body, contacto, ítems) y del logo se mide bajo cada caja, sobre el degradado real y tomando el peor caso, no contra el color base. Dos avisos nuevos: "CTA sobre el degradado" (borde del botón, mín. 3:1) y "Texto fuera de la zona clara del degradado" (ningún texto donde la mezcla llega al 50%). Con fondo liso el checklist da lo mismo que antes. La Cifra cuenta como información *(implementada en la variante 5)*: cumple contraste como el H1 (control "Cifra sobre su fondo"), y entra en el control de la grilla 3:4 del 1:1, en el de la interfaz de stories, en la superposición del sujeto, en la zona segura y en el espacio negativo; no cuenta para la jerarquía del H1, y en 1200×630 (columna derecha) no cuenta para "Mensaje en el 50% izquierdo". La intensidad del degradado se baja sola hasta que no sume avisos respecto del fondo liso (cap. 6b, recurso 1). El sujeto PNG, la palabra gigante y el degradado son decoración: pueden pasar bajo la zona segura, el recorte 3:4 y la interfaz de stories, pero nunca tapan texto, logo, Cifra ni CTA. Insignia, foto en forma y palabra gigante ya tienen sus controles (paso 4; filas marcadas *(v1.1, E16)* en los bloques 1 a 3; ninguno corre sin el recurso, así que las piezas de antes no cambian), y la palabra gigante entra en los fondos que se miden bajo cada texto. Las reglas propias de las variantes 6 y 7 serán controles en el resto del paso 5 de E16.
+**Contraste sobre degradado y recursos de composición** *(v1.1, E16)*. Con el degradado de marca (cap. 6b, implementado en el paso 2) el contraste del texto (H1, body, contacto, ítems) y del logo se mide bajo cada caja, sobre el degradado real y tomando el peor caso, no contra el color base. Dos avisos nuevos: "CTA sobre el degradado" (borde del botón, mín. 3:1) y "Texto fuera de la zona clara del degradado" (ningún texto donde la mezcla llega al 50%). Con fondo liso el checklist da lo mismo que antes. La Cifra cuenta como información *(implementada en la variante 5)*: cumple contraste como el H1 (control "Cifra sobre su fondo"), y entra en el control de la grilla 3:4 del 1:1, en el de la interfaz de stories, en la superposición del sujeto, en la zona segura y en el espacio negativo; no cuenta para la jerarquía del H1, y en 1200×630 (columna derecha) no cuenta para "Mensaje en el 50% izquierdo". La intensidad del degradado se baja sola hasta que no sume avisos respecto del fondo liso (cap. 6b, recurso 1). El sujeto PNG, la palabra gigante y el degradado son decoración: pueden pasar bajo la zona segura, el recorte 3:4 y la interfaz de stories, pero nunca tapan texto, logo, Cifra ni CTA. Insignia, foto en forma y palabra gigante ya tienen sus controles (paso 4; filas marcadas *(v1.1, E16)* en los bloques 1 a 3; ninguno corre sin el recurso, así que las piezas de antes no cambian), y la palabra gigante entra en los fondos que se miden bajo cada texto. **Círculo de la variante 6** *(implementado)*: el texto que pisa el círculo se mide también contra su color (con el círculo exacto, centro y radio leídos de `[data-slot="circulo"]`); la Cifra arriba, fuera del círculo, no cambia su contraste. Las reglas propias de la variante 7 serán controles en el resto del paso 5 de E16.
 
 ### Bloque 2 — Tipografía
 
@@ -1276,7 +1299,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Insignia sin pisar el H1 ni el CTA *(v1.1, E16, aviso, solo con insignia)* | las cajas no se tocan | reubicar la insignia |
 | Insignia dentro del margen seguro *(v1.1, E16, bloqueante, solo con insignia)* | zona segura global del formato | reubicar la insignia |
 | Foto en forma sin texto encima *(v1.1, E16, bloqueante, solo con foto en forma)* | ni H1, body, CTA ni insignia tocan la foto (va sin overlay) | mover el texto o quitar la foto en forma |
-| Una sola decoración protagonista *(v1.1, E16, aviso, solo con palabra gigante)* | la palabra gigante no va con forma de fondo, decoración de plantilla ni capa decorativa 2B | quitar una de las dos |
+| Una sola decoración protagonista *(v1.1, E16, aviso, solo con palabra gigante)* | la palabra gigante no va con forma de fondo, decoración de plantilla, capa decorativa 2B ni el círculo del producto de la variante 6 | quitar una de las dos |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -1461,7 +1484,7 @@ pieza: {
   marca_id,
   canal: "feed_ig | stories_ig | estados_wa | feed_fb",
   formato: "4:5 | 1:1 | 9:16 | 1200x630",
-  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | F",   // (v1.1, E6) F solo con fotos habilitadas; (v1.1, E16) 5 · Apilada
+  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | 6 | F",   // (v1.1, E6) F solo con fotos habilitadas; (v1.1, E16) 5 · Apilada, 6 · Producto
   contenido: {
     h1: string,
     body: string | null,

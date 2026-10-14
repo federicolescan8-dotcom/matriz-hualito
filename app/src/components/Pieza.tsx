@@ -23,6 +23,7 @@ import {
   esVarianteE16,
   estiloIconos,
   geometria2BLImagen,
+  geometriaEscenario,
   geometriaSujetoApilada,
   medioApilada,
   modoDeco,
@@ -76,7 +77,8 @@ export function Pieza({
   const colorTextoMarca = p.version_funcional ?? p.color_marca;
   // Variantes nuevas (cap. 6b, E16): cada una tiene su alineación propia. La 5 apila el mensaje a la izquierda.
   const e16 = esVarianteE16(pieza.variante);
-  const centrado = pieza.alineacion === "centrado" && pieza.variante !== "5";
+  // La 6 va centrada (en 1200×630 el mensaje queda a la izquierda, con el producto a la derecha).
+  const centrado = (pieza.variante === "6" && f.columnaMensaje == null) || (pieza.alineacion === "centrado" && pieza.variante !== "5" && pieza.variante !== "6");
   const italica = pieza.body_italica && marca.identidad.tipografia.italic_habilitado;
   const { h1, body } = pieza.contenido;
   // Con CTA opcional (2 y 3, cap. 7b) el botón aparece solo si tiene texto: sin él, la pieza queda como antes.
@@ -321,9 +323,7 @@ export function Pieza({
     </div>
   );
 
-  const mensaje = (extra?: React.ReactNode, estiloZona?: React.CSSProperties, despues?: React.ReactNode) => (
-    <div data-slot="mensaje" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", ...estiloZona }}>
-      <div data-slot="mensaje-contenido" style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: horizontal ? px(16) : px(28), alignItems: justificar }}>
+  const h1El = (
         <h1
           data-slot="h1"
           style={{
@@ -343,11 +343,18 @@ export function Pieza({
         >
           {h1 || " "}
         </h1>
-        {body?.trim() && (
+  );
+  const bodyEl = body?.trim() && (
           <p data-slot="body" style={{ ...bodyEstilo, maxWidth: "88%", fontStyle: italica ? "italic" : "normal" }}>
             {body}
           </p>
-        )}
+  );
+  const mensaje = (extra?: React.ReactNode, estiloZona?: React.CSSProperties, despues?: React.ReactNode, medio?: React.ReactNode) => (
+    <div data-slot="mensaje" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", ...estiloZona }}>
+      <div data-slot="mensaje-contenido" style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: horizontal ? px(16) : px(28), alignItems: justificar }}>
+        {h1El}
+        {medio}
+        {bodyEl}
         {extra}
       </div>
       {despues}
@@ -631,8 +638,75 @@ export function Pieza({
     </div>
   );
 
+  // Escenario de la 6 (diseños 4 y 5): círculo opaco en tono de apoyo y, encima, el producto (o su respaldo).
+  const gEsc = pieza.variante === "6" ? geometriaEscenario(pieza.formato, !!body?.trim()) : null;
+  const capa6 = pieza.variante === "6" ? capaSujeto(marca, pieza) : null;
+  let escenario: React.ReactNode = null;
+  if (gEsc && capa6) {
+    const D = gEsc.diametro;
+    const centro: React.CSSProperties = { position: "absolute", left: "50%", top: "50%" };
+    // Respaldo (ícono o forma): el color del texto o del fondo, el que más contraste con el círculo.
+    const colorRespaldo = contraste(c.texto, c.apoyo) >= contraste(c.fondo, c.apoyo) ? c.texto : c.fondo;
+    let encima: React.ReactNode = null;
+    if (capa6.tipo === "png") {
+      const s = capa6.sujeto;
+      const aspecto = s.ancho / s.alto;
+      const w = Math.min(gEsc.anchoSujeto, gEsc.alto * aspecto);
+      const h = w / aspecto;
+      // eslint-disable-next-line @next/next/no-img-element
+      encima = <img data-slot="sujeto" src={s.src} alt="" style={{ ...centro, width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, display: "block" }} />;
+    } else if (capa6.tipo === "icono") {
+      encima = (
+        <div style={{ ...centro, transform: "translate(-50%, -50%)", display: "flex" }}>
+          <Icono nombre={capa6.icono} estilo={estilo} color={colorRespaldo} tamano={Math.round(D * 0.5)} />
+        </div>
+      );
+    } else if (capa6.tipo === "forma") {
+      const lado = Math.round(D * 0.6);
+      encima = (
+        <div style={{ ...centro, width: lado, height: lado, marginLeft: -lado / 2, marginTop: -lado / 2 }}>
+          <FormaSvg id={capa6.forma} formas={marca.identidad.recursos?.formas ?? []} color={colorRespaldo} style={{ width: "100%", height: "100%" }} />
+        </div>
+      );
+    }
+    escenario = (
+      <div data-slot="escenario" style={{ position: "relative", width: "100%", height: gEsc.alto, flexShrink: 0 }}>
+        <div
+          data-slot="circulo"
+          data-color={JSON.stringify(c.apoyo)}
+          style={{ ...centro, width: D, height: D, marginLeft: -D / 2, marginTop: -D / 2, borderRadius: "50%", background: hslCss(c.apoyo) }}
+        />
+        {encima}
+      </div>
+    );
+  }
+
   let contenidoPieza: React.ReactNode;
-  if (pieza.variante === "5") {
+  if (pieza.variante === "6") {
+    // 6 · Producto (cap. 6b, diseños 4 y 5): logo, la Cifra como H1, el escenario, el body opcional y el CTA, todo
+    // centrado. En 1200×630 el mensaje va a la izquierda y el escenario en la columna derecha.
+    const filaLogo6 = (
+      <div style={{ position: "relative", display: "flex", justifyContent: justificar, flexShrink: 0 }}>
+        {logo}
+        {insigniaEl && <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, display: "flex", alignItems: "center" }}>{insigniaEl}</div>}
+      </div>
+    );
+    contenidoPieza = horizontal ? (
+      <>
+        <div data-columna style={colIzq}>
+          {filaLogo6}
+          {mensaje(botonCta)}
+        </div>
+        <div style={{ ...colDer, flexDirection: "column" }}>{escenario}</div>
+      </>
+    ) : (
+      <div data-columna style={colIzq}>
+        {filaLogo6}
+        {mensaje(undefined, undefined, undefined, escenario)}
+        {botonCta}
+      </div>
+    );
+  } else if (pieza.variante === "5") {
     // 5 · Apilada (cap. 6b, diseños 1 a 3). Con sujeto, el CTA sube a la izquierda debajo del body y la columna termina
     // antes del sujeto; si no, el medio (Cifra o foto) va centrado en el espacio libre y el CTA centrado al pie. En
     // 1200×630 el mensaje y el CTA van a la izquierda y el medio en la columna derecha.

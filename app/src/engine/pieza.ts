@@ -248,6 +248,18 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     logoPx: 80,
     cifra: 150,
   },
+  // Variante 6 · Producto (cap. 6b, E16, diseños 4 y 5): todo centrado; la Cifra hace de H1 ("25% OFF", mayúsculas de
+  // 119 px: letra ~165), el producto sobre un círculo en tono de apoyo con resplandor radial, body opcional y CTA.
+  "6": {
+    nombre: "6 · Producto",
+    descripcion: "Una oferta grande arriba, el producto sobre un círculo, un dato opcional y el llamado a la acción. Todo centrado.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 72, max: 168, altoMax: 0.2, maxLineas: 2 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -274,6 +286,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
     F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
     "5": { h1: { max: 88, altoMax: 0.26, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
+    "6": { h1: { min: 64, max: 136, altoMax: 0.18 }, body: { max: 32 }, logoPx: 64 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -285,6 +298,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "4": { h1: { altoMax: 0.2 } },
     F: { h1: { altoMax: 0.3 } },
     "5": { h1: { altoMax: 0.3 } },
+    "6": { h1: { altoMax: 0.16 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -295,6 +309,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
     F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
     "5": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
+    "6": { h1: { min: 56, max: 104, altoMax: 0.4 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
   },
 };
 
@@ -327,7 +342,7 @@ export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).fil
  * Variantes nuevas de E16 (cap. 6b). Se eligen a mano en Publicaciones; todavía no entran en la grilla de la
  * presentación, en los tipos de contenido ni en la sugerida del rubro (paso 6 de E16).
  */
-export const VARIANTES_E16: Variante[] = ["5"];
+export const VARIANTES_E16: Variante[] = ["5", "6"];
 export const esVarianteE16 = (v: Variante) => VARIANTES_E16.includes(v);
 
 /** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
@@ -340,6 +355,8 @@ export function variantesDisponibles(marca: Marca): Variante[] {
  * según el rubro; el resto de las variantes va a la izquierda.
  */
 export function alineacionesPermitidas(rubro: Rubro, variante: Variante): Alineacion[] {
+  // Variantes nuevas (cap. 6b): alineación propia, la regla del rubro no rige.
+  if (variante === "6") return ["centrado"];
   return variante === "2" || variante === "3" ? PRESETS[rubro].alineacion_2_3 : ["izquierda"];
 }
 
@@ -455,7 +472,37 @@ export function degradadoActivo(marca: Marca, pieza: Pieza): Degradado | null {
 /** Degradado por defecto de cada variante nueva (cap. 6b): la 5 lleva el diagonal, con la zona clara detrás del sujeto. */
 export function degradadoDeVariante(marca: Marca, pieza: Pieza): Degradado | null {
   if (pieza.variante === "5") return { forma: "diagonal", esquina: medioApilada(pieza) === "sujeto" ? "abajo-derecha" : "arriba-derecha" };
+  // La 6 lleva el resplandor radial detrás del círculo (diseños 4 y 5).
+  if (pieza.variante === "6") {
+    // En 1200×630 el escenario va en la columna derecha: el resplandor se centra ahí.
+    const f = FORMATOS[pieza.formato];
+    if (f.columnaMensaje) return { forma: "radial", centro: { x: (f.columnaMensaje + 40 / f.ancho + 1 - f.zona.x) / 2, y: 0.5 } };
+    return { forma: "radial", centro: { x: 0.5, y: pieza.contenido.body?.trim() ? 0.497 : 0.547 } };
+  }
   return null;
+}
+
+/**
+ * Escenario de la variante 6 (diseños 4 y 5, medido en 4:5): el círculo en tono de apoyo y la caja donde entra el
+ * producto, que lo desborda. Sin body el círculo mide 0,39 del ancho y el producto hasta 0,70; con body, 0,28 y 0,51
+ * (el body le quita alto). En 1:1 y 9:16 el alto se lleva a la zona segura de cada formato, sin pasar el ancho
+ * (derivado); en 1200×630 el escenario ocupa la columna derecha (derivado). Px del lienzo.
+ */
+export function geometriaEscenario(formato: Formato, conBody: boolean): { diametro: number; alto: number; anchoSujeto: number } {
+  const f = FORMATOS[formato];
+  if (f.columnaMensaje) {
+    const ancho = f.ancho * (1 - f.columnaMensaje) - 40 - f.ancho * f.zona.x;
+    const alto = f.alto * (1 - f.zona.arriba - f.zona.abajo);
+    return { diametro: Math.min(ancho, alto) * 0.8, alto, anchoSujeto: ancho };
+  }
+  const ref = FORMATOS["4:5"];
+  const zonaRef = ref.alto * (1 - ref.zona.arriba - ref.zona.abajo);
+  const zona = f.alto * (1 - f.zona.arriba - f.zona.abajo);
+  const k = Math.min(1.175, zona / zonaRef);
+  const d = (conBody ? 0.28 : 0.39) * ref.ancho * k;
+  const alto = (conBody ? 0.225 : 0.31) * ref.alto * k;
+  const anchoSujeto = Math.min(f.ancho * (1 - 2 * f.zona.x), (conBody ? 0.51 : 0.7) * ref.ancho * k);
+  return { diametro: Math.min(d, anchoSujeto), alto: Math.max(alto, Math.min(d, anchoSujeto)), anchoSujeto };
 }
 
 /**

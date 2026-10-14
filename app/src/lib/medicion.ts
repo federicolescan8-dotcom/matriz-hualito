@@ -328,6 +328,12 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
     iconos: root.querySelectorAll("[data-icono]").length,
     // Sujeto PNG (E16): la caja del <img>, que se dibuja con la proporción de la imagen (sin aire de object-fit).
     cifra: q(root, "cifra")?.textContent?.trim() ? medirTexto(root, q(root, "cifra")!) : null,
+    circulo: (() => {
+      const el = q(root, "circulo");
+      if (!el) return null;
+      const k = relativo(root, el.getBoundingClientRect());
+      return { cx: k.x + k.w / 2, cy: k.y + k.h / 2, r: k.w / 2, color: JSON.parse(el.dataset.color!) as HSL };
+    })(),
     sujeto: q(root, "sujeto") ? relativo(root, q(root, "sujeto")!.getBoundingClientRect()) : null,
     // Recursos de composición (E16): la insignia lleva sus colores en data-, como el soporte de los íconos.
     insignias: [...root.querySelectorAll<HTMLElement>('[data-slot="insignia"]')].map((el) => ({

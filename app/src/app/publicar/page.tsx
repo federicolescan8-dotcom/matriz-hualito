@@ -333,7 +333,7 @@ export default function PublicarPage() {
                 key={v}
                 type="button"
                 title={PLANTILLAS[v]!.descripcion}
-                onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : "izquierda" })}
+                onClick={() => set({ variante: v, alineacion: alineacionesPermitidas(marca.rubro, v).includes(actual.alineacion) ? actual.alineacion : alineacionesPermitidas(marca.rubro, v)[0] })}
                 className={`rounded-lg border px-3 py-2 text-left text-xs ${actual.variante === v ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 bg-white"}`}
               >
                 <span className="font-medium">{PLANTILLAS[v]!.nombre}</span>
