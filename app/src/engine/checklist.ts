@@ -29,6 +29,7 @@ import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } fro
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
 import { bloquesDeTexto, ctaHablaAlLector, MAX_BLOQUES_TEXTO, OBJETIVOS, tieneOferta, tieneVigencia } from "./marketing";
 import { FACTOR_STORY, familiaTexto, JERARQUIA_H1, pesoH1 } from "./typography";
+import { esProtagonista, usaFotoFondo } from "./protagonista";
 
 export interface Rect {
   x: number;
@@ -106,6 +107,8 @@ export interface Medicion {
   fotoForma?: Rect | null;
   /** Palabra gigante (cap. 6b): su caja y su color. Es decoración: no informa. */
   palabra?: { caja: Rect; color: HSL } | null;
+  /** FP: caja visible del producto recortado. */
+  producto?: Rect | null;
 }
 
 export type Bloque = "Color y contraste" | "Tipografía" | "Composición" | "Zonas seguras" | "Contenido" | "Marketing";
@@ -480,7 +483,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     }
   }
   // Decoración de plantilla (v1.1): sus figuras nunca pasan por debajo de un texto ni del logo.
-  const decoracion = pieza.variante === "F" ? null : decoracionEfectiva(pieza);
+  // Con foto propia (F y las de imagen protagonista) no hay decoración de plantilla: la foto ya ocupa ese lugar.
+  const decoracion = usaFotoFondo(pieza.variante) ? null : decoracionEfectiva(pieza);
   if (decoracion) {
     const g = decoracion.geometria(pieza.formato);
     const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => tocaDecoracion(k, g)));
@@ -531,6 +535,12 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (m.palabra) {
     const otras = [m.forma ? "forma de fondo" : null, decoracion ? "decoración de plantilla" : null, m.deco ? "capa decorativa" : null, m.circulo ? "círculo del producto" : null].filter(Boolean);
     add("Composición", "Una sola decoración protagonista", otras.length === 0, otras.length ? `palabra gigante con ${otras.join(", ")}` : "", "quitar la palabra gigante o la otra decoración");
+  }
+  // Producto héroe: el producto es el sujeto, pero nunca pasa por debajo de un texto ni del logo.
+  if (m.producto) {
+    const prod = m.producto;
+    const tapados = elementosInformativos(m).filter((e) => e.cajas.some((k) => seTocan(achicar(k, ROCE), prod)));
+    add("Composición", "Producto sin tapar texto ni logo", tapados.length === 0, tapados.map((e) => e.nombre).join(", "), "recortar texto o achicar el producto", "bloqueante");
   }
   if (plantilla?.bloque === "contacto") {
     const n = contacto.length;
@@ -640,9 +650,24 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     "Contenido",
     "Funciona sin foto",
     true,
-    usaFoto ? "la foto es una capa opcional" : fotoPedida ? "sin foto cargada: se usa la capa del rubro" : "la pieza no usa foto",
+    esProtagonista(pieza.variante) ? "la foto es la protagonista: la variante la pide" : usaFoto ? "la foto es una capa opcional" : fotoPedida ? "sin foto cargada: se usa la capa del rubro" : "la pieza no usa foto",
     "—",
   );
+  // Imagen protagonista: la foto es el sujeto, sin ella la variante no tiene pieza.
+  if (esProtagonista(pieza.variante)) {
+    const conFoto = !!pieza.foto_fondo && marca.identidad.fotos_habilitadas;
+    add("Contenido", "Foto protagonista cargada", conFoto, conFoto ? "" : "la variante necesita su foto", "cargar la foto o usar otra variante", "bloqueante");
+    if (pieza.variante === "FP" && conFoto) {
+      const recortada = pieza.foto_recortada === true;
+      add(
+        "Contenido",
+        "Producto recortado (PNG con fondo transparente)",
+        recortada,
+        recortada ? "" : "la foto tiene fondo: va dentro de una forma",
+        "subir el producto recortado en PNG con transparencia",
+      );
+    }
+  }
   const sinForma = m.fotosSinForma ?? 0;
   add("Contenido", "Fotos dentro de una forma de contención", sinForma === 0, sinForma ? `${sinForma} sin recortar` : "", "recortar en una forma");
 

@@ -6,8 +6,12 @@ export type ValorMarca = "confianza" | "energia" | "calma" | "innovacion";
 export type TipoAcento = "complementario" | "analogo";
 export type Modo = "A" | "B";
 export type Alineacion = "izquierda" | "centrado";
-/** "P" (Punto) es solo para los slides de contenido del carrusel. "F" (texto sobre foto, E6) pide fotos habilitadas. */
-export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4" | "P" | "F" | "5" | "6" | "7";
+/**
+ * "P" (Punto) es solo para los slides de contenido del carrusel. "F" (texto sobre foto, E6) pide fotos habilitadas, igual
+ * que las de imagen protagonista: "FP" (producto héroe), "FT" (titular sobre foto) y "FB" (foto con banda). "5", "6"
+ * y "7" son las variantes de composición de E16 (cap. 6b).
+ */
+export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4" | "P" | "F" | "FP" | "FT" | "FB" | "5" | "6" | "7";
 
 export interface PresetRubro {
   nombre: string;

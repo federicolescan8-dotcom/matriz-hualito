@@ -364,7 +364,12 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
         texto: medirTexto(root, q(it, "item-texto")!),
       };
     }),
-    fotosSinForma: [...root.querySelectorAll("image:not([data-foto-fondo])")].filter((img) => !img.closest("g[clip-path]")).length,
+    // La foto a sangre y el producto recortado de la FP no van en una forma: son el fondo o el sujeto de la pieza.
+    fotosSinForma: [...root.querySelectorAll("image:not([data-foto-fondo]):not([data-foto-protagonista])")].filter((img) => !img.closest("g[clip-path]")).length,
+    producto: (() => {
+      const el = root.querySelector<SVGGraphicsElement>('[data-slot="producto"]');
+      return el ? relativo(root, el.getBoundingClientRect()) : null;
+    })(),
     desborde,
   };
 }

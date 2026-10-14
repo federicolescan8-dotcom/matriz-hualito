@@ -153,13 +153,16 @@ interface FormatoBloque {
   columnaMensaje?: number;
 }
 
-/** Bloque de texto de la variante F (logo, mensaje y CTA), en px del lienzo. Horizontal: toda la columna izquierda. */
-export function bloqueTexto(g: FormatoBloque, lado: LadoTexto) {
+/**
+ * Bloque de texto de la variante F (logo, mensaje y CTA), en px del lienzo. Horizontal: toda la columna izquierda.
+ * `fraccion` es la parte de la zona segura que ocupa en vertical (el titular sobre foto usa menos).
+ */
+export function bloqueTexto(g: FormatoBloque, lado: LadoTexto, fraccion = FRACCION_BLOQUE) {
   const x = g.ancho * g.zona.x;
   const arriba = g.alto * g.zona.arriba;
   const abajo = g.alto * (1 - g.zona.abajo);
   if (g.columnaMensaje) return { x, y: arriba, w: g.ancho * g.columnaMensaje - x, h: abajo - arriba };
-  const h = (abajo - arriba) * FRACCION_BLOQUE;
+  const h = (abajo - arriba) * fraccion;
   return { x, y: lado === "abajo" ? abajo - h : arriba, w: g.ancho * (1 - 2 * g.zona.x), h };
 }
 

@@ -83,6 +83,7 @@ Resumen breve de los cambios aplicados en esta edición. El detalle de cada uno 
 45. **Recursos y variantes de composición (E16, completa)**: para romper la monotonía de las piezas, se especifican recursos gráficos medibles (degradado de marca, sujeto PNG, insignia, foto en forma, palabra gigante), el slot Cifra y tres variantes nuevas (5 · Apilada, 6 · Producto, 7 · Cifra) sacadas de 6 diseños de referencia medidos en 4:5, con reglas propias por variante y solo las bloqueantes como globales. Pasos 2 a 4 hechos y variantes 5, 6 y 7 del paso 5: el degradado de marca está implementado (diagonal, vertical y radial; contraste medido bajo cada caja de texto, avisos de CTA y de zona clara), el sujeto PNG tiene carga con alfa, análisis, máscara, cadena de respaldo y control bloqueante, y la insignia (colores por defecto derivados y seis controles), la foto en forma (geometría 2,5:1 y control bloqueante de texto encima) y la palabra gigante (color tono sobre tono y medición contra el peor fondo) tienen motor y controles. Paso 5, variantes 5, 6 y 7 hechas: la **5 · Apilada** ya se dibuja y se exporta (con Cifra, producto recortado, foto en forma, insignia y palabra gigante), con el slot Cifra y su control, el degradado por defecto de la variante y la **intensidad automática del degradado** (la pieza mide sus cajas y baja el degradado hasta que no sume avisos respecto del fondo liso). La **6 · Producto** también se dibuja y se exporta: la Cifra hace de H1, el producto va sobre un círculo de tono de apoyo (o el ícono del rubro si no hay producto), con resplandor radial detrás, alineación propia centrada, insignia en la fila del logo y el círculo como decoración protagonista del checklist; sus 16 piezas de prueba (4 formatos × producto/sin producto × con/sin body) aprueban. En Publicaciones se elige a mano el fondo y los recursos. La **7 · Cifra** cierra el paso 5: logo → H1 → Cifra → body → CTA, todo centrado, con degradado vertical por defecto; es solo tipográfica y sus 16 piezas de prueba aprueban. **Paso 6, la conexión, cierra E16**: la Promoción suma el campo opcional Cifra (12 caracteres, sin ejemplo) y sale en 7, 6, 2, 4 (sin Cifra se saltean la 6 y la 7 y sale en la 2 como antes); Lanzamiento sale en 5, 1; Tip y Pregunta frecuente en 1, 5; cada rubro suma una variante nueva en segundo lugar de sus prioritarias (servicios 7, gastronomía 6, belleza 6, tech 5) sin cambiar la sugerida; la grilla de la presentación rota las tres sin repetir variante seguida (tampoco en la vuelta); y en Publicaciones la promoción cambia sola entre 2 y 7 al escribir o borrar la Cifra, salvo variante elegida a mano. En Modo A el degradado oscurece el neutro 0,08 de L (antes 0,21) conservando su croma, para que no se vea gris. El producto PNG se puede mover y agrandar a mano (paso 7) sin romper reglas: el motor lo acomoda siempre al lugar libre más cercano. *(Cap. 6, Cap. 6b, Cap. 7, Cap. 7b, Cap. 8)*
 46. **Perfil importado como punto de partida del rescate (E11)**: una marca que existe pero no tiene identidad digital definida puede arrancar desde un perfil (`hualito.perfil.v1`) armado a partir de capturas reales por una herramienta externa. Los colores se miden (mismo k-means del motor); el rubro, los ejes, el tono, el contenido, el público, el grado de cambio, la evidencia y la confianza los lee Claude con visión. La paleta no viene en el perfil: la arma el motor al importar. La marca queda en diagnóstico, lista para revisar. *(Cap. 9)*
 47. **Esencia de la marca en el perfil importado (E11)**: lo que la marca muestra siempre igual (foto de perfil, destacados, logo) es su **esencia** y se mantiene en todos los perfiles que se importen, en cualquier grado de cambio. Se mide solo de la carpeta `identidad/` sin descartar casi negros ni casi blancos y da superficie, figura y detalle; de ahí salen el color de marca, el fondo neutro y el acento, y la esencia manda sobre el color previo. Si el color de marca es acromático, el tono de apoyo toma el matiz del acento o del fondo. Además, la versión de color del logo pasa al monocromo que contrasta si su color dominante no llega a 3:1 con el fondo, y el ícono de cada ítem del catálogo se elige según la oferta (entran IceCream, Popsicle y Martini; salen Trophy, Medal y Cpu, sin uso). *(Cap. 3, Cap. 5, Cap. 6, Cap. 9)*
+48. **Variantes con imagen protagonista (E6)**: tres variantes nuevas donde la foto o el producto es el sujeto de la pieza, solo con fotos habilitadas: **FP · Producto héroe** (producto recortado grande sobre el fondo del modo, mensaje arriba o abajo, pie con CTA y logo), **FT · Titular sobre foto** (foto a sangre con un titular o cifra de oferta gigante) y **FB · Foto con banda** (foto arriba y banda del color de fondo con borde recto u onda para todo el texto). Las cifras de oferta ("20% OFF", "3x2") son el H1, sin slot nuevo. El producto recortado es una excepción a la forma de contención, y si la imagen no tiene transparencia va en un rectángulo redondeado con aviso. El checklist suma "Foto protagonista cargada", "Producto recortado" y "Producto sin tapar texto ni logo". *(Cap. 5, Cap. 6, Cap. 8, Cap. 9)*
 
 ---
 
@@ -610,7 +611,8 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 ### Reglas de fotografía
 
 - La dependencia de foto la define el rubro. La habilitación la define el cliente. Con fotos disponibles se puede usar foto en cualquier rubro, incluso en los de dependencia nula.
-- Toda foto va dentro de una forma de contención de la biblioteca. *(v1.1)* Excepción: la foto de fondo de la variante F va a sangre.
+- Toda foto va dentro de una forma de contención de la biblioteca. *(v1.1)* Excepciones: la foto de fondo de las variantes F, FT y FB va a sangre, y el producto recortado de la variante FP *(v1.1)* va sin forma, con su propio contorno.
+- **Producto recortado** *(v1.1)*. En la variante FP la persona sube el producto ya recortado, en PNG o WebP con transparencia; no hay recorte automático de fondo. Se dibuja entero (contain) y con el tratamiento de foto de la marca. Si la imagen no tiene transparencia, va dentro de un rectángulo redondeado (forma de contención) y el checklist da un aviso.
 - En uso decorativo lleva overlay de color de marca al 60-70%.
 - En uso informativo va sin overlay, recortada en la forma del ítem.
 - Fallback: toda pieza se genera completa sin foto. La foto es siempre una capa opcional.
@@ -627,7 +629,7 @@ Un mismo elemento nunca cumple dos funciones en la misma pieza. Un ícono decora
 
 **Dirección de arte** *(v1.1, E6)*. Guía de qué fotos sirven: luz natural y suave, con una dirección clara (no flash directo ni sombras duras); un sujeto claro con aire alrededor para el texto (no escenas recargadas ni sujetos pegados al borde); fondos simples y parejos, cerca de la paleta (no fondos con ruido ni carteles ajenos). Queda en la identidad como guía para el manual de marca.
 
-No se resuelve todavía el recorte de fondo de las fotos.
+Todavía no hay recorte automático de fondo de las fotos: el producto de la variante FP se sube ya recortado.
 
 ---
 
@@ -747,6 +749,7 @@ La Cifra es información, no decoración, y tiene sus reglas en el cap. 6b.
 | Ninguna | 1, 2 | mensaje puro: tipografía y color |
 | Decorativa | 2B-L, 2B-S | refuerza el impacto del H1, no informa |
 | Informativa | 3, 4 | comunica un dato: contacto o producto |
+| Protagonista *(v1.1)* | FP, FT, FB | la foto o el producto es el sujeto de la pieza |
 
 ### Reglas de la capa decorativa
 
@@ -777,7 +780,7 @@ Para sumar una decoración nueva se agrega una entrada al catálogo de decoracio
 
 ### Las seis variantes de layout
 
-Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla. Las variantes 5, 6 y 7 *(v1.1, E16)* están en el cap. 6b (las tres están implementadas y se eligen a mano en Publicaciones).
+Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6)*, descrita después de la tabla, y las tres variantes con imagen protagonista (FP, FT y FB), descritas a continuación de la F. Las variantes 5, 6 y 7 *(v1.1, E16)* están en el cap. 6b (las tres están implementadas y se eligen a mano en Publicaciones).
 
 | Variante | Orden de slots | Proporciones | Uso |
 |---|---|---|---|
@@ -799,6 +802,31 @@ Además de estas seis, y del Punto del carrusel, existe la variante F *(v1.1, E6
 | Zona limpia | Sin capa: el texto va en la zona elegida a mano (arriba o abajo). No hay detección automática de la zona más pareja |
 
 El bloque ocupa el 58% de la zona segura en los formatos verticales. El contraste se mide sobre la imagen real (cap. 8).
+
+### Variantes con imagen protagonista *(v1.1)*
+
+La foto o el producto es el sujeto de la pieza (referencia: posteos de heladerías). Las tres requieren las fotos habilitadas, igual que la F; no entran en la grilla de la presentación, no llevan decoración de plantilla ni forma de fondo, y no están entre los tipos de contenido (pedirían una foto que el tipo no carga) ni en el carrusel. Las cifras de oferta ("20% OFF", "3x2") son el H1: no hay slot nuevo. Sin foto, la pieza muestra un placeholder en tono de apoyo y el checklist la rechaza (cap. 8).
+
+| Variante | Qué es | Composición |
+|---|---|---|
+| FP · Producto héroe | Producto recortado, grande, sobre el fondo plano del modo | Mensaje (H1 gigante y bajada) arriba o abajo del producto (`foto_texto`, por defecto arriba). Pie con CTA y logo en una fila al final de la zona segura. En 1200×630: mensaje y CTA en la columna izquierda, logo en el pie y producto a la derecha |
+| FT · Titular sobre foto | Foto a sangre con un titular o cifra de oferta gigante | Bloque de texto del 50% de la zona segura (la F usa 58%), arriba o abajo. Protección: degradado o zona limpia; la placa no se ofrece (si viniera, se usa degradado) |
+| FB · Foto con banda | Foto arriba a sangre y banda del color de fondo del modo abajo | Foto de hasta 55% del alto (50% en 1:1). Todo el texto (mensaje y pie con CTA y logo) va sobre la banda, debajo del punto más bajo del borde más la separación; sin protección. En 1200×630 la banda es la columna izquierda (corte al 55% del ancho, onda vertical) y la foto la derecha |
+
+- **FP.** El producto se dibuja entero (contain) con el tratamiento de foto de la marca. Si la imagen no tiene transparencia va en un rectángulo redondeado y el checklist avisa (cap. 5 y 8). Permite centrado, como las variantes 2 y 3 (la alineación del rubro).
+- **FT.** La foto, el foco y el tratamiento son los de la F, y el contraste del H1 y del body se mide sobre la foto como en la F.
+- **FB.** El borde de la banda (`banda_borde`) es **recto** u **onda** (por defecto onda). La onda es una sola sinusoide de un período a lo ancho, con amplitud del 3% del alto.
+- **Pie.** En FP y FB el CTA y el logo van en una fila; en 1200×630 el CTA va con el mensaje.
+
+H1 de las tres (valores en px sobre la escala feed, en 4:5 con 2 líneas como máximo; los demás formatos tienen sus ajustes, con hasta 3 líneas en 1200×630):
+
+| Variante | H1 mín–máx | Alto máx |
+|---|---|---|
+| FP | 64–200 px | 30% |
+| FT | 72–220 px | 34% |
+| FB | 56–150 px | 22% |
+
+Fuera de alcance: recorte automático de fondo y la palabra gigante repetida detrás del producto.
 
 ### Plantillas por tipo de contenido *(v1.1, E7)*
 
@@ -1284,8 +1312,8 @@ Cada control tiene un nivel, visible como etiqueta en el checklist cuando falla:
 | Texto body y caption sobre su fondo | 4,5:1 | función de ajuste (cap. 3, paso 6) |
 | H1 y H2 grandes (≥36 px, bold) sobre su fondo | 3:1 | función de ajuste |
 | Cifra sobre su fondo *(v1.1, E16, solo con Cifra)* | 3:1 como el H1, medido sobre el degradado real; bloqueante bajo 3:1 | función de ajuste |
-| H1 grande sobre la foto *(v1.1, E6, variante F)* | 3:1, medido sobre la imagen real | cambiar la protección, mover el bloque o usar otra foto |
-| Body sobre la foto *(v1.1, E6, variante F)* | 4,5:1, medido sobre la imagen real | ídem |
+| H1 grande sobre la foto *(v1.1, E6, variantes F y FT)* | 3:1, medido sobre la imagen real | cambiar la protección, mover el bloque o usar otra foto |
+| Body sobre la foto *(v1.1, E6, variantes F y FT)* | 4,5:1, medido sobre la imagen real | ídem |
 | Logo contrasta con su fondo *(v1.1, E4, aviso, solo con logo cargado y si se conocen el color del logo y su fondo)* | 3:1 | usar la versión monocromo o una placa detrás |
 | Acento como fondo de botón con su texto (blanco o color de marca) | 4,5:1 | ajustar L del acento (cap. 3, paso 4b) *(v1.1)* |
 | Texto de la insignia sobre su relleno *(v1.1, E16, solo con insignia)* | 4,5:1; bajo 3:1 es bloqueante, si no aviso | usar el par de colores por defecto de la insignia |
@@ -1340,6 +1368,7 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Insignia dentro del margen seguro *(v1.1, E16, bloqueante, solo con insignia)* | zona segura global del formato | reubicar la insignia |
 | Foto en forma sin texto encima *(v1.1, E16, bloqueante, solo con foto en forma)* | ni H1, body, CTA ni insignia tocan la foto (va sin overlay) | mover el texto o quitar la foto en forma |
 | Una sola decoración protagonista *(v1.1, E16, aviso, solo con palabra gigante)* | la palabra gigante no va con forma de fondo, decoración de plantilla, capa decorativa 2B ni el círculo del producto de la variante 6 | quitar una de las dos |
+| Producto sin tapar texto ni logo *(v1.1, bloqueante, variante FP)* | la caja del producto no se superpone con el H1, el body, el CTA ni el logo | recortar texto o achicar el producto |
 | Ningún texto tapado por otro elemento *(v1.1)* | H1, body, CTA, logo, íconos y textos de contacto o catálogo no se pisan entre sí (tolerancia de 2 px por el roce de las cajas de las letras) | recortar texto o reubicar |
 
 ### Bloque 4 — Zonas seguras por formato
@@ -1359,9 +1388,11 @@ El piso del H1 es el mínimo de la variante, subido si hace falta para que el H1
 | Control | Regla |
 |---|---|
 | Un solo mensaje principal por pieza | 1 H1, 1 dato de apoyo, 1 CTA como máximo |
-| Fallback sin foto | la pieza se genera completa sin imagen |
+| Fallback sin foto | la pieza se genera completa sin imagen; en FP, FT y FB dice que la foto es la protagonista *(v1.1)* |
+| Foto protagonista cargada *(v1.1, bloqueante, FP, FT y FB)* | la pieza tiene foto y la marca tiene las fotos habilitadas; falla sin foto o con fotos deshabilitadas |
+| Producto recortado (PNG con fondo transparente) *(v1.1, aviso, solo FP con foto)* | la imagen tiene transparencia; si no, va en un rectángulo redondeado |
 | Fallback sin capa decorativa | la pieza sigue siendo legible si se quita |
-| Foto dentro de forma de contención | sin excepción, salvo la foto de fondo de la variante F, que va a sangre *(v1.1, E6)* |
+| Foto dentro de forma de contención | sin excepción, salvo la foto de fondo de las variantes F, FT y FB, que va a sangre, y el producto recortado de la FP *(v1.1, E6)* |
 | Foto decorativa | con overlay 60-70% de opacidad en color de marca |
 
 ### Bloque 6 — Coherencia de serie
@@ -1525,7 +1556,7 @@ pieza: {
   marca_id,
   canal: "feed_ig | stories_ig | estados_wa | feed_fb",
   formato: "4:5 | 1:1 | 9:16 | 1200x630",
-  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | 6 | 7 | F",   // (v1.1, E6) F solo con fotos habilitadas; (v1.1, E16) 5 · Apilada, 6 · Producto, 7 · Cifra
+  variante: "1 | 2 | 2B-L | 2B-S | 3 | 4 | 5 | 6 | 7 | F | FP | FT | FB",   // (v1.1, E6) F, FP, FT y FB solo con fotos habilitadas; (v1.1, E16) 5 · Apilada, 6 · Producto, 7 · Cifra
   contenido: {
     h1: string,
     body: string | null,
@@ -1537,8 +1568,10 @@ pieza: {
   imagen: { id, uso: "decorativa | informativa" } | null,
   color_decoracion?: number | null,  // (v1.1, E3a) índice del secundario; null = tono de apoyo
   foto_foco?: { x, y },              // (v1.1, E6) punto focal, 0-1; por defecto el centro
-  foto_fondo?: string | null,        // (v1.1, E6) variante F: foto a sangre
-  foto_texto?: "arriba | abajo",     // (v1.1, E6) variante F: lugar del bloque de texto
+  foto_fondo?: string | null,        // (v1.1, E6) variante F: foto a sangre; FP: el producto; FT y FB: la foto
+  foto_recortada?: boolean,          // (v1.1) FP: la imagen tiene transparencia (producto recortado)
+  banda_borde?: "recto | onda",      // (v1.1) FB: borde de la banda; por defecto onda
+  foto_texto?: "arriba | abajo",     // (v1.1, E6) variantes F, FP y FT: lugar del bloque de texto
   proteccion?: "degradado | placa | zona"   // (v1.1, E6) variante F; por defecto degradado
   sujeto?: { src, ancho, alto, transparente, damero, mascara, respaldo?: "icono | forma | nada",
            ajuste?: { dx, dy, escala } | null } | null   // (v1.1, E16) PNG con su máscara; null o ausente = estado sin sujeto; ajuste = corrimiento del centro (fracción del ancho y alto del lienzo) y escala 0,5-1,6 (paso 7), null = lugar automático
@@ -1774,7 +1807,13 @@ biblioteca: {
               sector: { H1: "65%", body: "35%" }, deco: "abajo" },
     "3":    { orden: ["H1","body","contacto","logo_bloque"],
               alineacion_mensaje: ["izquierda","centrado"] },
-    "4":    { orden: [["logo","H1"],"items","cta"], max_items: 4 }
+    "4":    { orden: [["logo","H1"],"items","cta"], max_items: 4 },
+    "FP":   { orden: ["H1","body","producto",["cta","logo"]], foto_texto: ["arriba","abajo"],
+              H1: "64-200 px, 30%", alineacion_mensaje: ["izquierda","centrado"] },  // (v1.1)
+    "FT":   { orden: ["foto_a_sangre",["logo","H1","body","cta"]], bloque: "50% zona segura",
+              H1: "72-220 px, 34%", proteccion: ["degradado","zona"] },              // (v1.1)
+    "FB":   { orden: ["foto","banda",["H1","body"],["cta","logo"]], foto_max: "55% (50% en 1:1)",
+              H1: "56-150 px, 22%", banda_borde: ["recto","onda"] }                   // (v1.1)
   },
   reglas_alineacion: {
     aplica_a: "H1 + body + slots de cierre (logo, contacto)",
