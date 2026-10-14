@@ -4,7 +4,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { contraste, hexToHsl, hslCss, hslToHex, mezclar, type HSL } from "@/engine/color";
 import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
-import { evaluarPieza, intensidadSegura, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
+import { cajasQueInforman, evaluarPieza, intensidadSegura, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
 import {
@@ -39,7 +39,7 @@ import { ajustarTexto, medirContrasteSobreFoto, medirPieza } from "@/lib/medicio
 import { decoracionEfectiva, SOMBRA_DECORACION, trazadoDecoracion, type GeometriaDecoracion } from "@/engine/decoraciones";
 import { bloqueTexto, capaProteccion, filtroDeMarca, type Foco } from "@/engine/fotografia";
 import { coloresInsignia, colorPalabraGigante, geometriaFotoEnForma } from "@/engine/composicion";
-import { capaSujeto } from "@/engine/sujeto";
+import { capaSujeto, posicionValida, rectBase, rectConAjuste, sujetoLibre, type AjusteSujeto } from "@/engine/sujeto";
 import { dimensionesCacheadas, dimensionesImagen } from "@/lib/imagen";
 import { FiltroSvg, FormaRellena, FormaSvg, FotoEnForma, ImagenFoco, Icono } from "./Graficos";
 
@@ -54,10 +54,16 @@ export function Pieza({
   marca,
   pieza,
   onResultado,
+  onAjusteSujeto,
 }: {
   marca: Marca;
   pieza: TPieza;
   onResultado?: (r: ResultadoChecklist, m: Medicion) => void;
+  /**
+   * Movimiento manual del sujeto (E16, paso 7). Solo en la vista previa editable: con esto el producto se arrastra, y
+   * la ubicación corregida por el motor vuelve a la pieza.
+   */
+  onAjusteSujeto?: (a: AjusteSujeto | null) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const f = FORMATOS[pieza.formato];
@@ -134,6 +140,14 @@ export function Pieza({
   const [intDeg, setIntDeg] = useState<{ clave: string; k: number }>({ clave: "", k: 1 });
   const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo, intDeg.clave === claveDeg ? intDeg.k : 1) : null;
   const intensidad = intDeg.clave === claveDeg ? intDeg.k : 1;
+  // Ajuste manual del sujeto (E16, paso 7): el pedido viaja en la pieza; si en este formato tapa algo, el motor lo
+  // corre al lugar libre más cercano y se dibuja ese (por formato, así el ZIP de los 4 formatos también pasa).
+  const [ajSuj, setAjSuj] = useState<{ clave: string; a: AjusteSujeto | null }>({ clave: "", a: null });
+  const ajustePedido = pieza.sujeto?.ajuste ?? null;
+  const ajusteSujeto = ajSuj.clave === claveDeg ? ajSuj.a : ajustePedido;
+  // Arrastre en curso (fracción del lienzo) y si en la posición actual taparía algo.
+  const [arrastre, setArrastre] = useState<{ dx: number; dy: number; tapa: boolean } | null>(null);
+  const ultimaMedicion = useRef<Medicion | null>(null);
   const paradasDeg = geoDeg && claroDeg ? geoDeg.paradas.map(([o, k], i) => <stop key={i} offset={o} stopColor={hslToHex(mezclar(c.fondo, claroDeg, k))} />) : null;
   // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo.
   const fotosConFoco = pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null].filter((s): s is string => !!s) : [];
@@ -150,12 +164,14 @@ export function Pieza({
   }, [claveFotos]);
 
   const onResultadoRef = useRef(onResultado);
+  const onAjusteRef = useRef(onAjusteSujeto);
   useLayoutEffect(() => {
     onResultadoRef.current = onResultado;
+    onAjusteRef.current = onAjusteSujeto;
   });
 
   // Solo lo que cambia el layout: el id de la pieza no cuenta.
-  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas, intensidad]);
+  const clave = JSON.stringify([{ ...pieza, id: null }, p, marca.identidad.tipografia, marca.identidad.graficos, marca.identidad.logo[c.logo]?.length, marca.identidad.logo.versiones, marca.identidad.logo.sobre_foto, marca.identidad.fotografia, marca.identidad.fotos_habilitadas, dimensionesListas, intensidad, ajusteSujeto]);
   useLayoutEffect(() => {
     const root = ref.current;
     if (!root) return;
@@ -175,6 +191,19 @@ export function Pieza({
       const desborde = ajustarTexto(root, plantilla, f.alto, escala, lateralVertical ? g.posiciones : undefined);
       const medicion = medirPieza(root, desborde);
       medicion.intensidadDegradado = intensidad;
+      ultimaMedicion.current = medicion;
+      // Sujeto movido a mano: si lo opaco tapa algo que informa, se corre al lugar libre más cercano y se vuelve a medir.
+      const mascara = pieza.sujeto?.transparente ? pieza.sujeto.mascara : null;
+      if (ajusteSujeto && mascara && medicion.sujeto) {
+        const base = rectBase(medicion.sujeto, ajusteSujeto, f.ancho, f.alto);
+        const cajas = cajasQueInforman(medicion).flatMap((e) => e.cajas);
+        const valido = posicionValida(mascara, base, ajusteSujeto, cajas, f.ancho, f.alto);
+        if (JSON.stringify(valido) !== JSON.stringify(ajusteSujeto)) {
+          setAjSuj({ clave: claveDeg, a: valido });
+          onAjusteRef.current?.(valido);
+          return;
+        }
+      }
       // Degradado: si con esta intensidad suma avisos, se dibuja más suave y se vuelve a medir (el texto no cambia).
       if (degradado) {
         const segura = intensidadSegura(marca, pieza, medicion);
@@ -535,6 +564,53 @@ export function Pieza({
     justifyContent: "center",
   };
 
+  // ── Movimiento manual del sujeto (E16, paso 7) ──
+  // El ajuste se dibuja con una transformación (corrimiento del centro y escala), así el lugar automático de cada
+  // variante no cambia y la medición toma la caja ya transformada.
+  const ajusteVisto: AjusteSujeto | null =
+    arrastre || ajusteSujeto
+      ? { dx: (ajusteSujeto?.dx ?? 0) + (arrastre?.dx ?? 0), dy: (ajusteSujeto?.dy ?? 0) + (arrastre?.dy ?? 0), escala: ajusteSujeto?.escala ?? 1 }
+      : null;
+  const estiloAjuste: React.CSSProperties = {
+    ...(ajusteVisto ? { transform: `translate(${ajusteVisto.dx * f.ancho}px, ${ajusteVisto.dy * f.alto}px) scale(${ajusteVisto.escala})`, transformOrigin: "50% 50%" } : {}),
+    ...(onAjusteSujeto ? { cursor: arrastre ? "grabbing" : "grab", touchAction: "none" } : {}),
+    // Mientras se arrastra, rojo si en ese lugar taparía texto, logo, Cifra, CTA o insignia (al soltarlo se acomoda).
+    ...(arrastre?.tapa ? { filter: "drop-shadow(0 0 6px rgba(220,38,38,0.9)) drop-shadow(0 0 2px rgba(220,38,38,1))" } : {}),
+  };
+  const manejoArrastre = onAjusteSujeto
+    ? {
+        onPointerDown: (e: React.PointerEvent<HTMLImageElement>) => {
+          e.preventDefault();
+          const img = e.currentTarget;
+          img.setPointerCapture(e.pointerId);
+          // Pantalla → lienzo: la vista previa está escalada con CSS.
+          const k = (ref.current?.getBoundingClientRect().width ?? f.ancho) / f.ancho;
+          const x0 = e.clientX;
+          const y0 = e.clientY;
+          const m = ultimaMedicion.current;
+          const mascara = pieza.sujeto?.mascara;
+          const base = m?.sujeto ? rectBase(m.sujeto, ajusteSujeto, f.ancho, f.alto) : null;
+          const cajas = m ? cajasQueInforman(m).flatMap((c) => c.cajas) : [];
+          const delta = (ev: PointerEvent) => ({ dx: (ev.clientX - x0) / k / f.ancho, dy: (ev.clientY - y0) / k / f.alto });
+          const mover = (ev: PointerEvent) => {
+            const d = delta(ev);
+            const pedido = { dx: (ajusteSujeto?.dx ?? 0) + d.dx, dy: (ajusteSujeto?.dy ?? 0) + d.dy, escala: ajusteSujeto?.escala ?? 1 };
+            const tapa = !!(mascara && base) && !sujetoLibre(mascara, rectConAjuste(base, pedido, f.ancho, f.alto), cajas);
+            setArrastre({ ...d, tapa });
+          };
+          const soltar = (ev: PointerEvent) => {
+            img.removeEventListener("pointermove", mover);
+            img.removeEventListener("pointerup", soltar);
+            const d = delta(ev);
+            setArrastre(null);
+            onAjusteSujeto({ dx: (ajusteSujeto?.dx ?? 0) + d.dx, dy: (ajusteSujeto?.dy ?? 0) + d.dy, escala: ajusteSujeto?.escala ?? 1 });
+          };
+          img.addEventListener("pointermove", mover);
+          img.addEventListener("pointerup", soltar);
+        },
+      }
+    : {};
+
   // ── Recursos de las variantes nuevas (cap. 6b, E16) ──
   const familiaDisplay = marca.identidad.tipografia.familia_variable;
   const cifraTexto = e16 ? pieza.contenido.cifra?.trim() : null;
@@ -581,7 +657,14 @@ export function Pieza({
   const sujetoEl =
     sujetoPng && gSujeto ? (
       // eslint-disable-next-line @next/next/no-img-element
-      <img data-slot="sujeto" src={sujetoPng.src} alt="" style={{ position: "absolute", left: gSujeto.x, top: gSujeto.y, width: gSujeto.w, height: gSujeto.h, display: "block" }} />
+      <img
+        data-slot="sujeto"
+        src={sujetoPng.src}
+        alt=""
+        draggable={false}
+        {...manejoArrastre}
+        style={{ position: "absolute", left: gSujeto.x, top: gSujeto.y, width: gSujeto.w, height: gSujeto.h, display: "block", ...estiloAjuste }}
+      />
     ) : null;
   // Insignia (derivado, sin referencia): en la fila del logo, del otro lado, donde no hay mensaje.
   const colIns = coloresInsignia(p, pieza.modo);
@@ -653,8 +736,17 @@ export function Pieza({
       const aspecto = s.ancho / s.alto;
       const w = Math.min(gEsc.anchoSujeto, gEsc.alto * aspecto);
       const h = w / aspecto;
-      // eslint-disable-next-line @next/next/no-img-element
-      encima = <img data-slot="sujeto" src={s.src} alt="" style={{ ...centro, width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, display: "block" }} />;
+      encima = (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          data-slot="sujeto"
+          src={s.src}
+          alt=""
+          draggable={false}
+          {...manejoArrastre}
+          style={{ ...centro, width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, display: "block", ...estiloAjuste }}
+        />
+      );
     } else if (capa6.tipo === "icono") {
       encima = (
         <div style={{ ...centro, transform: "translate(-50%, -50%)", display: "flex" }}>

@@ -46,7 +46,21 @@ export interface Sujeto {
   mascara: MascaraSujeto | null;
   /** Qué va si no hay sujeto válido. Por defecto, ícono (cadena PNG → ícono → forma o patrón → nada). */
   respaldo?: RespaldoSujeto;
+  /** Ubicación elegida a mano (E16, paso 7). Sin ajuste, el lugar automático de la variante. */
+  ajuste?: AjusteSujeto | null;
 }
+
+/**
+ * Ajuste manual del sujeto respecto de su lugar automático: desplazamiento del centro en fracción del ancho y del alto
+ * del lienzo (así vale en los 4 formatos) y escala alrededor del centro.
+ */
+export interface AjusteSujeto {
+  dx: number;
+  dy: number;
+  escala: number;
+}
+/** Rango de la escala manual: más chico se pierde el producto; más grande se come la pieza. */
+export const ESCALA_SUJETO = { min: 0.5, max: 1.6 };
 
 export type RespaldoSujeto = "icono" | "forma" | "nada";
 
@@ -203,4 +217,82 @@ export function motivoSinSujeto(s: Sujeto): string | null {
   if (s.transparente) return null;
   if (s.damero) return "La imagen tiene el fondo cuadriculado pintado: no es transparente de verdad. Se usa el respaldo.";
   return "La imagen no tiene fondo transparente (PNG o WebP recortado). Se usa el respaldo.";
+}
+
+/** Caja del sujeto con el ajuste aplicado: el centro se corre y el tamaño se escala alrededor del centro. */
+export function rectConAjuste(base: Rect, a: AjusteSujeto | null | undefined, ancho: number, alto: number): Rect {
+  if (!a) return base;
+  const w = base.w * a.escala;
+  const h = base.h * a.escala;
+  const cx = base.x + base.w / 2 + a.dx * ancho;
+  const cy = base.y + base.h / 2 + a.dy * alto;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+/** Inversa de `rectConAjuste`: el lugar automático a partir de la caja dibujada con el ajuste. */
+export function rectBase(dibujado: Rect, a: AjusteSujeto | null | undefined, ancho: number, alto: number): Rect {
+  if (!a) return dibujado;
+  const w = dibujado.w / a.escala;
+  const h = dibujado.h / a.escala;
+  const cx = dibujado.x + dibujado.w / 2 - a.dx * ancho;
+  const cy = dibujado.y + dibujado.h / 2 - a.dy * alto;
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+/** Lo opaco del sujeto en la caja `r` no toca ninguna de las cajas que informan. */
+export function sujetoLibre(m: MascaraSujeto, r: Rect, cajas: Rect[], roce = 2): boolean {
+  return cajas.every((k) => !tocaSujeto(m, r, k, roce));
+}
+
+/** El centro del sujeto queda dentro del lienzo: se puede sacar a sangre, pero no perder. */
+function centroDentro(r: Rect, ancho: number, alto: number): boolean {
+  const cx = r.x + r.w / 2;
+  const cy = r.y + r.h / 2;
+  return cx >= 0 && cx <= ancho && cy >= 0 && cy <= alto;
+}
+
+/** Paso de la búsqueda de lugar libre, en fracción del lado del lienzo (~1% = 11 px en 1080). */
+const PASO_BUSQUEDA = 0.01;
+
+/**
+ * Motor del movimiento manual (E16, paso 7): la ubicación pedida si lo opaco no tapa nada que informe y el centro
+ * queda en el lienzo; si no, la más cercana que cumpla (búsqueda en anillos alrededor de la pedida). Si a esa escala
+ * no hay lugar, prueba más chico, de a 10%, hasta el mínimo. Si tampoco, devuelve null: vuelve al lugar automático. Así
+ * el ajuste manual nunca deja la pieza en un bloqueante: lo que se exporta siempre pasa.
+ */
+export function posicionValida(m: MascaraSujeto, base: Rect, a: AjusteSujeto, cajas: Rect[], ancho: number, alto: number): AjusteSujeto | null {
+  const escala = Math.min(ESCALA_SUJETO.max, Math.max(ESCALA_SUJETO.min, a.escala));
+  // Las celdas opacas se calculan una vez por escala, relativas a la esquina del sujeto; para cada candidato solo se
+  // miran las cajas que tocan su caja (la mayoría de los candidatos se descarta ahí).
+  let rel: Rect[] = [];
+  const sirve = (x: AjusteSujeto) => {
+    const r = rectConAjuste(base, x, ancho, alto);
+    if (!centroDentro(r, ancho, alto)) return false;
+    const cerca = cajas.filter((k) => k.x < r.x + r.w && r.x < k.x + k.w && k.y < r.y + r.h && r.y < k.y + k.h);
+    return cerca.every((k) =>
+      rel.every((c) => !(Math.min(r.x + c.x + c.w, k.x + k.w) - Math.max(r.x + c.x, k.x) > 2 && Math.min(r.y + c.y + c.h, k.y + k.h) - Math.max(r.y + c.y, k.y) > 2)),
+    );
+  };
+  for (let e = escala; e >= ESCALA_SUJETO.min - 1e-9; e = Math.round((e - 0.1) * 100) / 100) {
+    rel = celdasOpacas(m, { x: 0, y: 0, w: base.w * e, h: base.h * e });
+    const pedido = { dx: a.dx, dy: a.dy, escala: e };
+    if (sirve(pedido)) return pedido;
+    // Anillos cada vez más lejos: el primero que cumple es el más cercano (a un paso de precisión).
+    for (let anillo = 1; anillo <= 100; anillo++) {
+      let mejor: AjusteSujeto | null = null;
+      let distMejor = Infinity;
+      for (let i = -anillo; i <= anillo; i++) {
+        for (const [ix, iy] of [[i, -anillo], [i, anillo], [-anillo, i], [anillo, i]]) {
+          const cand = { dx: a.dx + ix * PASO_BUSQUEDA, dy: a.dy + iy * PASO_BUSQUEDA * (ancho / alto), escala: e };
+          const dist = Math.hypot(ix * ancho, iy * ancho);
+          if (dist < distMejor && sirve(cand)) {
+            mejor = cand;
+            distMejor = dist;
+          }
+        }
+      }
+      if (mejor) return mejor;
+    }
+  }
+  return null;
 }

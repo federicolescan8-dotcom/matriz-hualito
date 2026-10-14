@@ -19,7 +19,7 @@ import { decoEfectiva, degradadoActivo, formasDeco, MAX_CONTACTO, maxItems, esti
 import { FOCO_CENTRO, PROTECCIONES, type Foco } from "@/engine/fotografia";
 import { cargarSujeto, reducirFoto } from "@/lib/imagen";
 import type { Degradado } from "@/engine/palette";
-import { motivoSinSujeto } from "@/engine/sujeto";
+import { ESCALA_SUJETO, motivoSinSujeto } from "@/engine/sujeto";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
 // Editores de los elementos gráficos de cada variante (fase 3b): capa decorativa (2B), contacto (3) y catálogo (4).
@@ -448,6 +448,31 @@ export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange:
               Quitar
             </button>
           </span>
+        )}
+        {pieza.sujeto && !motivo && (
+          // E16 paso 7: arrastrarlo en la vista previa lo mueve; acá, el tamaño. El motor nunca lo deja tapando texto.
+          <div className="flex flex-col gap-1">
+            <span className="text-neutral-500">Arrastralo en la vista previa para moverlo. Si tapa texto, se acomoda solo al lugar libre más cercano.</span>
+            <label className="flex items-center gap-2">
+              Tamaño
+              <input
+                type="range"
+                min={ESCALA_SUJETO.min * 100}
+                max={ESCALA_SUJETO.max * 100}
+                step={5}
+                value={Math.round((pieza.sujeto.ajuste?.escala ?? 1) * 100)}
+                onChange={(e) =>
+                  onChange({ sujeto: { ...pieza.sujeto!, ajuste: { dx: pieza.sujeto!.ajuste?.dx ?? 0, dy: pieza.sujeto!.ajuste?.dy ?? 0, escala: Number(e.target.value) / 100 } } })
+                }
+              />
+              <span>{Math.round((pieza.sujeto.ajuste?.escala ?? 1) * 100)}%</span>
+            </label>
+            {pieza.sujeto.ajuste && (
+              <button type="button" className="self-start underline" onClick={() => onChange({ sujeto: { ...pieza.sujeto!, ajuste: null } })}>
+                Volver a la posición automática
+              </button>
+            )}
+          </div>
         )}
       </div>}
       {!v6 && !v7 && <div className="flex flex-col gap-1 text-xs">

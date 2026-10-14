@@ -220,6 +220,14 @@ export function elementosInformativos(m: Medicion): { nombre: string; cajas: Rec
   return lista.filter((e) => e.cajas.length > 0);
 }
 
+/**
+ * Todo lo que el sujeto PNG no puede tapar: los elementos informativos más la insignia. Lo usan el control del
+ * sujeto y el motor del movimiento manual (`posicionValida`).
+ */
+export function cajasQueInforman(m: Medicion): { nombre: string; cajas: Rect[] }[] {
+  return [...elementosInformativos(m), ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] }))];
+}
+
 /** Pares de elementos informativos que se pisan (más que un roce), con la zona donde se cruzan. */
 export function superposiciones(m: Medicion): { a: string; b: string; zona: Rect }[] {
   const els = elementosInformativos(m);
@@ -489,8 +497,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // lo opaco de la imagen (su máscara), no contra su caja: el aire transparente de alrededor no cuenta.
   const capa = pieza.sujeto ? capaSujeto(marca, pieza) : null;
   if (capa?.tipo === "png" && m.sujeto) {
-    const informan = [...elementosInformativos(m), ...(m.insignias ?? []).map((k, i) => ({ nombre: `insignia ${i + 1}`, cajas: [k.caja] }))];
-    const tapados = informan.filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
+    const tapados = cajasQueInforman(m).filter((e) => e.cajas.some((k) => tocaSujeto(capa.sujeto.mascara, m.sujeto!, k, ROCE)));
     add(
       "Composición",
       "Sujeto sin tapar texto, logo ni CTA",

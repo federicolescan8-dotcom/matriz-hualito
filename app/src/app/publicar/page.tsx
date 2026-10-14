@@ -449,6 +449,8 @@ export default function PublicarPage() {
                 setResultado(r);
                 setMedicion(m);
               }}
+              // E16 paso 7: el producto recortado se arrastra en esta vista; el motor lo deja donde no tape nada.
+              onAjusteSujeto={(a) => actual.sujeto && set({ sujeto: { ...actual.sujeto, ajuste: a } })}
             />
             {guias && <Guias formato={actual.formato} medicion={medicion} escala={escala} />}
           </div>
