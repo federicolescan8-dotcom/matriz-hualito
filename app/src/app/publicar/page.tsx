@@ -26,6 +26,7 @@ import {
   quitarAceptacion,
   secuenciaModo,
   varianteSugerida,
+  esVarianteE16,
   variantesDisponibles,
   type Pieza as TPieza,
 } from "@/engine/pieza";
@@ -33,7 +34,7 @@ import { PRESETS, type Variante } from "@/engine/presets";
 import { pesoH1 } from "@/engine/typography";
 import { elegirMarcaActiva, guardarMarca, useMarcaActiva, useMarcas } from "@/lib/marcas";
 import { useSesion } from "@/lib/sesion";
-import { EditorCatalogo, EditorContacto, EditorDeco, EditorDecoracion, EditorFotoFondo } from "@/components/EditoresPieza";
+import { EditorCatalogo, EditorComposicion, EditorContacto, EditorDeco, EditorDecoracion, EditorFondo, EditorFotoFondo } from "@/components/EditoresPieza";
 import { zipSync } from "fflate";
 
 const VISTA_MAX = { ancho: 460, alto: 640 };
@@ -396,6 +397,8 @@ export default function PublicarPage() {
         {actual.variante === "F" && <EditorFotoFondo pieza={actual} onChange={set} />}
         {plantilla.deco && <EditorDeco marca={marca} pieza={actual} onChange={set} />}
         {actual.variante !== "F" && <EditorDecoracion marca={marca} pieza={actual} onChange={set} />}
+        {!(actual.variante === "F" && actual.foto_fondo) && <EditorFondo marca={marca} pieza={actual} onChange={set} />}
+        {esVarianteE16(actual.variante) && <EditorComposicion pieza={actual} onChange={set} />}
         {plantilla.bloque === "contacto" && <EditorContacto pieza={actual} onChange={set} />}
         {plantilla.bloque === "catalogo" && <EditorCatalogo marca={marca} pieza={actual} onChange={set} />}
       </section>

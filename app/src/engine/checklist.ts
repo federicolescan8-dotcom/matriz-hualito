@@ -19,6 +19,7 @@ import {
   geometriaDegradado,
   MIN_GRAFICO,
   MIN_TEXTO,
+  PASO_INTENSIDAD,
   tocaZonaClara,
 } from "./palette";
 import { alineacionesPermitidas, degradadoActivo, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
@@ -90,6 +91,13 @@ export interface Medicion {
   contrasteSobreFoto?: { h1: number; body?: number };
   /** Caja donde quedó dibujado el sujeto PNG (cap. 6b, E16), en px del lienzo. Puede salirse del lienzo. */
   sujeto?: Rect | null;
+  /**
+   * Intensidad con la que quedó dibujado el degradado (0-1, cap. 6b): la pieza la baja sola hasta que el degradado no
+   * suma avisos (`intensidadSegura`). Sin el dato, 1.
+   */
+  intensidadDegradado?: number;
+  /** Slot Cifra (cap. 6b, E16): número u oferta protagonista. Es información, pero no cuenta para la jerarquía del H1. */
+  cifra?: MedidaTexto | null;
   /** Insignias dibujadas (cap. 6b): su caja, el tamaño de su texto y sus dos colores. */
   insignias?: { caja: Rect; px: number; texto: HSL; relleno: HSL }[];
   /** Caja de la foto en forma (cap. 6b). */
@@ -197,6 +205,7 @@ export function elementosInformativos(m: Medicion): { nombre: string; cajas: Rec
     { nombre: "body", cajas: m.body?.lineas ?? [] },
     { nombre: "CTA", cajas: m.cta ? [m.cta.caja] : [] },
     { nombre: "logo", cajas: m.logo ? [m.logo] : [] },
+    { nombre: "Cifra", cajas: m.cifra?.lineas ?? [] },
     ...(m.contacto ?? []).flatMap((k, i) => [
       { nombre: `ícono de contacto ${i + 1}`, cajas: [k.icono] },
       { nombre: `dato de contacto ${i + 1}`, cajas: k.texto.lineas },
@@ -260,7 +269,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // Degradado de marca (cap. 6b, E16): misma fórmula que dibuja el SVG de la pieza.
   const degradado = degradadoActivo(marca, pieza);
   const geoDeg = degradado ? geometriaDegradado(degradado, f.ancho, f.alto) : null;
-  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo) : null;
+  const intDeg = m.intensidadDegradado ?? 1;
+  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo, intDeg) : null;
   // Fondo efectivo detrás de un bloque: el fondo de la pieza (con degradado, los colores que hay bajo cada caja), y la
   // forma mezclada encima si se superponen.
   const fondosDe = (cajas: Rect[]): HSL[] => {
@@ -276,6 +286,11 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   // ── Bloque 1: color y contraste ──
   const cH1 = peorContraste(c.texto, m.h1.lineas);
   add("Color y contraste", "H1 grande sobre su fondo", cH1 >= MIN_GRAFICO, `${r(cH1)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cH1));
+  // Cifra (cap. 6b): es texto grande e información, con el mismo mínimo que el H1.
+  if (m.cifra?.lineas.length) {
+    const cC = peorContraste(c.texto, m.cifra.lineas);
+    add("Color y contraste", "Cifra sobre su fondo", cC >= MIN_GRAFICO, `${r(cC)} (mín. 3:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cC));
+  }
   if (m.body) {
     const cBody = peorContraste(c.texto, m.body.lineas);
     add("Color y contraste", "Body sobre su fondo", cBody >= MIN_TEXTO, `${r(cBody)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cBody));
@@ -315,10 +330,11 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
     const textosDeg = [
       { nombre: "H1", cajas: m.h1.lineas },
       { nombre: "body", cajas: m.body?.lineas ?? [] },
+      { nombre: "Cifra", cajas: m.cifra?.lineas ?? [] },
       ...contacto.map((k, i) => ({ nombre: `dato de contacto ${i + 1}`, cajas: k.texto.lineas })),
       ...items.map((k, i) => ({ nombre: `texto del ítem ${i + 1}`, cajas: k.texto.lineas })),
     ];
-    const enZona = textosDeg.filter((t) => t.cajas.some((k) => tocaZonaClara(geoDeg, k))).map((t) => t.nombre);
+    const enZona = textosDeg.filter((t) => t.cajas.some((k) => tocaZonaClara(geoDeg, k, intDeg))).map((t) => t.nombre);
     add("Color y contraste", "Texto fuera de la zona clara del degradado", enZona.length === 0, enZona.join(", "), "mover la zona clara a otra esquina o cambiar la forma del degradado");
   }
   if (contacto.length) {
@@ -394,7 +410,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
 
   // ── Bloque 3: composición ──
   // Espacio negativo: cuenta todo lo que informa (texto, CTA, logo, contacto, ítems). La capa decorativa no.
-  const textos = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cta ? [m.cta.caja] : [])];
+  const textos = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cifra?.lineas ?? []), ...(m.cta ? [m.cta.caja] : [])];
   const contenido = [
     ...textos,
     ...(m.logo ? [m.logo] : []),
@@ -583,7 +599,7 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (f.recorteGrilla && pieza.canal === "feed_ig") {
     const izq = f.ancho * f.recorteGrilla;
     const der = f.ancho - izq;
-    const clave = elementosInformativos(m).filter((e) => e.nombre === "H1" || e.nombre === "CTA" || e.nombre === "logo");
+    const clave = elementosInformativos(m).filter((e) => e.nombre === "H1" || e.nombre === "CTA" || e.nombre === "logo" || e.nombre === "Cifra");
     const cortados = clave.filter((e) => e.cajas.some((k) => k.x < izq - 0.5 || k.x + k.w > der + 0.5));
     add(
       "Zonas seguras",
@@ -597,7 +613,8 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   if (f.columnaMensaje) {
     const limite = f.ancho * f.columnaMensaje;
     // Solo el mensaje (texto, CTA y logo): la capa decorativa, el contacto o los ítems van a la derecha (cap. 6).
-    const fuera = [...textos, ...(m.logo ? [m.logo] : [])].filter((k) => k.x + k.w > limite + 0.5).length;
+    // La Cifra de las variantes nuevas va en la columna derecha en 1200×630 (cap. 6b): no cuenta como mensaje acá.
+    const fuera = [...m.h1.lineas, ...(m.body?.lineas ?? []), ...(m.cta ? [m.cta.caja] : []), ...(m.logo ? [m.logo] : [])].filter((k) => k.x + k.w > limite + 0.5).length;
     add("Zonas seguras", `Mensaje en el ${Math.round(f.columnaMensaje * 100)}% izquierdo del ancho`, fuera === 0, fuera ? `${fuera} elemento(s) pasan el límite` : "", "recortar texto");
   }
 
@@ -697,4 +714,22 @@ export function aplicarAceptaciones(controles: Control[], aceptaciones: Aceptaci
 export function estadoDe(controles: Control[], motivos_revision: string[]): ResultadoChecklist["estado"] {
   if (motivos_revision.length) return "revision_manual";
   return controles.every((k) => k.ok || k.aceptado || k.nivel === "sugerencia") ? "ok" : "rechazado";
+}
+
+/**
+ * Intensidad automática del degradado (cap. 6b, E16): la más alta, de 1 hacia abajo en pasos de 5%, con la que el
+ * degradado no suma ningún control fallido respecto del fondo liso (intensidad 0). Mide sobre las cajas reales de la
+ * pieza: con una marca de buen contraste queda en 1 (el degradado de la referencia); con una más justa, aclara menos.
+ * Lo que ya falla con fondo liso no es culpa del degradado y no lo baja.
+ */
+export function intensidadSegura(marca: Marca, pieza: Pieza, m: Medicion): number {
+  if (!degradadoActivo(marca, pieza)) return 1;
+  const fallas = (k: number) =>
+    new Set(evaluarPieza(marca, pieza, { ...m, intensidadDegradado: k }).controles.filter((c) => !c.ok).map((c) => c.control));
+  const base = fallas(0);
+  for (let i = Math.round(1 / PASO_INTENSIDAD); i > 0; i--) {
+    const k = i * PASO_INTENSIDAD;
+    if ([...fallas(k)].every((c) => base.has(c))) return k;
+  }
+  return 0;
 }

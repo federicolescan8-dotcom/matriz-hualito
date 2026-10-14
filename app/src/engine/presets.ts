@@ -7,7 +7,7 @@ export type TipoAcento = "complementario" | "analogo";
 export type Modo = "A" | "B";
 export type Alineacion = "izquierda" | "centrado";
 /** "P" (Punto) es solo para los slides de contenido del carrusel. "F" (texto sobre foto, E6) pide fotos habilitadas. */
-export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4" | "P" | "F";
+export type Variante = "1" | "2" | "2B-L" | "2B-S" | "3" | "4" | "P" | "F" | "5";
 
 export interface PresetRubro {
   nombre: string;

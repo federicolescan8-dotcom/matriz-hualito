@@ -329,7 +329,7 @@ manuales.
   tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
   checklist; objetivo a nivel de marca.
 
-### E16 · Recursos y variantes de composición · [ ] en curso (pasos 1 a 4 hechos) · depende de E6, E7 y E15
+### E16 · Recursos y variantes de composición · [ ] en curso (pasos 1 a 4 hechos; paso 5 en curso: variante 5 hecha) · depende de E6, E7 y E15
 - **Por qué:** las piezas se sienten monótonas (pocas variantes, fondo liso). Se suman recursos gráficos medibles y tres
   variantes nuevas sacadas de 6 diseños de referencia del cliente interno (4:5, medidos en píxeles). Solo digital
   (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos. Especificación en el cap. 6b del manual.
@@ -358,7 +358,7 @@ manuales.
      transparencia; el estado sin sujeto pasa el checklist. **Hecho.** Quedó: `engine/sujeto.ts` (análisis de alfa con transparencia útil, detección del damero pintado, máscara de 48 celdas, cadena de respaldo), `cargarSujeto` en `lib/imagen.ts` (PNG hasta 1600 px, recortado a lo visible), `Pieza.sujeto`, `Medicion.sujeto` y el control bloqueante "Sujeto sin tapar texto, logo ni CTA", con 16 tests en `sujeto.test.ts`; falta dibujarlo en `Pieza.tsx` y la carga en Publicaciones, que llegan en el paso 5 porque el lugar lo define cada variante.
   4. **Insignia, foto en forma y palabra gigante.** *Aceptación:* un control por regla, con su test. **Hecho.** Quedó: `engine/composicion.ts` (colores de la insignia con el par del CTA o invertido, geometría de la foto en forma 2,5:1 con radio del 1,5% y color tono sobre tono de la palabra gigante a ±0,06 de L), `Pieza.insignia`, `Pieza.foto_forma` y `Pieza.palabra_gigante`, `Medicion.insignias`, `Medicion.fotoForma` y `Medicion.palabra` leídas por `lib/medicion.ts`, y los controles en `checklist.ts` (seis de la insignia, "Foto en forma sin texto encima" bloqueante, la palabra gigante como peor fondo del texto y "Una sola decoración protagonista"), con 16 tests en `composicion.test.ts`; falta dibujarlos en `Pieza.tsx`, que llega en el paso 5 con las variantes.
   5. **Las variantes 5, 6 y 7**, una por una, con verificación visual. *Aceptación:* pasan el checklist en los 4
-     formatos o se documenta cuál no y por qué.
+     formatos o se documenta cuál no y por qué. **En curso: 5 hecha; faltan 6 y 7.** Quedó de la 5 · Apilada: plantilla y geometría en `pieza.ts` (`medioApilada`, `geometriaSujetoApilada`, degradado por defecto por variante), slot Cifra con su control, insignia, foto en forma, sujeto y palabra gigante dibujados en `Pieza.tsx`, `EditorFondo` y `EditorComposicion` en Publicaciones, y la **intensidad automática del degradado** (`intensidadSegura`: la más alta que no suma avisos respecto del fondo liso; decisión del usuario porque con +0,21 de L saltaban avisos en casi todos los formatos). Las 16 piezas (4 formatos × sin medio, Cifra, foto, sujeto) aprueban; 17 tests en `variante5.test.ts`. Hallazgo: con la palabra gigante bajo el CTA, "CTA sobre el degradado" da 2,4:1 aun con fondo liso (aviso correcto). La 5 aún no está en la grilla de la presentación, los tipos de contenido ni la sugerida del rubro (paso 6).
   6. **Conexión a `TIPOS_CONTENIDO.variantes` y `varianteSugerida` por rubro**, sin repetir la misma variante seguida.
      *Aceptación:* tests de selección.
 - **Fuera de alcance:** banco de matrices por ejemplos, ingredientes flotantes o realismo 3D, eliminación automática

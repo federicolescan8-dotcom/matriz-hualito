@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BIBLIOTECA_RUBRO,
   CONTACTO,
@@ -14,9 +15,11 @@ import { decoracionesPara, trazadoDecoracion } from "@/engine/decoraciones";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
 import { hslCss } from "@/engine/color";
-import { decoEfectiva, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
+import { decoEfectiva, degradadoActivo, formasDeco, MAX_CONTACTO, maxItems, estiloIconos, modoDeco, type Deco, type Pieza } from "@/engine/pieza";
 import { FOCO_CENTRO, PROTECCIONES, type Foco } from "@/engine/fotografia";
-import { reducirFoto } from "@/lib/imagen";
+import { cargarSujeto, reducirFoto } from "@/lib/imagen";
+import type { Degradado } from "@/engine/palette";
+import { motivoSinSujeto } from "@/engine/sujeto";
 import { FormaSvg, Icono, PatronSvg } from "./Graficos";
 
 // Editores de los elementos gráficos de cada variante (fase 3b): capa decorativa (2B), contacto (3) y catálogo (4).
@@ -358,6 +361,124 @@ export function EditorFotoFondo({ pieza, onChange }: { pieza: Pieza; onChange: (
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const FONDOS: { id: string; nombre: string; valor: Degradado | null }[] = [
+  { id: "liso", nombre: "Liso", valor: null },
+  { id: "diagonal-ar", nombre: "Diagonal ↗", valor: { forma: "diagonal", esquina: "arriba-derecha" } },
+  { id: "diagonal-ab", nombre: "Diagonal ↘", valor: { forma: "diagonal", esquina: "abajo-derecha" } },
+  { id: "vertical", nombre: "Vertical", valor: { forma: "vertical" } },
+  { id: "radial", nombre: "Radial", valor: { forma: "radial" } },
+];
+
+/**
+ * Fondo de la pieza (cap. 6b, E16): liso o degradado de marca, tono sobre tono. Sin elegir, vale el de la variante
+ * (liso en las de siempre; el de su referencia en las nuevas). El checklist mide el contraste bajo cada caja.
+ */
+export function EditorFondo({ marca, pieza, onChange }: { marca: Marca; pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
+  const actual = degradadoActivo(marca, pieza);
+  const id = (d: Degradado | null) => (!d ? "liso" : d.forma === "diagonal" ? (d.esquina === "abajo-derecha" ? "diagonal-ab" : "diagonal-ar") : d.forma);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="font-medium">Fondo</span>
+      <div className="flex flex-wrap gap-2 text-xs">
+        {FONDOS.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange({ degradado: o.valor })}
+            className={`rounded-md border px-3 py-1.5 ${id(actual) === o.id ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 bg-white"}`}
+          >
+            {o.nombre}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Recursos de las variantes nuevas (cap. 6b, E16): Cifra, foto en forma, sujeto PNG, insignia y palabra gigante. En la
+ * variante 5 el medio sale solo: el sujeto si tiene transparencia; si no, la Cifra; si no, la foto en forma.
+ */
+export function EditorComposicion({ pieza, onChange }: { pieza: Pieza; onChange: (p: Partial<Pieza>) => void }) {
+  const [cargando, setCargando] = useState(false);
+  const motivo = pieza.sujeto ? motivoSinSujeto(pieza.sujeto) : null;
+  const campo = "rounded-md border border-neutral-300 px-3 py-2";
+  return (
+    <div className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1">
+        <span className="font-medium">Cifra</span>
+        <input
+          value={pieza.contenido.cifra ?? ""}
+          placeholder="25% OFF"
+          onChange={(e) => onChange({ contenido: { ...pieza.contenido, cifra: e.target.value || null } })}
+          className={campo}
+        />
+        <span className="text-xs text-neutral-500">Número u oferta protagonista. No cuenta para la jerarquía del H1.</span>
+      </label>
+      <div className="flex flex-col gap-1 text-xs">
+        <span className="text-sm font-medium">Producto recortado (PNG con fondo transparente)</span>
+        <input
+          type="file"
+          accept="image/png,image/webp"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setCargando(true);
+            try {
+              onChange({ sujeto: await cargarSujeto(file) });
+            } finally {
+              setCargando(false);
+            }
+          }}
+        />
+        {cargando && <span className="text-neutral-500">Analizando la transparencia…</span>}
+        {pieza.sujeto && (
+          <span className={motivo ? "text-amber-700" : "text-emerald-700"}>
+            {motivo ?? "Transparencia útil: va el producto recortado."}{" "}
+            <button type="button" className="underline" onClick={() => onChange({ sujeto: null })}>
+              Quitar
+            </button>
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-1 text-xs">
+        <span className="text-sm font-medium">Foto en forma</span>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (file) onChange({ foto_forma: { src: await reducirFoto(file) } });
+          }}
+        />
+        {pieza.foto_forma && (
+          <MiniaturaFoco src={pieza.foto_forma.src} foco={pieza.foto_forma.foco} onChange={(foco) => onChange({ foto_forma: { ...pieza.foto_forma!, foco } })} />
+        )}
+        {pieza.foto_forma && (
+          <button type="button" className="self-start underline" onClick={() => onChange({ foto_forma: null })}>
+            Quitar foto
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="font-medium">Insignia</span>
+          <input value={pieza.insignia?.texto ?? ""} placeholder="Nuevo" onChange={(e) => onChange({ insignia: e.target.value ? { texto: e.target.value } : null })} className={campo} />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="font-medium">Palabra gigante</span>
+          <input
+            value={pieza.palabra_gigante?.texto ?? ""}
+            placeholder="OFF"
+            onChange={(e) => onChange({ palabra_gigante: e.target.value ? { texto: e.target.value } : null })}
+            className={campo}
+          />
+        </label>
+      </div>
     </div>
   );
 }

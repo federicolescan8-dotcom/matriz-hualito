@@ -33,6 +33,8 @@ export interface Pieza {
     h1: string;
     body: string | null;
     cta: string | null;
+    /** Slot Cifra (cap. 6b, E16): número u oferta protagonista ("25% OFF"). Es información; solo en las variantes nuevas. */
+    cifra?: string | null;
   };
   /** Itálica en el body: solo si la marca la tiene habilitada (cap. 4 paso 3). */
   body_italica: boolean;
@@ -146,6 +148,8 @@ export interface PlantillaVariante {
   deco?: "lateral" | "inferior";
   /** Variantes con bloque informativo. */
   bloque?: "contacto" | "catalogo";
+  /** Variantes nuevas (cap. 6b): tamaño de letra máximo de la Cifra en px (escala feed). */
+  cifra?: number;
 }
 
 type AjusteVariante = Partial<Omit<PlantillaVariante, "h1" | "body">> & {
@@ -230,6 +234,20 @@ export const PLANTILLAS: Partial<Record<Variante, PlantillaVariante>> = {
     cta: 34,
     logoPx: 90,
   },
+  // Variante 5 · Apilada (cap. 6b, E16, diseños 1 a 3): logo, H1 y body a la izquierda; medio opcional (Cifra, foto en
+  // forma o sujeto a sangre) y CTA. Tamaños medidos en 4:5: renglón del H1 de ~110 px (letra ~104), Cifra con
+  // mayúsculas de 111 px (letra ~150), logo de 63 px de alto visible.
+  "5": {
+    nombre: "5 · Apilada",
+    descripcion: "Logo, mensaje y dato a la izquierda; abajo una cifra, una foto o un producto recortado, y el llamado a la acción.",
+    orden: ["logo", "H1", "body", "cta"],
+    politicaCta: "si",
+    h1: { min: 56, max: 104, altoMax: 0.34 },
+    body: { min: 26, max: 36 },
+    cta: 34,
+    logoPx: 80,
+    cifra: 150,
+  },
   P: {
     nombre: "P · Punto",
     descripcion: "Slide de contenido del carrusel: número grande, un título corto y su desarrollo.",
@@ -255,6 +273,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { max: 88, altoMax: 0.3, maxLineas: 2 }, logoPx: 80 },
     "4": { h1: { max: 76, altoMax: 0.22, maxLineas: 2 }, logoPx: 64 },
     F: { h1: { max: 92, altoMax: 0.3, maxLineas: 3 }, logoPx: 76 },
+    "5": { h1: { max: 88, altoMax: 0.26, maxLineas: 2 }, body: { max: 32 }, logoPx: 64, cifra: 120 },
   },
   "9:16": {
     "1": { h1: { altoMax: 0.42 } },
@@ -265,6 +284,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { altoMax: 0.3 } },
     "4": { h1: { altoMax: 0.2 } },
     F: { h1: { altoMax: 0.3 } },
+    "5": { h1: { altoMax: 0.3 } },
   },
   "1200x630": {
     "1": { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 60 },
@@ -274,6 +294,7 @@ const AJUSTES_FORMATO: Partial<Record<Formato, Partial<Record<Variante, AjusteVa
     "3": { h1: { min: 48, max: 84, altoMax: 0.55 }, body: { min: 24, max: 28 }, logoPx: 56 },
     "4": { h1: { min: 48, max: 72, altoMax: 0.45 }, body: { min: 24, max: 26 }, cta: 26, logoPx: 56 },
     F: { h1: { min: 48, max: 80, altoMax: 0.5 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56 },
+    "5": { h1: { min: 48, max: 76, altoMax: 0.42 }, body: { min: 24, max: 28 }, cta: 26, logoPx: 56, cifra: 120 },
   },
 };
 
@@ -301,6 +322,13 @@ export function h1Minimo(plantilla: PlantillaVariante, escala: number): number {
 
 /** Variantes de una publicación simple. La P (Punto) se usa solo dentro del carrusel. */
 export const VARIANTES_HABILITADAS = (Object.keys(PLANTILLAS) as Variante[]).filter((v) => v !== "P");
+
+/**
+ * Variantes nuevas de E16 (cap. 6b). Se eligen a mano en Publicaciones; todavía no entran en la grilla de la
+ * presentación, en los tipos de contenido ni en la sugerida del rubro (paso 6 de E16).
+ */
+export const VARIANTES_E16: Variante[] = ["5"];
+export const esVarianteE16 = (v: Variante) => VARIANTES_E16.includes(v);
 
 /** Variantes que la marca puede usar: la F (texto sobre foto) solo con fotos propias habilitadas (E6). */
 export function variantesDisponibles(marca: Marca): Variante[] {
@@ -417,9 +445,49 @@ export function piezaNueva(marca: Marca): Pieza {
  * no hay degradado que medir.
  */
 export function degradadoActivo(marca: Marca, pieza: Pieza): Degradado | null {
-  if (!pieza.degradado) return null;
   if (pieza.variante === "F" && marca.identidad.fotos_habilitadas && pieza.foto_fondo) return null;
-  return pieza.degradado;
+  // `null` es fondo liso elegido a propósito; sin el campo vale el de la variante: liso en las de siempre (nada cambia)
+  // y el de su referencia en las nuevas (cap. 6b).
+  if (pieza.degradado !== undefined) return pieza.degradado;
+  return degradadoDeVariante(marca, pieza);
+}
+
+/** Degradado por defecto de cada variante nueva (cap. 6b): la 5 lleva el diagonal, con la zona clara detrás del sujeto. */
+export function degradadoDeVariante(marca: Marca, pieza: Pieza): Degradado | null {
+  if (pieza.variante === "5") return { forma: "diagonal", esquina: medioApilada(pieza) === "sujeto" ? "abajo-derecha" : "arriba-derecha" };
+  return null;
+}
+
+/**
+ * Medio de la variante 5 (cap. 6b): el sujeto PNG si tiene transparencia útil; si no (estado sin sujeto), la Cifra si
+ * tiene texto; si no, la foto en forma si hay foto; si no, nada.
+ */
+export function medioApilada(pieza: Pieza): "sujeto" | "cifra" | "foto" | null {
+  if (pieza.sujeto?.transparente && pieza.sujeto.mascara) return "sujeto";
+  if (pieza.contenido.cifra?.trim()) return "cifra";
+  if (pieza.foto_forma?.src) return "foto";
+  return null;
+}
+
+/**
+ * Caja del sujeto a sangre de la variante 5 (diseño 3): entra contenido en una zona que arranca en el 22% del ancho y
+ * el 58,5% del alto (50% en 9:16, que tiene más alto libre; derivado) y se sale del lienzo por la derecha y por abajo
+ * (8% y 6%, derivado), pegado a esa esquina. En
+ * 1200×630 va contenido en la columna derecha (derivado). Px del lienzo.
+ */
+export function geometriaSujetoApilada(formato: Formato, aspecto: number): { x: number; y: number; w: number; h: number } {
+  const f = FORMATOS[formato];
+  const zona = f.columnaMensaje
+    ? { x0: f.ancho * f.columnaMensaje + 40, y0: f.alto * f.zona.arriba, x1: f.ancho * (1 - f.zona.x), y1: f.alto * (1 - f.zona.abajo) }
+    : { x0: f.ancho * 0.22, y0: f.alto * (formato === "9:16" ? 0.5 : 0.585), x1: f.ancho * 1.08, y1: f.alto * 1.06 };
+  const zw = zona.x1 - zona.x0;
+  const zh = zona.y1 - zona.y0;
+  const w = Math.min(zw, zh * aspecto);
+  const h = w / aspecto;
+  // Vertical: pegado abajo a la derecha (sale del lienzo). Horizontal: centrado en su columna.
+  return f.columnaMensaje
+    ? { x: zona.x0 + (zw - w) / 2, y: zona.y0 + (zh - h) / 2, w, h }
+    : { x: zona.x1 - w, y: zona.y1 - h, w, h };
 }
 
 /** La variante puede llevar CTA: lo espera o lo admite como opcional (cap. 7b). */
@@ -494,7 +562,7 @@ export function geometria2BLImagen(formato: Formato): {
  */
 export function piezasDeGrilla(marca: Marca, contenido: Pieza["contenido"], n = 9): Pieza[] {
   const prioritarias = PRESETS[marca.rubro].prioritarias.filter((v) => (VARIANTES_HABILITADAS as Variante[]).includes(v));
-  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !prioritarias.includes(v))];
+  const variantes = [...prioritarias, ...variantesDisponibles(marca).filter((v) => v !== "F" && !esVarianteE16(v) && !prioritarias.includes(v))];
   const secuencia = secuenciaModo(marca);
   const base = piezaNueva(marca);
   return Array.from({ length: n }, (_, i) => {

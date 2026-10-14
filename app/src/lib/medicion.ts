@@ -30,6 +30,7 @@ export function ajustarTexto(
   // El CTA va en una línea; si así no entra en ninguna posición, se le permite partirse en dos.
   root.style.setProperty("--cta-salto", "nowrap");
   root.style.setProperty("--h1-mayuscula", "0px");
+  ajustarCifra(root, plantilla, escala);
   let desborde = ajustarEnPosiciones(root, plantilla, alto, escala, decoIzq);
   if (desborde && q(root, "cta")) {
     root.style.setProperty("--cta-salto", "normal");
@@ -40,6 +41,20 @@ export function ajustarTexto(
   const h1 = q(root, "h1");
   if (decoIzq && h1) root.style.setProperty("--h1-mayuscula", `${aireSobreMayuscula(h1)}px`);
   return desborde;
+}
+
+/**
+ * Cifra (cap. 6b, E16): arranca en su tamaño máximo y se achica de a 4 px hasta entrar en una línea a lo ancho, sin
+ * bajar de la mitad. Va antes del H1: su alto ya ocupa lugar cuando se busca el H1 más grande.
+ */
+function ajustarCifra(root: HTMLElement, plantilla: PlantillaVariante, escala: number) {
+  const cifra = q(root, "cifra");
+  if (!cifra || !plantilla.cifra) return;
+  const max = Math.round(plantilla.cifra * escala);
+  for (let v = max; v >= max / 2; v -= 4) {
+    root.style.setProperty("--cifra", `${v}px`);
+    if (cifra.scrollWidth <= cifra.clientWidth + 1) return;
+  }
 }
 
 /** Distancia entre el borde superior del renglón del H1 y el tope de sus mayúsculas, en px. */
@@ -312,6 +327,7 @@ export function medirPieza(root: HTMLElement, desborde: boolean): Medicion {
     deco: medirDeco(root),
     iconos: root.querySelectorAll("[data-icono]").length,
     // Sujeto PNG (E16): la caja del <img>, que se dibuja con la proporción de la imagen (sin aire de object-fit).
+    cifra: q(root, "cifra")?.textContent?.trim() ? medirTexto(root, q(root, "cifra")!) : null,
     sujeto: q(root, "sujeto") ? relativo(root, q(root, "sujeto")!.getBoundingClientRect()) : null,
     // Recursos de composición (E16): la insignia lleva sus colores en data-, como el soporte de los íconos.
     insignias: [...root.querySelectorAll<HTMLElement>('[data-slot="insignia"]')].map((el) => ({

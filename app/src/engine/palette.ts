@@ -764,9 +764,10 @@ export function geometriaDegradado(d: Degradado, ancho: number, alto: number): G
  * croma relativo constante (C/L). En la referencia el croma sube con la luz (0,084 a 0,119, la misma proporción que
  * L): con el croma fijo el claro sale lavado, a ΔE 12 del medido.
  */
-export function colorClaroDegradado(fondo: HSL, modo: "A" | "B"): HSL {
+export function colorClaroDegradado(fondo: HSL, modo: "A" | "B", intensidad = 1): HSL {
   const [L, C, h] = oklch(fondo);
-  const destino = Math.min(1, Math.max(0, modo === "B" ? L + DEGRADADO_DELTA_L : L - DEGRADADO_DELTA_L));
+  const delta = DEGRADADO_DELTA_L * intensidad;
+  const destino = Math.min(1, Math.max(0, modo === "B" ? L + delta : L - delta));
   return desdeOklch(destino, L > 0 ? (C * destino) / L : C, h);
 }
 
@@ -822,7 +823,13 @@ export function fondosBajoCaja(fondo: HSL, claro: HSL, g: GeometriaDegradado, k:
   return Array.from({ length: n }, (_, i) => mezclar(fondo, claro, m0 + ((m1 - m0) * i) / (n - 1)));
 }
 
-/** La caja entra en la zona clara declarada, donde no va texto. */
-export function tocaZonaClara(g: GeometriaDegradado, k: { x: number; y: number; w: number; h: number }): boolean {
-  return rangoMezcla(g, k)[1] >= ZONA_CLARA;
+/**
+ * La caja entra en la zona clara declarada, donde no va texto. Con la intensidad bajada (ajuste automático) la zona se
+ * achica: cuenta lo que de verdad aclara (mezcla × intensidad).
+ */
+export function tocaZonaClara(g: GeometriaDegradado, k: { x: number; y: number; w: number; h: number }, intensidad = 1): boolean {
+  return rangoMezcla(g, k)[1] * intensidad >= ZONA_CLARA;
 }
+
+/** Paso del ajuste automático de la intensidad del degradado: de 1 a 0 de a 5%. */
+export const PASO_INTENSIDAD = 0.05;
