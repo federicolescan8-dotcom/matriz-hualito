@@ -3,6 +3,7 @@
 import {
   BIBLIOTECA_RUBRO,
   ICONOS,
+  iconoParaOferta,
   rellenosDisponibles,
   type EstiloIconos,
   type Patron,
@@ -463,9 +464,9 @@ export function piezaNueva(marca: Marca): Pieza {
     ],
     // La oferta real del cliente (E12) nombra los ítems del catálogo.
     items: [
-      { texto: oferta[0] ?? "Producto uno", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][0], foto: null },
-      { texto: oferta[1] ?? "Producto dos", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][1], foto: null },
-      { texto: oferta[2] ?? "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
+      { texto: oferta[0] ?? "Producto uno", icono: iconoParaOferta(oferta[0] ?? "", marca.rubro, 0), foto: null },
+      { texto: oferta[1] ?? "Producto dos", icono: iconoParaOferta(oferta[1] ?? "", marca.rubro, 1), foto: null },
+      { texto: oferta[2] ?? "Producto tres", icono: iconoParaOferta(oferta[2] ?? "", marca.rubro, 2), foto: null },
     ],
   };
 }

@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import barocca from "../../../herramientas/perfilador/ejemplos/perfil-barocca.json";
+import { fallasPaleta } from "./palette";
+import { secuenciaModo } from "./pieza";
 import { FORMATO_PERFIL, marcaDePerfil, validarPerfil, type Perfil } from "./perfil";
 
 // Copia profunda del ejemplo para poder romperlo en cada caso sin afectar a los demás.
 const ejemplo = (): Record<string, any> => JSON.parse(JSON.stringify(barocca)); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const sinEsencia = (p: Perfil): Perfil => ({ ...p, esencia: null });
 
 function valido(json: unknown): Perfil {
   const r = validarPerfil(json);
@@ -79,7 +83,7 @@ describe("perfil de una marca existente (perfilador)", () => {
 
   it("arma una marca en rescate con la paleta del motor y la auditoría hecha", () => {
     const p = valido(ejemplo());
-    const m = marcaDePerfil(p);
+    const m = marcaDePerfil(sinEsencia(p)).marca;
     expect(m.nombre).toBe("Barocca");
     expect(m.estado).toBe("en_diagnostico");
     // Refresco: se optimiza el matiz del color previo, no se hereda tal cual.
@@ -93,15 +97,47 @@ describe("perfil de una marca existente (perfilador)", () => {
   it("en grado rescate hereda el color previo", () => {
     const j = ejemplo();
     j.rescate.grado = "rescate";
-    const m = marcaDePerfil(valido(j));
+    const m = marcaDePerfil(sinEsencia(valido(j))).marca;
     expect(m.identidad.color.modo).toBe("heredado");
   });
 
   it("sin color previo usa el rango de los ejes", () => {
     const j = ejemplo();
     j.diagnostico.color_previo_hex = null;
-    const m = marcaDePerfil(valido(j));
+    const m = marcaDePerfil(sinEsencia(valido(j))).marca;
     expect(m.identidad.color.modo).toBe("optimizado");
     expect(m.identidad.paleta.color_marca).toBeTruthy();
+  });
+
+  it("con esencia negra y crema: marca negra heredada, fondo crema y la secuencia abre en Modo B", () => {
+    const j = ejemplo();
+    j.esencia = { superficie: { H: 0, S: 0, L: 4 }, figura: { H: 37.7, S: 44.3, L: 84.5 }, detalle: null, fuentes: ["perfil.png"] };
+    const { marca, avisos } = marcaDePerfil(valido(j));
+    const p = marca.identidad.paleta;
+    expect(marca.identidad.color.modo).toBe("heredado");
+    expect(p.color_marca.L).toBeLessThan(10);
+    expect(p.fondo_neutro.L).toBeGreaterThanOrEqual(84);
+    expect(p.fondo_neutro.H).toBeCloseTo(37.7, 0);
+    expect(p.invertir_modo).toBe(true);
+    expect(marca.diagnostico.color_previo_hex).toBe("#0A0A0A");
+    expect(avisos).toEqual([]);
+    expect(fallasPaleta(p)).toEqual([]);
+  });
+
+  it("el ejemplo de Barocca con su esencia sale negro, crema y dorado, y abre en Modo B", () => {
+    const { marca } = marcaDePerfil(valido(ejemplo()));
+    const p = marca.identidad.paleta;
+    expect(p.color_marca.L).toBeLessThan(5);
+    expect(p.fondo_neutro.L).toBeGreaterThan(85);
+    expect(p.acento.H).toBeCloseTo(30.2, 0);
+    expect(p.invertir_modo).toBe(true);
+    expect(secuenciaModo(marca)[0]).toBe("B");
+    expect(fallasPaleta(p)).toEqual([]);
+  });
+
+  it("rechaza una esencia con colores que no son HSL", () => {
+    const j = ejemplo();
+    j.esencia = { superficie: "#000", figura: { H: 0, S: 0, L: 90 }, detalle: null };
+    expect(validarPerfil(j).ok).toBe(false);
   });
 });

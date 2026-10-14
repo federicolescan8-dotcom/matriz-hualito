@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BIBLIOTECA_RUBRO, FORMAS, formasDelRubro, rellenosDisponibles, TODOS_LOS_ICONOS } from "./biblioteca";
+import { BIBLIOTECA_RUBRO, FORMAS, formasDelRubro, ICONOS, iconoParaOferta, rellenosDisponibles, TODOS_LOS_ICONOS } from "./biblioteca";
 import { evaluarPieza, type Medicion } from "./checklist";
 import { construirMarca, diagnosticoVacio, generarChips } from "./diagnostico";
 import { decoEfectiva, maxIconos, maxItems, piezaNueva, type Pieza } from "./pieza";
@@ -123,5 +123,19 @@ describe("checklist de elementos gráficos", () => {
     expect(falla(r, "Ítems de catálogo")).toBe(true);
     const r2 = evaluarPieza(marca, p, med({ items: [item, { ...item, visual: { ...item.visual, x: 360 } }], iconos: 3 }));
     expect(falla(r2, "Íconos por pieza")).toBe(true);
+  });
+});
+
+describe("íconos por oferta", () => {
+  it("reconoce el producto en el texto, sin acentos ni mayúsculas", () => {
+    expect(iconoParaOferta("Helado artesanal", "gastronomia")).toBe("IceCream");
+    expect(iconoParaOferta("Café de especialidad", "gastronomia")).toBe("Coffee");
+    expect(iconoParaOferta("Postres y pastelería", "gastronomia")).toBe("Cake");
+    expect(iconoParaOferta("Licuados y frappés", "gastronomia")).toBe("Martini");
+  });
+
+  it("sin palabra conocida usa la lista del rubro en su posición, como antes", () => {
+    expect(iconoParaOferta("Producto uno", "gastronomia", 0)).toBe(ICONOS.gastronomia[0]);
+    expect(iconoParaOferta("", "servicios", 2)).toBe(ICONOS.servicios[2]);
   });
 });

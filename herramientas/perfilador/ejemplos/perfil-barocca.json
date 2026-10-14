@@ -58,6 +58,12 @@
       }
     ]
   },
+  "esencia": {
+    "superficie": { "H": 0, "S": 0, "L": 0 },
+    "figura": { "H": 37.5, "S": 28.6, "L": 87.3 },
+    "detalle": { "H": 30.2, "S": 43.3, "L": 63.9 },
+    "fuentes": ["identidad/perfil.png", "identidad/destacado-sabores.png", "identidad/logo.png"]
+  },
   "evidencia": {
     "ejes": {
       "clasico_moderno": "Logo con serif clásica y ornamento; las piezas mezclan scripts caligráficos.",

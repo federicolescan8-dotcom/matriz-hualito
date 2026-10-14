@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { contraste, hexToHsl, hslCss, hslToHex, mezclar, type HSL } from "@/engine/color";
-import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
+import { AREA_SEGURIDAD, dataUrlASvg, elegirVersionLogo, monocromoDe, versionLegible } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
 import { cajasQueInforman, evaluarPieza, intensidadSegura, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
@@ -252,7 +252,13 @@ export function Pieza({
     const modoFoto = sobreFoto ? (logoDef.sobre_foto ?? "mono") : "mono";
     // Sobre una placa el logo va en color y el fondo pasa a ser el neutro de la marca.
     const conPlaca = modoFoto === "placa" && !!(logoDef.color ?? elegida);
-    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : version;
+    // Un logo color que no se lee sobre este fondo (claro sobre claro) pasa a su monocromo: el SVG se recolorea.
+    const esSvg = !!(logoDef.color && dataUrlASvg(logoDef.color));
+    const legible = versionLegible(version, logoDef.color_dominante, fondoLogo, {
+      mono_claro: !!logoDef.mono_claro || esSvg,
+      mono_oscuro: !!logoDef.mono_oscuro || esSvg,
+    });
+    const versionEfectiva = conPlaca ? "color" : modoFoto === "sombra" ? "mono_claro" : legible;
     const fondoReal = conPlaca ? p.fondo_neutro : fondoLogo;
     let src: string | null | undefined = logoDef[versionEfectiva] ?? logoSrc;
     let aspecto: number | undefined = versionEfectiva === "color" ? logoDef.aspecto : undefined;

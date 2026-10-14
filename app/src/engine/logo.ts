@@ -1,6 +1,9 @@
 // Generación del par monocromo a partir del logo color en SVG (manual cap. 2 paso 4).
 // Trabajo de una sola vez por cliente: recolorea todo relleno y trazo visible con un único color.
 
+import { BLANCO, contraste, type HSL } from "./color";
+import { MIN_GRAFICO } from "./palette";
+
 const ATRIBUTO = /\b(fill|stroke)\s*=\s*"(?!none\b)(?!url\()[^"]*"/gi;
 const PROPIEDAD = /\b(fill|stroke)\s*:\s*(?!none\b)(?!url\()[^;"}]+/gi;
 const STOP = /\bstop-color\s*[:=]\s*"?[^;"}\s]+"?/gi;
@@ -82,4 +85,23 @@ export function cajaVisible(caja: { x: number; y: number; w: number; h: number }
   const w = Math.min(caja.w, caja.h * aspecto);
   const h = w / aspecto;
   return { x: caja.x + (caja.w - w) / 2, y: caja.y + (caja.h - h) / 2, w, h };
+}
+
+/** Tinta del monocromo oscuro (la misma que usa `monocromoDe`). */
+const TINTA_MONO: HSL = { H: 0, S: 0, L: 10 };
+
+/**
+ * Versión del logo que se lee sobre su fondo (cap. 6, E4). El Modo A pide la versión color, pero hay marcas cuyo logo
+ * color es claro porque nació sobre un fondo oscuro (crema sobre negro): si su color dominante no llega a 3:1 con el
+ * fondo, se usa el monocromo que contrasta, si existe. Si no hay monocromo, queda la pedida y el checklist avisa.
+ */
+export function versionLegible(
+  version: "color" | "mono_claro" | "mono_oscuro",
+  dominante: HSL | null | undefined,
+  fondo: HSL,
+  hay: { mono_claro: boolean; mono_oscuro: boolean },
+): "color" | "mono_claro" | "mono_oscuro" {
+  if (version !== "color" || !dominante || contraste(dominante, fondo) >= MIN_GRAFICO) return version;
+  const mono = contraste(BLANCO, fondo) >= contraste(TINTA_MONO, fondo) ? "mono_claro" : "mono_oscuro";
+  return hay[mono] ? mono : version;
 }

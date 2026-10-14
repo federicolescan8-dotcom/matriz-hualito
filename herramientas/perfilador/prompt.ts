@@ -1,6 +1,7 @@
 // Lo que el modelo tiene que interpretar y cómo devolverlo. Los enums, los ejes y las familias salen del motor, así
 // el prompt no se desincroniza con la matriz si cambia el catálogo.
 
+import { hslToHex, type HSL } from "../../app/src/engine/color";
 import { EJES, EJES_RUBRO } from "../../app/src/engine/ejes";
 import { MAX_PUBLICO } from "../../app/src/engine/diagnostico";
 import { MAX_OFERTA, MAX_TEXTO_CONTENIDO } from "../../app/src/engine/perfil";
@@ -94,7 +95,9 @@ aquien, motiva y frena: una frase cada uno, hasta ${MAX_PUBLICO} caracteres, ded
 puede deducir.
 
 ## Color
-Los colores ya están medidos de las imágenes; vos no los adivinás. Te paso la lista de candidatos con su peso y en
+Los colores ya están medidos de las imágenes; vos no los adivinás. Si te paso una esencia de identidad (lo que la
+marca muestra siempre igual: foto de perfil, destacados, logo), esa es su paleta y no se discute: color_previo_hex va
+en null. Te paso la lista de candidatos con su peso y en
 qué archivos aparecen. En color_previo_hex elegí el que la marca usa como propio: el del logo o el que se repite en
 casi todas las piezas, no un color de temporada (Navidad, Día de la Madre) ni el de una foto de producto. Tiene que
 ser exactamente uno de los HEX de la lista, o null si ninguno es de la marca.
@@ -113,9 +116,17 @@ De 0 a 1, qué tan seguro estás de los ejes, del tono y del rubro.
 
 En evidencia.notas, dos o tres observaciones útiles para el diseñador sobre lo que hoy está desordenado.`;
 
-export function pedido(empresa: string, candidatos: { hex: string; peso: number; fuentes: string[] }[]): string {
+export function pedido(
+  empresa: string,
+  candidatos: { hex: string; peso: number; fuentes: string[] }[],
+  esencia: { superficie: HSL; figura: HSL; detalle: HSL | null } | null,
+): string {
   const lista = candidatos.length
     ? candidatos.map((c) => `- ${c.hex} · peso ${c.peso} · en ${c.fuentes.join(", ")}`).join("\n")
     : "(no se midió ningún color)";
-  return `Empresa: ${empresa}\n\nColores medidos (candidatos a color_previo_hex):\n${lista}\n\nLas imágenes van arriba, cada una precedida por su nombre de archivo.`;
+  const hex = (c: HSL | null) => (c ? hslToHex(c).toUpperCase() : "ninguno");
+  const ancla = esencia
+    ? `\n\nEsencia de identidad medida (foto de perfil, destacados y logo): superficie ${hex(esencia.superficie)}, figura ${hex(esencia.figura)}, detalle ${hex(esencia.detalle)}. Es la paleta que la marca ya tiene fijada y se mantiene: devolvé color_previo_hex en null.`
+    : "";
+  return `Empresa: ${empresa}\n\nColores medidos (candidatos a color_previo_hex):\n${lista}${ancla}\n\nLas imágenes van arriba, cada una precedida por su nombre de archivo.`;
 }

@@ -25,7 +25,8 @@ export async function importarArchivo(json: File, logo?: File | null): Promise<R
   const esperado = r.perfil.logo?.archivo;
   if (esperado && !logo) avisos.push(`El perfil trae el logo «${esperado}»: cargalo después en el diagnóstico.`);
   try {
-    return { ok: true, marca: marcaDePerfil(r.perfil, logo ? await logoDeArchivo(logo) : undefined), avisos };
+    const armada = marcaDePerfil(r.perfil, logo ? await logoDeArchivo(logo) : undefined);
+    return { ok: true, marca: armada.marca, avisos: [...avisos, ...armada.avisos] };
   } catch (e) {
     return { ok: false, errores: [e instanceof Error ? e.message : "No se pudo armar la marca desde el perfil."] };
   }

@@ -4,8 +4,8 @@ import { useId } from "react";
 import {
   Barbell, BowlFood, Briefcase, Cake, Calculator, Calendar, ChartLine, CheckCircle, Clock, Cloud, Code, Coffee, Cookie,
   Cpu, CreditCard, DeviceMobile, Drop, Envelope, FacebookLogo, FileText, Fire, Flower, ForkKnife, Gear, Gift, Globe,
-  Hamburger, HandHeart, Handshake, Heart, House, InstagramLogo, Laptop, Leaf, Lightbulb, Lightning, MapPin, Medal, Moon,
-  Percent, Phone, Pizza, Robot, Rocket, Scales, Scissors, ShieldCheck, ShoppingBag, ShoppingCart, Sparkle, Star,
+  Hamburger, HandHeart, Handshake, Heart, House, IceCream, InstagramLogo, Laptop, Leaf, Lightbulb, Lightning, MapPin, Medal, Moon,
+  Martini, Percent, Phone, Pizza, Popsicle, Robot, Rocket, Scales, Scissors, ShieldCheck, ShoppingBag, ShoppingCart, Sparkle, Star,
   Storefront, Sun, Tag, Trophy, Truck, TShirt, Users, WhatsappLogo, Wine,
   type Icon,
 } from "@phosphor-icons/react";
@@ -19,8 +19,8 @@ import { resolverForma, type EstiloIconos, type Forma, type Patron } from "@/eng
 const ICONOS: Record<string, Icon> = {
   Barbell, BowlFood, Briefcase, Cake, Calculator, Calendar, ChartLine, CheckCircle, Clock, Cloud, Code, Coffee, Cookie,
   Cpu, CreditCard, DeviceMobile, Drop, Envelope, FacebookLogo, FileText, Fire, Flower, ForkKnife, Gear, Gift, Globe,
-  Hamburger, HandHeart, Handshake, Heart, House, InstagramLogo, Laptop, Leaf, Lightbulb, Lightning, MapPin, Medal, Moon,
-  Percent, Phone, Pizza, Robot, Rocket, Scales, Scissors, ShieldCheck, ShoppingBag, ShoppingCart, Sparkle, Star,
+  Hamburger, HandHeart, Handshake, Heart, House, IceCream, InstagramLogo, Laptop, Leaf, Lightbulb, Lightning, MapPin, Medal, Moon,
+  Martini, Percent, Phone, Pizza, Popsicle, Robot, Rocket, Scales, Scissors, ShieldCheck, ShoppingBag, ShoppingCart, Sparkle, Star,
   Storefront, Sun, Tag, Trophy, Truck, TShirt, Users, WhatsappLogo, Wine,
 };
 

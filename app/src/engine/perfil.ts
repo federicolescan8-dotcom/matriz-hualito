@@ -3,7 +3,8 @@
 // y los colores medidos. Acá vive lo puro: validar ese JSON (viene de un modelo de lenguaje, así que no se confía en
 // nada) y convertirlo en una marca en rescate. La paleta no sale del JSON: la arma el motor con `construirMarca`.
 
-import { hexToHsl, type HSL } from "./color";
+import { hexToHsl, hslToHex, type HSL } from "./color";
+import { aplicarEsencia, rolesDeEsencia, type Esencia } from "./esencia";
 import { construirMarca, diagnosticoVacio, generarChips, MAX_PUBLICO, publicoLimpio, type Diagnostico, type Marca } from "./diagnostico";
 import { EJES, tonoDeEjes, valorDeEjes, type Eje, type Ejes } from "./ejes";
 import { RUBROS, type Rubro, type Tono, type ValorMarca } from "./presets";
@@ -28,6 +29,11 @@ export interface Perfil {
   /** Archivo del logo que viaja al lado del JSON (la app lo carga aparte). */
   logo: { archivo: string } | null;
   rescate: { grado: GradoCambio; referencias: ReferenciaRescate[] };
+  /**
+   * Colores de identidad medidos de la foto de perfil, los destacados y el logo (extremos incluidos). Si está, manda
+   * sobre el color previo en todos los grados: es lo que la marca ya tiene fijado (`esencia.ts`).
+   */
+  esencia: Esencia | null;
   /** Por qué se decidió cada cosa: es para el diseñador, el motor no la usa. */
   evidencia: { ejes: Partial<Record<Eje, string>>; tipografia_observada: string; notas: string[] };
   /** Seguridad del perfilador en cada decisión, de 0 a 1. */
@@ -121,6 +127,20 @@ export function validarPerfil(json: unknown): ResultadoPerfil {
   });
   if (!referencias.length) avisos.push("No hay referencias de color: la auditoría del rescate queda vacía.");
 
+  let esencia: Esencia | null = null;
+  if (json.esencia != null) {
+    const e = esObj(json.esencia) ? json.esencia : {};
+    if (!esHsl(e.superficie) || !esHsl(e.figura) || (e.detalle != null && !esHsl(e.detalle)))
+      errores.push("esencia: null o { superficie, figura, detalle } con colores {H,S,L} (detalle puede ser null).");
+    else
+      esencia = {
+        superficie: e.superficie,
+        figura: e.figura,
+        detalle: (e.detalle as HSL | null) ?? null,
+        fuentes: Array.isArray(e.fuentes) ? e.fuentes.map(texto).filter(Boolean) : [],
+      };
+  } else avisos.push("Sin esencia de identidad: el color sale del color previo o de los ejes.");
+
   if (errores.length) return { ok: false, errores: [...new Set(errores)] };
 
   const ev = esObj(json.evidencia) ? json.evidencia : {};
@@ -167,6 +187,7 @@ export function validarPerfil(json: unknown): ResultadoPerfil {
       diagnostico,
       logo,
       rescate: { grado, referencias },
+      esencia,
       evidencia: {
         ejes: evEjes,
         tipografia_observada: texto(ev.tipografia_observada),
@@ -182,18 +203,40 @@ function esHsl(v: unknown): v is HSL {
 }
 
 /**
- * Marca en rescate armada desde un perfil válido. El chip sale del color previo medido: en grado rescate se hereda tal
- * cual (nada visible cambia, cap. E11); en refresco o evolución se usa su versión optimizada. Sin color previo, el
- * primer chip del rango de los ejes. La auditoría de color queda hecha con las referencias medidas.
+ * Marca en rescate armada desde un perfil válido.
+ * - Con esencia (cualquier grado): el color de marca es el de la identidad, heredado tal cual; el fondo neutro y el
+ *   acento de la identidad se fijan como ajuste manual si cumplen los contrastes, y si la superficie de la identidad es
+ *   el color de marca la secuencia arranca en Modo B. La esencia no se negocia: el grado decide el resto.
+ * - Sin esencia: el chip sale del color previo medido; en rescate se hereda tal cual (cap. E11), en refresco o
+ *   evolución se usa su versión optimizada. Sin color previo, el primer chip del rango de los ejes.
+ * La auditoría de color queda hecha con las referencias medidas.
  */
-export function marcaDePerfil(perfil: Perfil, logo?: Partial<Diagnostico["logo"]>, organizacion_id?: string): Marca {
+export function marcaDePerfil(
+  perfil: Perfil,
+  logo?: Partial<Diagnostico["logo"]>,
+  organizacion_id?: string,
+): { marca: Marca; avisos: string[] } {
   const vacio = diagnosticoVacio();
-  const d: Diagnostico = { ...vacio, ...perfil.diagnostico, logo: { ...vacio.logo, ...logo } };
+  const roles = perfil.esencia ? rolesDeEsencia(perfil.esencia) : null;
+  const d: Diagnostico = {
+    ...vacio,
+    ...perfil.diagnostico,
+    ...(roles ? { color_previo_hex: hslToHex(roles.color_marca).toUpperCase() } : {}),
+    logo: { ...vacio.logo, ...logo },
+  };
   const chips = generarChips(d).filter((c) => c.resultado.paleta);
-  const preferido = perfil.rescate.grado === "rescate" ? "previo-heredado" : "previo-optimizado";
+  const preferido = roles || perfil.rescate.grado === "rescate" ? "previo-heredado" : "previo-optimizado";
   const chip = chips.find((c) => c.id === preferido) ?? chips[0];
   if (!chip) throw new Error("Ningún color del perfil da una paleta válida: revisar el diagnóstico a mano.");
-  const marca = construirMarca(d, chip, organizacion_id);
+  let marca = construirMarca(d, chip, organizacion_id);
+  const avisos: string[] = [];
+  if (roles) {
+    if (chip.id !== preferido) avisos.push("El color de marca de la identidad no da una paleta válida tal cual: se usó otro chip.");
+    const r = aplicarEsencia(marca, roles);
+    marca = r.marca;
+    avisos.push(...r.avisos);
+  }
   const { referencias, grado } = perfil.rescate;
-  return { ...conRescate(marca, { grado, referencias, grupos: gruposDeReferencias(referencias) }), estado: "en_diagnostico" };
+  marca = { ...conRescate(marca, { grado, referencias, grupos: gruposDeReferencias(referencias) }), estado: "en_diagnostico" };
+  return { marca, avisos };
 }
