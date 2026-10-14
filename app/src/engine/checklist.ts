@@ -6,17 +6,22 @@ import { contraste, mezclar, type HSL } from "./color";
 import type { Marca } from "./diagnostico";
 import { FORMATOS } from "./formatos";
 import {
+  colorClaroDegradado,
   coloresModo,
   controlesCtaModoA,
   controlesCtaModoB,
   controlesCtaSobre,
   ctaModoA,
   ctaModoB,
+  estiloCta,
   fondoCapaDecorativa,
+  fondosBajoCaja,
+  geometriaDegradado,
   MIN_GRAFICO,
   MIN_TEXTO,
+  tocaZonaClara,
 } from "./palette";
-import { alineacionesPermitidas, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
+import { alineacionesPermitidas, degradadoActivo, h1Minimo, MAX_CONTACTO, maxIconos, maxItems, plantillaPara, PLANTILLAS, type Aceptacion, type Pieza } from "./pieza";
 import { decoracionEfectiva, tocaDecoracion, type GeometriaDecoracion } from "./decoraciones";
 import { OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO, type TipoDeco } from "./biblioteca";
 import { AREA_SEGURIDAD, LOGO_MIN_PX } from "./logo";
@@ -243,10 +248,16 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
   const escala = f.escala === "story" ? FACTOR_STORY : 1;
   const r = (v: number) => `${v.toFixed(1)}:1`;
 
-  // Fondo efectivo detrás de un bloque: el fondo de la pieza, o la forma mezclada si se superponen.
+  // Degradado de marca (cap. 6b, E16): misma fórmula que dibuja el SVG de la pieza.
+  const degradado = degradadoActivo(marca, pieza);
+  const geoDeg = degradado ? geometriaDegradado(degradado, f.ancho, f.alto) : null;
+  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo) : null;
+  // Fondo efectivo detrás de un bloque: el fondo de la pieza (con degradado, los colores que hay bajo cada caja), y la
+  // forma mezclada encima si se superponen.
   const fondosDe = (cajas: Rect[]): HSL[] => {
-    const fondos = [c.fondo];
-    if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(mezclar(c.fondo, m.forma.color, m.forma.opacidad));
+    const base = geoDeg && claroDeg ? cajas.flatMap((k) => fondosBajoCaja(c.fondo, claroDeg, geoDeg, k)) : [];
+    const fondos = base.length ? base : [c.fondo];
+    if (m.forma && cajas.some((k) => seTocan(k, m.forma!.caja))) fondos.push(...fondos.map((b) => mezclar(b, m.forma!.color, m.forma!.opacidad)));
     return fondos;
   };
   const peorContraste = (color: HSL, cajas: Rect[]) => Math.min(...fondosDe(cajas).map((b) => contraste(color, b)));
@@ -271,8 +282,26 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       add("Color y contraste", `CTA (${modo}): ${k.control}`, k.valor >= k.minimo, `${r(k.valor)} (mín. ${k.minimo}:1)`, "elegir otro tratamiento del CTA o corregir el acento", k.control.includes("texto") ? nivelTexto(k.valor) : "aviso");
     }
   }
+  // Con degradado, el borde del botón (su contorno, si lleva) se mide contra el peor color del fondo bajo su caja.
+  if (m.cta && !cupula && geoDeg) {
+    const e = estiloCta(p, pieza.modo);
+    const borde = e.anillo?.color ?? e.fondo;
+    const cB = Math.min(...fondosDe([m.cta.caja]).map((b) => contraste(borde, b)));
+    add("Color y contraste", "CTA sobre el degradado", cB >= MIN_GRAFICO, `${r(cB)} (mín. 3:1)`, "mover el CTA o cambiar la forma del degradado");
+  }
   const contacto = m.contacto ?? [];
   const items = m.items ?? [];
+  // Zona clara declarada (cap. 6b): el degradado aclara donde no hay texto.
+  if (geoDeg) {
+    const textosDeg = [
+      { nombre: "H1", cajas: m.h1.lineas },
+      { nombre: "body", cajas: m.body?.lineas ?? [] },
+      ...contacto.map((k, i) => ({ nombre: `dato de contacto ${i + 1}`, cajas: k.texto.lineas })),
+      ...items.map((k, i) => ({ nombre: `texto del ítem ${i + 1}`, cajas: k.texto.lineas })),
+    ];
+    const enZona = textosDeg.filter((t) => t.cajas.some((k) => tocaZonaClara(geoDeg, k))).map((t) => t.nombre);
+    add("Color y contraste", "Texto fuera de la zona clara del degradado", enZona.length === 0, enZona.join(", "), "mover la zona clara a otra esquina o cambiar la forma del degradado");
+  }
   if (contacto.length) {
     const cT = Math.min(...contacto.map((k) => peorContraste(c.texto, k.texto.lineas)));
     add("Color y contraste", "Datos de contacto sobre su fondo", cT >= MIN_TEXTO, `${r(cT)} (mín. 4,5:1)`, "función de ajuste (cap. 3, paso 6)", nivelTexto(cT));
@@ -456,7 +485,9 @@ export function evaluarPieza(marca: Marca, pieza: Pieza, m: Medicion): Resultado
       .map((e) => e.nombre);
     add("Zonas seguras", "Área de seguridad del logo", invade.length === 0, invade.length ? `invade: ${invade.join(", ")}` : "", "separar el logo de los otros elementos");
     if (m.logoColor && m.logoFondo) {
-      const cL = contraste(m.logoColor, m.logoFondo);
+      // Sobre el fondo de la pieza con degradado, el peor color bajo la caja del logo (una placa tiene su propio fondo).
+      const sobreFondo = geoDeg && contraste(m.logoFondo, c.fondo) < 1.01;
+      const cL = sobreFondo ? Math.min(...fondosDe([m.logo]).map((b) => contraste(m.logoColor!, b))) : contraste(m.logoColor, m.logoFondo);
       add("Color y contraste", "Logo contrasta con su fondo", cL >= MIN_GRAFICO, `${r(cL)} (mín. 3:1)`, "usar la versión monocromo o una placa detrás");
     }
   }

@@ -329,7 +329,7 @@ manuales.
   tendencias dentro del motor; objetivo en el carrusel y en "Sin tipo"; buyer persona completo o conectado al
   checklist; objetivo a nivel de marca.
 
-### E16 · Recursos y variantes de composición · [ ] en curso (paso 1 hecho) · depende de E6, E7 y E15
+### E16 · Recursos y variantes de composición · [ ] en curso (paso 1 y 2 hechos) · depende de E6, E7 y E15
 - **Por qué:** las piezas se sienten monótonas (pocas variantes, fondo liso). Se suman recursos gráficos medibles y tres
   variantes nuevas sacadas de 6 diseños de referencia del cliente interno (4:5, medidos en píxeles). Solo digital
   (4:5, 1:1, 9:16, 1200×630); no hay formatos nuevos. Especificación en el cap. 6b del manual.
@@ -352,7 +352,7 @@ manuales.
   2. **Degradado de marca.** Campo de fondo en `Pieza`, cálculo en `palette.ts`, raíz de `Pieza.tsx`,
      `fondosDe`/`peorContraste` en `checklist.ts` midiendo bajo cada caja; revisar logo, CTA y detalles que asumen
      fondo liso. *Aceptación:* default liso idéntico al de hoy; tests de contraste sobre degradado, incluida la zona
-     clara.
+     clara. **Hecho.** Quedó: degradado diagonal, vertical y radial con el color claro a croma relativo constante, contraste de texto y logo medido bajo cada caja, avisos de CTA y de zona clara, 17 tests en `degradado.test.ts`; falta el selector en Publicaciones, y `colorDetalle`, el número de la P, la forma de fondo y la decoración de plantilla se siguen calculando contra el fondo liso.
   3. **Sujeto PNG.** Carga que conserve el alfa (no `reducirFoto`, que pasa a JPEG), recorte de transparencia, campo en
      `Pieza`, superposición medida sobre el área opaca, cadena de respaldo. *Aceptación:* tests con sujeto con y sin
      transparencia; el estado sin sujeto pasa el checklist.

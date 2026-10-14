@@ -16,6 +16,7 @@ import type { Marca } from "./diagnostico";
 import { CANALES, FORMATOS, type Canal, type Formato } from "./formatos";
 import { PRESETS, type Alineacion, type Modo, type Rubro, type Variante } from "./presets";
 import type { Foco, LadoTexto, Proteccion } from "./fotografia";
+import type { Degradado } from "./palette";
 import { compensacionOptica, CTA_MIN, JERARQUIA_H1 } from "./typography";
 
 export interface Pieza {
@@ -53,6 +54,8 @@ export interface Pieza {
   foto_texto?: LadoTexto;
   /** La pieza es un slide de un carrusel: su posición, su rol y, en el contenido, el número de punto (carrusel.ts). */
   carrusel?: { indice: number; total: number; rol: "portada" | "contenido" | "cierre"; punto?: number };
+  /** Fondo con degradado de marca (cap. 6b, E16). null o ausente = fondo liso, como siempre. */
+  degradado?: Degradado | null;
   /** Color de la decoración de plantilla: índice de un secundario de la paleta extendida (E3). null = tono de apoyo. */
   color_decoracion?: number | null;
   /** Avisos del checklist aceptados a mano, con su justificación (E9). */
@@ -396,6 +399,16 @@ export function piezaNueva(marca: Marca): Pieza {
       { texto: oferta[2] ?? "Producto tres", icono: ICONOS[BIBLIOTECA_RUBRO[marca.rubro].iconosSugeridos[0]][2], foto: null },
     ],
   };
+}
+
+/**
+ * Degradado de marca que se dibuja de verdad (cap. 6b, E16). En la variante F con foto la foto tapa el fondo, así que
+ * no hay degradado que medir.
+ */
+export function degradadoActivo(marca: Marca, pieza: Pieza): Degradado | null {
+  if (!pieza.degradado) return null;
+  if (pieza.variante === "F" && marca.identidad.fotos_habilitadas && pieza.foto_fondo) return null;
+  return pieza.degradado;
 }
 
 /** La variante puede llevar CTA: lo espera o lo admite como opcional (cap. 7b). */

@@ -1,15 +1,25 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { contraste, hexToHsl, hslCss, type HSL } from "@/engine/color";
+import { contraste, hexToHsl, hslCss, hslToHex, mezclar, type HSL } from "@/engine/color";
 import { AREA_SEGURIDAD, elegirVersionLogo, monocromoDe } from "@/engine/logo";
 import { BIBLIOTECA_RUBRO, CONTACTO, OPACIDAD_ICONO_DECO, OPACIDAD_PATRON, OVERLAY_FOTO } from "@/engine/biblioteca";
 import { evaluarPieza, type Medicion, type ResultadoChecklist } from "@/engine/checklist";
 import type { Marca } from "@/engine/diagnostico";
 import { FORMATOS } from "@/engine/formatos";
-import { coloresModo, estiloCta, estiloCtaSobre, fondoCapaDecorativa, MIN_GRAFICO, opacidadSegura } from "@/engine/palette";
+import {
+  colorClaroDegradado,
+  coloresModo,
+  estiloCta,
+  estiloCtaSobre,
+  fondoCapaDecorativa,
+  geometriaDegradado,
+  MIN_GRAFICO,
+  opacidadSegura,
+} from "@/engine/palette";
 import {
   decoEfectiva,
+  degradadoActivo,
   estiloIconos,
   geometria2BLImagen,
   modoDeco,
@@ -104,6 +114,12 @@ export function Pieza({
   const ladoTexto = pieza.foto_texto ?? "abajo";
   const bloqueFoto = esFoto ? bloqueTexto(f, ladoTexto) : null;
   const capaFoto = fotoFondo && bloqueFoto ? capaProteccion(proteccion, bloqueFoto, f, ladoTexto) : null;
+  // Degradado de marca (cap. 6b, E16): la misma geometría y las mismas paradas que mide el checklist. Las paradas van
+  // en hex (sin redondear el matiz) para que el color dibujado sea el medido.
+  const degradado = degradadoActivo(marca, pieza);
+  const geoDeg = degradado ? geometriaDegradado(degradado, f.ancho, f.alto) : null;
+  const claroDeg = degradado ? colorClaroDegradado(c.fondo, pieza.modo) : null;
+  const paradasDeg = geoDeg && claroDeg ? geoDeg.paradas.map(([o, k], i) => <stop key={i} offset={o} stopColor={hslToHex(mezclar(c.fondo, claroDeg, k))} />) : null;
   // Con punto focal el encuadre necesita el tamaño de la foto: la pieza no se mide hasta tenerlo.
   const fotosConFoco = pieza.foto_foco ? [fotoFondo, deco?.relleno === "foto" ? deco.foto : null].filter((s): s is string => !!s) : [];
   const [dimensionesListas, setDimensionesListas] = useState(0);
@@ -632,6 +648,22 @@ export function Pieza({
         ["--deco-izq" as string]: `${g.izquierda}px`,
       }}
     >
+      {geoDeg && (
+        <svg data-slot="degradado" data-forma={degradado?.forma} width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
+          <defs>
+            {geoDeg.tipo === "lineal" ? (
+              <linearGradient id={`dg${uid}`} gradientUnits="userSpaceOnUse" x1={geoDeg.x1} y1={geoDeg.y1} x2={geoDeg.x2} y2={geoDeg.y2}>
+                {paradasDeg}
+              </linearGradient>
+            ) : (
+              <radialGradient id={`dg${uid}`} gradientUnits="userSpaceOnUse" cx={geoDeg.cx} cy={geoDeg.cy} r={geoDeg.r}>
+                {paradasDeg}
+              </radialGradient>
+            )}
+          </defs>
+          <rect width={f.ancho} height={f.alto} fill={`url(#dg${uid})`} />
+        </svg>
+      )}
       {fotoFondo && (
         <svg data-slot="foto-fondo" width={f.ancho} height={f.alto} viewBox={`0 0 ${f.ancho} ${f.alto}`} style={{ position: "absolute", left: 0, top: 0, display: "block" }}>
           <defs>
